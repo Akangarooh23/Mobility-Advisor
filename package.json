@@ -96,6 +96,7 @@
     "test:as24-de-enrich": "node scripts/comprueba-as24-de-enrich.js",
     "test:danos-de": "node scripts/comprueba-danos-de.js",
     "test:flexicar": "node scripts/comprueba-flexicar.js",
+    "test:flexicar-enrich": "node scripts/comprueba-flexicar-enrich.js",
     "test:importacion-scoring": "node scripts/comprueba-importacion-scoring.js",
     "despublica-horquilla": "node scripts/despublica-fuera-de-horquilla.js",
     "ajusta-importacion": "node scripts/ajusta-publicadas-importacion.js",

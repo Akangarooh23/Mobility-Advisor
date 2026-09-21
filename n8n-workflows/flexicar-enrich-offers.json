@@ -1,15 +1,15 @@
 {
-  "name": "Flexicar – Enriquecer Ofertas",
+  "name": "Flexicar – Enriquecer (puertas, plazas, potencia, cilindrada, carrocería, CO₂)",
   "nodes": [
     {
       "parameters": {},
-      "id": "ab2aad88-2915-4b6e-9804-10b9fcb131ba",
-      "name": "Llamada desde workflow padre",
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "id": "fe-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -6448,
-        560
+        -560,
+        200
       ]
     },
     {
@@ -18,160 +18,69 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 5 * * *"
+              "expression": "0 25 10,14,18,22 * * *"
             }
           ]
         }
       },
-      "id": "41bc7c64-6dde-4ab2-af04-bb89e749f708",
-      "name": "Cada día a las 5:00",
+      "id": "fe-cron",
+      "name": "4 veces/día (10:25, 14:25, 18:25 y 22:25)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -6432,
-        352
+        -560,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id,\n  COALESCE(url, '') AS url,\n  COALESCE(color, '') AS color,\n  COALESCE(doors, 0)::int AS doors,\n  COALESCE(seats, 0)::int AS seats,\n  COALESCE(power_cv, 0)::int AS power_cv,\n  COALESCE(displacement, '') AS displacement,\n  COALESCE(consumption, 0) AS consumption,\n  COALESCE(body_type, '') AS body_type,\n  COALESCE(traction, '') AS traction,\n  COALESCE(co2, '') AS co2,\n  COALESCE(image_url, '') AS image_url\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '7 days')\n  AND last_seen_at > NOW() - INTERVAL '60 days'\n  AND (\n    COALESCE(color, '') = ''\n    OR COALESCE(doors, 0) = 0\n    OR COALESCE(seats, 0) = 0\n    OR COALESCE(body_type, '') = ''\n    OR COALESCE(displacement, '') = ''\n    OR COALESCE(consumption, 0) = 0\n    OR COALESCE(traction, '') = ''\n    OR COALESCE(co2, '') = ''\n  )\nORDER BY enrich_tried_at ASC NULLS FIRST\nLIMIT 300",
+        "query": "-- Las ofertas de Flexicar a las que les falta algo de la ficha.\n--\n-- Solo lo VISTO VIVO hace poco: last_seen_at, no last_checked_at. La diferencia\n-- es que la primera dice «lo vimos vivo» y la segunda solo «lo intentamos», y\n-- gastar una petición en un coche vendido es tirarla. Lo aprendimos en\n-- AutoScout24 España, donde la primera versión de la cola traía seis coches\n-- muertos de cada seis.\n--\n-- El scraper recorre el catálogo entero dos veces al día, así que «visto en los\n-- últimos 3 días» aquí es de verdad «sigue en el catálogo».\nSELECT id,\n       COALESCE(fuel, '') AS fuel,\n       COALESCE(doors, 0) AS doors,\n       COALESCE(seats, 0) AS seats,\n       COALESCE(power_cv, 0) AS power_cv,\n       COALESCE(displacement, '') AS displacement,\n       COALESCE(body_type, '') AS body_type,\n       COALESCE(co2, '') AS co2,\n       COALESCE(consumption, 0) AS consumption,\n       COALESCE(environmental_label, '') AS environmental_label\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND is_active\n  AND enrich_tried_at IS NULL\n  AND (doors IS NULL OR doors = 0\n       OR seats IS NULL OR seats = 0\n       OR power_cv IS NULL OR power_cv = 0\n       OR COALESCE(displacement, '') = ''\n       OR COALESCE(body_type, '') = ''\n       OR COALESCE(co2, '') = '')\nORDER BY (last_seen_at > NOW() - INTERVAL '3 days') DESC, scraped_at DESC\nLIMIT 1000",
         "options": {}
       },
-      "id": "498522b0-3d3d-4213-a3c0-2a20802e94fd",
-      "name": "PG: Ofertas a enriquecer",
+      "id": "fe-cola",
+      "name": "PG: Cola a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -6144,
-        256
+        -320,
+        300
       ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "dcb5094d-ff88-45d3-8df7-3f6491399bc0",
+      "id": "fe-loop",
       "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -5904,
-        256
+        -100,
+        300
       ]
     },
     {
       "parameters": {
-        "url": "={{ $json.url }}",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "User-Agent",
-              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-            },
-            {
-              "name": "Accept",
-              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-            },
-            {
-              "name": "Accept-Language",
-              "value": "es-ES,es;q=0.9"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "timeout": 20000
-        }
+        "jsCode": "// Cortacircuitos y guarda de cola vacía, antes de gastar la petición.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.fe_run || s.fe_run !== $execution.id) {\n  s.fe_run = $execution.id;\n  s.fe_parado = false;\n  s.fe_intentos = 0;\n  s.fe_fallos = 0;\n  s.fe_leidas = 0;\n  s.fe_co2 = 0;\n  s.fe_vendidas = 0;\n  s.fe_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\n// Así cayeron cuatro ejecuciones de Gamboa el 2026-09-07.\nif (!item || !item.id) {\n  console.log('[fx-enrich] no hay nada que enriquecer ahora mismo.');\n  return [{ json: Object.assign({}, item || {}, { url: '' }) }];\n}\nif (s.fe_parado) return [{ json: Object.assign({}, item, { url: '' }) }];\n\n// La URL se arma con el id, no se lee de la base: la de la base es la de la\n// página web y lo que queremos es la API.\nreturn [{ json: Object.assign({}, item, {\n  url: 'https://services.flexicar.es/api/v1/vehicles/' + String(item.id),\n}) }];"
       },
-      "id": "51b9c089-a864-49f6-9a2f-6d2a1e8aacbe",
-      "name": "HTTP: Ficha HTML Flexicar",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        -5664,
-        256
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nconst dbUrl = String(dbRecord.url || '');\n\n// La respuesta HTML viene como string en $input.item.json.data o directamente\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut\n  : (httpOut.data || httpOut.body || httpOut.html || '');\n\nconsole.log('[flexicar-enrich] id=' + dbId + ' url=' + dbUrl + ' html_len=' + String(html).length);\n\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n\nfunction normalizeBody(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (!s) return '';\n  if (s.indexOf('suv') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('todoterreno') !== -1 || s.indexOf('todo') !== -1) return 'SUV';\n  if (s.indexOf('pick') !== -1) return 'Pick Up';\n  if (s.indexOf('furgon') !== -1 || s.indexOf('van') !== -1 || s.indexOf('comercial') !== -1) return 'Furgoneta';\n  if (s.indexOf('familiar') !== -1 || s.indexOf('estate') !== -1 || s.indexOf('combi') !== -1) return 'Familiar';\n  if (s.indexOf('monovolumen') !== -1 || s.indexOf('mpv') !== -1) return 'Monovolumen';\n  if (s.indexOf('coupe') !== -1 || s.indexOf('coupé') !== -1 || s.indexOf('coup') !== -1) return 'Coupé';\n  if (s.indexOf('cabrio') !== -1 || s.indexOf('convert') !== -1 || s.indexOf('descapotable') !== -1) return 'Cabrio';\n  if (s.indexOf('pequeñ') !== -1 || s.indexOf('pequen') !== -1 || s.indexOf('compact') !== -1 || s.indexOf('ciudad') !== -1 || s.indexOf('utilitario') !== -1) return 'Compacto';\n  if (s.indexOf('berlina') !== -1 || s.indexOf('sedan') !== -1 || s.indexOf('turismo') !== -1 || s.indexOf('hatchback') !== -1) return 'Berlina';\n  return raw || '';\n}\n\nfunction normalizeTraction(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('total') !== -1 || s.indexOf('integral') !== -1 || s.indexOf('4x4') !== -1 || s.indexOf('awd') !== -1 || s.indexOf('4wd') !== -1) return '4x4';\n  if (s.indexOf('tras') !== -1 || s.indexOf('rear') !== -1) return 'Trasera';\n  if (s.indexOf('del') !== -1 || s.indexOf('front') !== -1) return 'Delantera';\n  return '';\n}\n\n// ── Extraer __NEXT_DATA__ ──────────────────────────────────────────────────\nlet vehicle = null;\nlet buildId = '';\nconst htmlStr = String(html);\n\ntry {\n  const ndMatch = htmlStr.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (ndMatch) {\n    const nd = JSON.parse(ndMatch[1]);\n    buildId = nd.buildId || '';\n    const pp = (nd.props || {}).pageProps || {};\n    console.log('[flexicar-enrich] __NEXT_DATA__ keys=' + Object.keys(nd).join(',') + ' | pp keys=' + Object.keys(pp).join(','));\n\n    // Ruta directa en pageProps\n    vehicle = pp.vehicle || pp.car || pp.data || pp.offer || pp.vehicleData || pp.detail || null;\n\n    // initialState anidado\n    if (!vehicle) {\n      const is = (nd.props || {}).initialState || {};\n      vehicle = is.vehicle || is.car || is.data || null;\n    }\n\n    // TanStack/React Query: dehydratedState.queries[N].state.data\n    if (!vehicle && pp.dehydratedState) {\n      const queries = ((pp.dehydratedState || {}).queries || []);\n      console.log('[flexicar-enrich] dehydratedState queries=' + queries.length);\n      for (const q of queries) {\n        const d = (q.state || {}).data;\n        if (!d) continue;\n        // data directo con campos de vehículo\n        if (d.color !== undefined || d.doors !== undefined || d.brand !== undefined || d.id !== undefined) {\n          vehicle = d; break;\n        }\n        // data anidado dentro de d.vehicle, d.car, d.data\n        const nested = d.vehicle || d.car || d.data || d.offer || null;\n        if (nested && (nested.color !== undefined || nested.doors !== undefined || nested.brand !== undefined)) {\n          vehicle = nested; break;\n        }\n        // array de resultados (p.ej. lista de 1 coche)\n        if (Array.isArray(d) && d.length > 0 && (d[0].brand !== undefined || d[0].id !== undefined)) {\n          vehicle = d[0]; break;\n        }\n      }\n    }\n\n    if (vehicle) {\n      console.log('[flexicar-enrich] vehicle keys=' + Object.keys(vehicle).join(','));\n    } else {\n      // Log de lo que hay para poder diagnosticar\n      console.log('[flexicar-enrich] vehicle NOT found. pp=' + JSON.stringify(pp).slice(0, 300));\n    }\n  } else {\n    console.log('[flexicar-enrich] no __NEXT_DATA__ in HTML (len=' + htmlStr.length + ')');\n  }\n} catch(e) {\n  console.log('[flexicar-enrich] parse error: ' + e.message);\n}\n\n// ── Extraer campos ─────────────────────────────────────────────────────────\nlet colorVal = '', doorsVal = 0, seatsVal = 0, hpVal = 0;\nlet cylCC = 0, consumVal = 0, bodyVal = '', tractionVal = '', co2Val = '';\nlet imgUrls = [];\n\nif (vehicle) {\n  colorVal   = vehicle.color || vehicle.colorName || vehicle.colour || vehicle.colorExterior\n    || vehicle.colorValue || vehicle.exteriorColor || vehicle.paintColor\n    || (vehicle.exterior && vehicle.exterior.color)\n    || (vehicle.characteristics && vehicle.characteristics.color)\n    || (vehicle.specs && vehicle.specs.color)\n    || '';\n  doorsVal   = vehicle.doors || vehicle.numDoors || vehicle.numberOfDoors || vehicle.puertas || 0;\n  seatsVal   = vehicle.seats || vehicle.numSeats || vehicle.numberOfSeats || vehicle.plazas || 0;\n  hpVal      = vehicle.hp || vehicle.power || vehicle.cv || vehicle.potencia || vehicle.horsePower || 0;\n  const cylRaw = vehicle.cylinder || vehicle.displacement || vehicle.cc || vehicle.engineDisplacement || vehicle.cilindrada || 0;\n  cylCC      = cylRaw > 100 ? Math.round(cylRaw) : Math.round(cylRaw * 1000);\n  consumVal  = vehicle.mixedConsumption || vehicle.consumption || vehicle.fuelConsumption || vehicle.consumo || 0;\n  bodyVal    = vehicle.body || vehicle.bodyType || vehicle.carType || vehicle.carroceria || vehicle.bodyWork || '';\n  tractionVal= vehicle.traction || vehicle.traccion || vehicle.driveType || vehicle.tractionType || '';\n  co2Val     = String(vehicle.co2 || vehicle.emissions || vehicle.co2Emissions || '');\n\n  const imgsRaw = vehicle.images || vehicle.photos || vehicle.gallery || [];\n  if (Array.isArray(imgsRaw) && imgsRaw.length > 0) {\n    if (typeof imgsRaw[0] === 'string') {\n      imgUrls = imgsRaw.filter(Boolean).slice(0, 20);\n    } else {\n      imgUrls = imgsRaw.map(function(i) { return i.image || i.url || i.src || ''; }).filter(Boolean).slice(0, 20);\n    }\n  }\n  // Descartar imágenes genéricas (banners de red de concesionarios, no del coche)\n  imgUrls = imgUrls.filter(function(u){ return u && u.indexOf('/generic/') === -1 && u.indexOf('dealer_network') === -1; });\n\n  const dataSheetArr = vehicle.dataSheet || vehicle.specs || vehicle.characteristics || [];\n  if (!tractionVal && Array.isArray(dataSheetArr)) {\n    const ds = dataSheetArr.join(' ').toLowerCase();\n    tractionVal = ds.indexOf('total') !== -1 || ds.indexOf('integral') !== -1 || ds.indexOf('4x4') !== -1 ? '4x4'\n      : ds.indexOf('trasera') !== -1 ? 'Trasera'\n      : ds.indexOf('delantera') !== -1 ? 'Delantera' : '';\n  }\n  if (!co2Val && Array.isArray(dataSheetArr)) {\n    const dsText = dataSheetArr.join(' ');\n    const idx = dsText.toLowerCase().indexOf('emisiones wltp ice');\n    if (idx !== -1) {\n      const m = dsText.slice(idx + 18, idx + 60).match(/(\\d+)/);\n      if (m) co2Val = m[1];\n    }\n  }\n} else {\n  const mColor = htmlStr.match(/\"color\"\\s*:\\s*\"([^\"]+)\"/i) || htmlStr.match(/color[^>]*>([A-ZÁÉÍÓÚÜÑ][a-záéíóúüñ]+)</);\n  if (mColor) colorVal = mColor[1];\n\n  const mDoors = htmlStr.match(/\"(?:doors|numDoors|puertas)\"\\s*:\\s*(\\d+)/);\n  if (mDoors) doorsVal = parseInt(mDoors[1], 10);\n\n  const mSeats = htmlStr.match(/\"(?:seats|numSeats|plazas)\"\\s*:\\s*(\\d+)/);\n  if (mSeats) seatsVal = parseInt(mSeats[1], 10);\n\n  const mHp = htmlStr.match(/\"(?:hp|power|cv|potencia)\"\\s*:\\s*(\\d+)/);\n  if (mHp) hpVal = parseInt(mHp[1], 10);\n\n  const mCyl = htmlStr.match(/\"(?:cylinder|displacement|cc)\"\\s*:\\s*([\\d.]+)/);\n  if (mCyl) { const v = parseFloat(mCyl[1]); cylCC = v > 100 ? Math.round(v) : Math.round(v * 1000); }\n\n  const mCons = htmlStr.match(/\"(?:mixedConsumption|consumption|consumo)\"\\s*:\\s*([\\d.]+)/);\n  if (mCons) consumVal = parseFloat(mCons[1]);\n\n  const mBody = htmlStr.match(/\"(?:body|bodyType|carType|carroceria)\"\\s*:\\s*\"([^\"]+)\"/);\n  if (mBody) bodyVal = mBody[1];\n\n  const mTrac = htmlStr.match(/\"(?:traction|traccion|driveType)\"\\s*:\\s*\"([^\"]+)\"/);\n  if (mTrac) tractionVal = mTrac[1];\n\n  const mCo2 = htmlStr.match(/\"(?:co2|emissions|co2Emissions)\"\\s*:\\s*\"?([\\d]+)\"?/);\n  if (mCo2) co2Val = mCo2[1];\n\n  console.log('[flexicar-enrich] regex fallback: color=' + colorVal + ' doors=' + doorsVal + ' seats=' + seatsVal);\n}\n\n// ── Fallback _next/data JSON si color sigue vacío ─────────────────────────\nif (!colorVal && dbUrl && buildId) {\n  try {\n    const urlParts = dbUrl.split('/');\n    const slug = urlParts.filter(Boolean).pop() || '';\n    const jsonUrl = 'https://www.flexicar.es/_next/data/' + buildId + '/coches-ocasion/' + slug + '.json';\n    console.log('[flexicar-enrich] _next/data fallback: ' + jsonUrl);\n    const jr = await $helpers.httpRequest({\n      method: 'GET',\n      url: jsonUrl,\n      headers: {\n        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',\n        'Accept': 'application/json'\n      }\n    });\n    const jRaw = typeof jr === 'string' ? JSON.parse(jr) : jr;\n    const jpp = (jRaw && jRaw.pageProps) ? jRaw.pageProps : {};\n    const jv = jpp.vehicle || jpp.car || jpp.data || jpp.offer || jpp.vehicleData || null;\n    if (jv) {\n      colorVal = jv.color || jv.colorName || jv.colour || jv.colorExterior || jv.colorValue || jv.exteriorColor || '';\n      if (!doorsVal) doorsVal = Number(jv.doors || jv.numDoors || jv.puertas || 0);\n      if (!seatsVal) seatsVal = Number(jv.seats || jv.numSeats || jv.plazas || 0);\n      if (!bodyVal) bodyVal = jv.body || jv.bodyType || jv.carroceria || '';\n      console.log('[flexicar-enrich] _next/data OK color=' + colorVal + ' keys=' + Object.keys(jv).join(','));\n    } else {\n      console.log('[flexicar-enrich] _next/data pp keys=' + Object.keys(jpp).join(',') + ' raw=' + JSON.stringify(jRaw).slice(0, 300));\n    }\n  } catch(e3) {\n    console.log('[flexicar-enrich] _next/data error: ' + e3.message);\n  }\n}\n\n// ── Construir SQL ──────────────────────────────────────────────────────────\nconst sets = [];\n\nif (colorVal)                 sets.push('color = COALESCE(NULLIF(color,\\'\\'), ' + esc(colorVal) + ')');\nif (Number(doorsVal) > 0)     sets.push('doors = COALESCE(NULLIF(doors,0), ' + Number(doorsVal) + ')');\nif (Number(seatsVal) > 0)     sets.push('seats = COALESCE(NULLIF(seats,0), ' + Number(seatsVal) + ')');\nif (Number(hpVal) > 0)        sets.push('power_cv = COALESCE(NULLIF(power_cv,0), ' + Number(hpVal) + ')');\nif (cylCC > 0)                sets.push('displacement = COALESCE(NULLIF(displacement,\\'\\'), \\'' + cylCC + '\\')');\nif (Number(consumVal) > 0)    sets.push('consumption = COALESCE(NULLIF(consumption,0), ' + Number(consumVal) + ')');\nif (bodyVal)                  sets.push('body_type = COALESCE(NULLIF(body_type,\\'\\'), ' + esc(normalizeBody(bodyVal)) + ')');\nif (imgUrls.length > 0) {\n  sets.push('image_url = COALESCE(NULLIF(image_url,\\'\\'), ' + esc(imgUrls[0]) + ')');\n  sets.push('images = COALESCE(NULLIF(images,\\'\\'), ' + esc(JSON.stringify(imgUrls)) + ')');\n}\nconst trNorm = normalizeTraction(tractionVal);\nif (trNorm)                   sets.push('traction = COALESCE(NULLIF(traction,\\'\\'), ' + esc(trNorm) + ')');\nif (co2Val && /^\\d+$/.test(co2Val.trim())) sets.push('co2 = COALESCE(NULLIF(co2,\\'\\'), ' + esc(co2Val.trim()) + ')');\n\nsets.push('enrich_tried_at = NOW()');\n\nconst updateSql = 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ', updated_at = NOW() WHERE id = \\'' + dbId.replace(/'/g, \"''\") + \"'\";\n\nconsole.log('[flexicar-enrich] sets=' + sets.length + ' sql=' + updateSql.slice(0, 400));\n\nawait new Promise(r => setTimeout(r, 800));\n\nreturn [{ json: { id: dbId, hasUpdates: true, updateSql: updateSql } }];\n"
-      },
-      "id": "d447652c-cb30-4d4c-a38f-d002b2b61a7c",
-      "name": "Code: Extraer campos y generar SQL",
+      "id": "fe-toca",
+      "name": "Code: ¿toca pedirla?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -5424,
-        256
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "cond-has-updates",
-              "leftValue": "={{ $json.hasUpdates }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "193d74fb-f344-4152-bb88-8d5e0e3d82b8",
-      "name": "IF: ¿hay datos nuevos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        -5184,
-        256
+        120,
+        420
       ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.updateSql }}",
-        "options": {}
-      },
-      "id": "35c5b927-f735-47f7-995a-a45e41dd019c",
-      "name": "PG: Actualizar oferta",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        -4944,
-        128
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
-        }
-      }
     },
     {
       "parameters": {
@@ -184,7 +93,7 @@
           },
           "conditions": [
             {
-              "id": "guarda-cola-vacia",
+              "id": "fe-c-url",
               "leftValue": "={{ $json.url }}",
               "rightValue": "",
               "operator": {
@@ -199,40 +108,204 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "if-cola-vacia",
-      "name": "IF: ¿hay oferta?",
+      "id": "fe-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -5864,
-        396
+        340,
+        420
       ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "Origin",
+              "value": "https://www.flexicar.es"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.flexicar.es/"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "fe-http",
+      "name": "HTTP: Ficha de la API",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flexicar - del JSON del coche a las columnas que faltan.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla vuelve\n// en cada pasada y la cola no avanza nunca.\nconst soloIntento = (motivo) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: motivo,\n} }];\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\n\ns.fe_intentos = (s.fe_intentos || 0) + 1;\n\n// Un 403, un 429 o un 500 no dicen nada de la oferta: NO gastan su intento.\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.fe_fallos = (s.fe_fallos || 0) + 1;\n  const intentos = s.fe_intentos || 0;\n  if (intentos >= 50 && (s.fe_fallos / intentos) > 0.3) {\n    s.fe_parado = true;\n    s.fe_motivo = Math.round(100 * s.fe_fallos / intentos) + '% de respuestas cerradas en '\n      + intentos + ' intentos: nos han bloqueado';\n    console.log('[fx-enrich] PARADO: ' + s.fe_motivo);\n  }\n  return [{ json: { sql: null, veredicto: 'pasajero' } }];\n}\n\n// Un 404 en esta API es un coche que ya no está en el catálogo. Ya que lo\n// sabemos, se da por muerto aquí mismo en vez de esperar al verificador, igual\n// que el comprobador de daños con el 410 de AutoScout24.\nif (codigo === 404) {\n  s.fe_vendidas = (s.fe_vendidas || 0) + 1;\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW(), is_active = FALSE,'\n      + ' last_checked_at = NOW() WHERE id = ' + esc(id),\n    veredicto: 'vendida',\n  } }];\n}\nif (codigo !== 200 || !cuerpo) return soloIntento('sin ficha');\n\nlet v = null;\ntry { v = JSON.parse(cuerpo); } catch (e) { v = null; }\nif (!v || !v.id) return soloIntento('ficha ilegible');\n\n// Que la ficha sea la del coche que pedimos. Aquí no puede haber redirección\n// como en Autocasión -es una API por id-, pero comprobarlo cuesta una línea y\n// escribir los datos de otro coche no se deshace.\nif (String(v.id) !== id) return soloIntento('la ficha es de otro coche');\n\ns.fe_leidas = (s.fe_leidas || 0) + 1;\nconst num = x => { const n = Number(x); return Number.isFinite(n) ? n : null; };\nconst entre = (x, min, max) => (x !== null && x >= min && x <= max) ? x : null;\n\n// Filtro de cordura, como en Autocasión: un 6 en puertas o un 100 en plazas es\n// basura, y guardarla es peor que no guardar nada.\nconst puertas = entre(num(v.doors), 2, 5);\nconst plazas = entre(num(v.seats), 2, 9);\nconst cv = entre(num(v.hp), 20, 1500);\n// La API da litros (1.798) y aquí se guarda en centímetros cúbicos.\nconst litros = num(v.cylinder);\nconst cc = (litros !== null && litros > 0.5 && litros < 9) ? Math.round(litros * 1000) : null;\nconst consumo = entre(num(v.mixedConsumption), 0.5, 30);\n\n// ── la carrocería ──────────────────────────────────────────────────────────\n// «Turismo» NO se traduce: la API la usa para lo que guardamos como Berlina y\n// también para Compacto, y de ahí no se puede saber cuál es. Mejor vacía que\n// mal puesta.\nconst CARROCERIAS = {\n  'suv 4x4': 'SUV', 'suv': 'SUV', 'todoterreno': 'Todoterreno',\n  'familiar': 'Familiar', 'monovolumen': 'Monovolumen', 'furgoneta': 'Furgoneta',\n  'cabrio': 'Cabrio', 'descapotable': 'Cabrio', 'coupe': 'Coupé', 'coupé': 'Coupé',\n  'deportivo': 'Deportivo', 'pick up': 'Pick Up', 'pickup': 'Pick Up',\n};\nconst carroceria = CARROCERIAS[String(v.body || '').trim().toLowerCase()] || '';\n\n// ── el CO₂, dentro de la prosa de dataSheet ────────────────────────────────\n//\n// Exige «N g/km CO2», con el CO2 DETRÁS. Sin esa última parte, «Norma de\n// emisiones EU6, 145 g/km CO2» se leía como 6 en diez de doce fichas.\nconst hoja = Array.isArray(v.dataSheet) ? v.dataSheet.join(' | ') : String(v.dataSheet || '');\nconst mCo2 = hoja.match(/([0-9]{1,3})\\s*g\\s*\\/\\s*km\\s*CO2/i);\n// Sin tildes antes de comparar: \"eléctrico\".indexOf('lectric') es -1, porque la\n// é parte la palabra. En coches.com eso habría dejado sin CO₂ justo a los\n// eléctricos, que son los únicos cuyo 0 es verdad.\nconst combustible = String(oferta.fuel || v.fuel || '')\n  .normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();\nconst esElectrico = combustible.indexOf('electric') !== -1;\nconst co2raw = mCo2 ? Number(mCo2[1]) : null;\nconst co2 = (co2raw === null) ? null\n  : (co2raw > 0 ? co2raw : (esElectrico ? 0 : null));\n\n// ── a escribir ─────────────────────────────────────────────────────────────\n// Todo con COALESCE: lo que ya hubiera manda. Esto rellena huecos, no corrige.\nconst sets = ['enrich_tried_at = NOW()'];\nif (puertas !== null) sets.push('doors = COALESCE(NULLIF(doors, 0), ' + puertas + ')');\nif (plazas !== null) sets.push('seats = COALESCE(NULLIF(seats, 0), ' + plazas + ')');\nif (cv !== null) {\n  sets.push('power_cv = COALESCE(NULLIF(power_cv, 0), ' + cv + ')');\n  sets.push('power_kw = COALESCE(NULLIF(power_kw, 0), ' + Math.round(cv / 1.35962) + ')');\n}\n// displacement es varchar: NULLIF(displacement, 0) daría «operator does not\n// exist: character varying = integer» y tumbaría el UPDATE entero.\nif (cc !== null) sets.push(\"displacement = COALESCE(NULLIF(displacement, ''), '\" + cc + \"')\");\nif (carroceria) sets.push(\"body_type = COALESCE(NULLIF(body_type, ''), \" + esc(carroceria) + ')');\nif (co2 !== null) sets.push(\"co2 = COALESCE(NULLIF(co2, ''), '\" + co2 + \"')\");\nif (consumo !== null) sets.push('consumption = COALESCE(NULLIF(consumption, 0), '\n  + (Math.round(consumo * 100) / 100) + ')');\nif (v.ecoSticker) sets.push(\"environmental_label = COALESCE(NULLIF(environmental_label, ''), \"\n  + esc(String(v.ecoSticker)) + ')');\n\nif (co2 !== null) s.fe_co2 = (s.fe_co2 || 0) + 1;\n\n// updated_at NO se toca: enriquecer no es que el anuncio haya cambiado, es que\n// nosotros nos hemos puesto al día. Y updated_at ordena el escaparate.\nconsole.log('[fx-enrich] ' + id + ': puertas=' + (puertas === null ? '-' : puertas)\n  + ' plazas=' + (plazas === null ? '-' : plazas) + ' cv=' + (cv === null ? '-' : cv)\n  + ' cc=' + (cc === null ? '-' : cc) + ' ' + (carroceria || '-')\n  + ' co2=' + (co2 === null ? '-' : co2) + (esElectrico ? ' (eléctrico)' : ''));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: sets.length > 1 ? 'enriquecida' : 'sin datos nuevos',\n  puertas: puertas, plazas: plazas, cv: cv, cc: cc,\n  carroceria: carroceria, co2: co2, consumo: consumo, electrico: esElectrico,\n} }];"
+      },
+      "id": "fe-code",
+      "name": "Code: Extraer puertas, plazas, potencia, cilindrada, carrocería y CO2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fe-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "fe-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "fe-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconst leidas = s.fe_leidas || 0;\n\nconsole.log('[fx-enrich] ── resumen ──');\nconsole.log('  fichas pedidas : ' + (s.fe_intentos || 0));\nconsole.log('  leídas         : ' + leidas);\nconsole.log('  con CO₂        : ' + (s.fe_co2 || 0));\nconsole.log('  ya vendidas    : ' + (s.fe_vendidas || 0));\nconsole.log('  sin poder leer : ' + (s.fe_fallos || 0));\nif (s.fe_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.fe_motivo);\n// Una pasada que no lee ni una ficha no es un éxito, es una cola vacía o algo\n// roto. En Gamboa eso pasó tres días seguidos sin que lo dijera nadie.\nif (!s.fe_parado && (s.fe_intentos || 0) > 0 && leidas === 0) {\n  console.log('  OJO: ni una ficha leída. O la API ha cambiado, o nos han cerrado.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='flexicar-enrich':\n//     checked  fichas pedidas   alive  con CO₂\n//     deactivated  ya vendidas  unclassified  leídas sin CO₂\n//     transient  sin poder leer\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('flexicar-enrich', NOW(), \" + n(s.fe_intentos) + ', ' + n(s.fe_co2) + ', '\n  + n(s.fe_vendidas) + ', ' + n(leidas - (s.fe_co2 || 0)) + ', ' + n(s.fe_fallos) + ', '\n  + (s.fe_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: s.fe_intentos || 0, leidas: leidas,\n  co2: s.fe_co2 || 0, vendidas: s.fe_vendidas || 0,\n  fallos: s.fe_fallos || 0, parado: !!s.fe_parado };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('fe_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "fe-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "fe-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
-    "Llamada desde workflow padre": {
+    "Ejecutar manualmente": {
       "main": [
         [
           {
-            "node": "PG: Ofertas a enriquecer",
+            "node": "PG: Cola a enriquecer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cada día a las 5:00": {
+    "4 veces/día (10:25, 14:25, 18:25 y 22:25)": {
       "main": [
         [
           {
-            "node": "PG: Ofertas a enriquecer",
+            "node": "PG: Cola a enriquecer",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Ofertas a enriquecer": {
+    "PG: Cola a enriquecer": {
       "main": [
         [
           {
@@ -247,43 +320,72 @@
       "main": [
         [
           {
-            "node": "HTTP: Ficha HTML Flexicar",
+            "node": "Code: Resumen",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "IF: ¿hay oferta?",
+            "node": "Code: ¿toca pedirla?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Ficha HTML Flexicar": {
+    "Code: ¿toca pedirla?": {
       "main": [
         [
           {
-            "node": "Code: Extraer campos y generar SQL",
+            "node": "IF: ¿hay ficha que pedir?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Extraer campos y generar SQL": {
+    "IF: ¿hay ficha que pedir?": {
       "main": [
         [
           {
-            "node": "IF: ¿hay datos nuevos?",
+            "node": "HTTP: Ficha de la API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "IF: ¿hay datos nuevos?": {
+    "HTTP: Ficha de la API": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer puertas, plazas, potencia, cilindrada, carrocería y CO2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer puertas, plazas, potencia, cilindrada, carrocería y CO2": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
       "main": [
         [
           {
@@ -312,18 +414,11 @@
         ]
       ]
     },
-    "IF: ¿hay oferta?": {
+    "Code: Resumen": {
       "main": [
         [
           {
-            "node": "HTTP: Ficha HTML Flexicar",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop: oferta por oferta",
+            "node": "PG: Apuntar el parte",
             "type": "main",
             "index": 0
           }
@@ -333,17 +428,11 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "timeSavedMode": "fixed",
-    "errorWorkflow": "9BwKOPMIzjj3owho",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
-    "saveDataErrorExecution": "all"
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "pinData": {},
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

@@ -1,0 +1,353 @@
+{
+  "name": "OcasionPlus – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "op-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 10,22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "op-cron",
+      "name": "2 veces/día (10:20 y 22:20)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Lo que damos por vivo de OcasionPlus, para cruzarlo con su lista.\n--\n-- Solo id y url: son 10.209 filas y todo lo demás sería memoria tirada. n8n\n-- guarda en memoria la salida de cada nodo.\nSELECT id, url FROM moveadvisor_market_offers\nWHERE portal = 'ocasionplus' AND is_active AND COALESCE(url, '') <> ''",
+        "options": {}
+      },
+      "id": "op-activas",
+      "name": "PG: Las que damos por vivas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -440,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "url": "https://www.ocasionplus.com/sitemap.fichas-coches.xml",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/xml,text/xml,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 120000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "op-http",
+      "name": "HTTP: Su catálogo entero (una petición)",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cruzar nuestra lista con la suya.\nconst s = $getWorkflowStaticData('global');\ns.op_run = $execution.id;\ns.op_motivo = '';\n\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no\n// en 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst xml = String(res.data || res.body || '');\nconst codigo = Number(res.statusCode || 0);\n\nconst nuestras = $('PG: Las que damos por vivas').all().map(x => x.json);\ns.op_nuestras = nuestras.length;\n\nif (codigo !== 200 || !xml) {\n  s.op_motivo = 'el sitemap no contestó (HTTP ' + codigo + ')';\n  console.log('[op-verify] NO SE DAN BAJAS: ' + s.op_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\n\n// FRENO 1: el fichero entero.\n//\n// Una descarga cortada a la mitad parsea igual de bien y dice que faltan seis\n// mil coches. El cierre del XML es la única prueba de que llegó completo.\nif (xml.trim().slice(-9) !== '</urlset>') {\n  s.op_motivo = 'el sitemap llegó cortado (' + Math.round(xml.length / 1024) + ' KB, sin cierre)';\n  console.log('[op-verify] NO SE DAN BAJAS: ' + s.op_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\n\n// Las urls de su lista, sin la barra final, que unas la llevan y otras no.\n//\n// Sin expresión regular: este código viaja dentro de una cadena y dentro de un\n// JSON, y por el camino las barras se pierden. Hoy ha pasado cuatro veces, una\n// de ellas midiendo justo esto. Mirar el último carácter no se rompe nunca.\nconst sinBarra = (u) => {\n  const t = String(u || '').trim();\n  return t.charAt(t.length - 1) === '/' ? t.slice(0, -1) : t;\n};\nconst suyas = new Set();\nconst trozos = xml.split('<loc>');\nfor (let i = 1; i < trozos.length; i++) {\n  const fin = trozos[i].indexOf('</loc>');\n  if (fin === -1) continue;\n  suyas.add(sinBarra(trozos[i].slice(0, fin)));\n}\ns.op_suyas = suyas.size;\nconsole.log('[op-verify] su sitemap trae ' + suyas.size + ' fichas; nosotros damos por vivas ' + nuestras.length);\n\nconst muertas = [];\nfor (const o of nuestras) {\n  if (!suyas.has(sinBarra(o.url))) muertas.push(String(o.id));\n}\ns.op_muertas = muertas.length;\ns.op_vivas = nuestras.length - muertas.length;\n\n// FRENO 2: una mortandad imposible es la lista rota, no un buen mes de ventas.\nconst pct = nuestras.length ? (muertas.length / nuestras.length) : 0;\nif (pct > 0.4) {\n  s.op_motivo = 'faltan el ' + Math.round(pct * 100) + '% de las nuestras: la lista no es de fiar';\n  console.log('[op-verify] NO SE DAN BAJAS: ' + s.op_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\nif (!muertas.length) {\n  s.op_nada = true;\n  console.log('[op-verify] nada que dar de baja: todas siguen en su catálogo.');\n  return [{ json: { seguir: '', sql: null } }];\n}\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst out = [];\nfor (let i = 0; i < muertas.length; i += 1500) {\n  const trozo = muertas.slice(i, i + 1500);\n  out.push({ json: {\n    seguir: 'si',\n    sql: 'UPDATE moveadvisor_market_offers SET is_active = FALSE, last_checked_at = NOW()'\n      + ' WHERE id IN (' + trozo.map(esc).join(', ') + ')',\n    cuantas: trozo.length,\n  } });\n}\nconsole.log('[op-verify] ' + muertas.length + ' bajas en ' + out.length + ' trozos');\nreturn out;"
+      },
+      "id": "op-cruzar",
+      "name": "Code: Cruzar con su catálogo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "op-c-seguir",
+              "leftValue": "={{ $json.seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "op-if",
+      "name": "IF: ¿se dan las bajas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "op-loop",
+      "name": "Loop: trozo a trozo",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        360,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "op-pg-bajas",
+      "name": "PG: Dar de baja",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        560,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\n\nconsole.log('[op-verify] ── resumen ──');\nconsole.log('  dábamos por vivas : ' + (s.op_nuestras || 0));\nconsole.log('  su catálogo trae  : ' + (s.op_suyas || 0));\nconsole.log('  BAJAS             : ' + (s.op_muertas || 0));\nconsole.log('  siguen vivas      : ' + (s.op_vivas || 0));\nif (s.op_nada) console.log('  nada que dar de baja: todas siguen en su catálogo.');\nif (s.op_motivo) console.log('  NO SE DIERON BAJAS: ' + s.op_motivo);\n\n// Si un freno paró la pasada, no se ha dado ni una baja: el recuento de\n// muertas es lo que HABRÍA hecho, no lo que hizo.\nconst frenada = !!s.op_motivo;\nconst bajas = frenada ? 0 : (s.op_muertas || 0);\nconst vivas = frenada ? 0 : (s.op_vivas || 0);\n\nconst n = v => String(Number(v) || 0);\n// La tabla de los verificadores, con portal='ocasionplus':\n//     checked  las que dábamos por vivas   alive  las que siguen\n//     deactivated  las bajas               unclassified  las que no se dieron\n//     transient  0 (una sola petición)     blocked  TRUE si frenó\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('ocasionplus', NOW(), \" + n(s.op_nuestras) + ', ' + n(vivas) + ', '\n  + n(bajas) + ', ' + n(frenada ? (s.op_muertas || 0) : 0) + ', 0, '\n  + (frenada ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, nuestras: s.op_nuestras || 0, suyas: s.op_suyas || 0,\n  bajas: bajas, vivas: vivas, motivo: s.op_motivo || '' };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('op_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "op-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "op-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        760,
+        120
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Las que damos por vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (10:20 y 22:20)": {
+      "main": [
+        [
+          {
+            "node": "PG: Las que damos por vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Las que damos por vivas": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Su catálogo entero (una petición)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Su catálogo entero (una petición)": {
+      "main": [
+        [
+          {
+            "node": "Code: Cruzar con su catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Cruzar con su catálogo": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se dan las bajas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se dan las bajas?": {
+      "main": [
+        [
+          {
+            "node": "Loop: trozo a trozo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: trozo a trozo": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PG: Dar de baja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Dar de baja": {
+      "main": [
+        [
+          {
+            "node": "Loop: trozo a trozo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

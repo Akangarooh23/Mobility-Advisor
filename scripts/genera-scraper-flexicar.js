@@ -55,7 +55,7 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 
 // El id del workflow «Flexicar – Segmento (páginas)» YA IMPORTADO en n8n.
 // Se rellena solo con:  npm run enlaza-segmento-flexicar
-const ID_SEGMENTO = "PENDIENTE_DE_ENLAZAR";
+const ID_SEGMENTO = "gNOj8nuSxuRP3Hxd";
 
 const PAGINAS_POR_SEGMENTO = 100;
 const SEGMENTOS_POR_PASADA = 20;   // 2.000 páginas: el catálogo entero cabe

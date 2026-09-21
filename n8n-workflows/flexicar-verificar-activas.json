@@ -1,15 +1,15 @@
 {
-  "name": "Flexicar – Verificar activas (fichas)",
+  "name": "Flexicar – Verificar ofertas activas",
   "nodes": [
     {
       "parameters": {},
-      "id": "fxv-ab2aad88-2915-4b6e-9804-10b9fcb131ba",
+      "id": "fv-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -6448,
-        560
+        -680,
+        200
       ]
     },
     {
@@ -18,144 +18,56 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 8,11,14,17,20 * * *"
+              "expression": "0 50 12,22 * * *"
             }
           ]
         }
       },
-      "id": "fxv-41bc7c64-6dde-4ab2-af04-bb89e749f708",
-      "name": "5 veces/día (8,11,14,17,20h)",
+      "id": "fv-cron",
+      "name": "2 veces/día (12:50 y 22:50)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -6432,
-        352
+        -680,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND is_active = TRUE\n  AND url LIKE '%coches-ocasion%'\nORDER BY last_seen_at ASC NULLS FIRST\nLIMIT 800",
+        "query": "-- ¿Ha pasado el scraper, y cuántas llevan sin aparecer?\n--\n-- Todo en una consulta: son tres números sobre la misma tabla y pedirlos por\n-- separado deja hueco a que cambien entre medias.\nSELECT\n  count(*) FILTER (WHERE is_active)::int AS activas,\n  count(*) FILTER (WHERE is_active\n    AND last_seen_at < NOW() - INTERVAL '26 hours')::int AS candidatas,\n  COALESCE(EXTRACT(EPOCH FROM (NOW() - max(last_seen_at))) / 3600, 9999)::numeric(10,2) AS horas_sin_ver\nFROM moveadvisor_market_offers\nWHERE portal = 'flexicar'",
         "options": {}
       },
-      "id": "fxv-498522b0-3d3d-4213-a3c0-2a20802e94fd",
-      "name": "PG: Fichas a verificar",
+      "id": "fv-salud",
+      "name": "PG: ¿Cómo está el catálogo?",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -6144,
-        256
+        -480,
+        300
       ],
       "credentials": {
         "postgres": {
           "id": "zoxD0jV8hxZqH0uY",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "options": {}
+        "jsCode": "// Los dos primeros frenos, antes de mirar nada.\nconst s = $getWorkflowStaticData('global');\nconst f = $input.first().json || {};\n\n// La memoria es del workflow, no de la pasada.\ns.fv_run = $execution.id;\ns.fv_activas = Number(f.activas) || 0;\ns.fv_candidatas = Number(f.candidatas) || 0;\ns.fv_horas = Number(f.horas_sin_ver) || 9999;\ns.fv_vivas = 0;\ns.fv_muertas = 0;\ns.fv_catadas = 0;\ns.fv_bajas = 0;\ns.fv_motivo = '';\n\nconst pct = s.fv_activas ? (s.fv_candidatas / s.fv_activas) : 0;\nconsole.log('[fx-verify] ' + s.fv_activas + ' activas, ' + s.fv_candidatas\n  + ' sin aparecer (' + Math.round(pct * 100) + '%), el catálogo se vio hace '\n  + s.fv_horas + ' h');\n\n// Freno 1: sin scraper reciente, «no lo he visto» no prueba nada.\nif (s.fv_horas > 14) {\n  s.fv_motivo = 'el scraper lleva ' + s.fv_horas + ' h sin ver el catálogo';\n  console.log('[fx-verify] NO SE DAN BAJAS: ' + s.fv_motivo);\n  return [{ json: { seguir: '' } }];\n}\n// Freno 2: una mortandad imposible es el scraper roto, no el mercado.\nif (pct > 0.35) {\n  s.fv_motivo = 'el ' + Math.round(pct * 100) + '% del catálogo ha desaparecido de golpe';\n  console.log('[fx-verify] NO SE DAN BAJAS: ' + s.fv_motivo);\n  return [{ json: { seguir: '' } }];\n}\nif (!s.fv_candidatas) {\n  s.fv_motivo = 'no hay ninguna que dar de baja';\n  console.log('[fx-verify] nada que hacer: todo el catálogo se ha visto hoy.');\n  return [{ json: { seguir: '' } }];\n}\nreturn [{ json: { seguir: 'si' } }];"
       },
-      "id": "fxv-dcb5094d-ff88-45d3-8df7-3f6491399bc0",
-      "name": "Loop: oferta por oferta",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -5904,
-        256
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.url }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "text",
-              "neverError": true
-            }
-          },
-          "timeout": 20000
-        }
-      },
-      "id": "fxv-51b9c089-a864-49f6-9a2f-6d2a1e8aacbe",
-      "name": "HTTP: Ficha HTML Flexicar",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        -5664,
-        256
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "jsCode": "// Verifica si la ficha de Flexicar sigue viva y actualiza is_active en consecuencia.\n// Viva  = HTML con JSON-LD Car/Vehicle (o __NEXT_DATA__ con vehículo) → is_active=TRUE + refresca last_seen_at.\n// Muerta= la ficha redirige a la home (307→404), sin datos de coche → is_active=FALSE (sale de la cola).\n// Vacía / error de red → NO se toca is_active (para no inactivar por un fallo transitorio).\nconst dbRecord = $('Loop: oferta por oferta').item.json;\nconst dbId = String(dbRecord.id || '');\nif (!dbId) {\n  await new Promise(r => setTimeout(r, 500));\n  return [{ json: { id: null, hasUpdates: false, updateSql: null } }];\n}\n\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : (httpOut && (httpOut.data || httpOut.body || httpOut.html) || '');\nconst idEsc = dbId.replace(/'/g, \"''\");\n\n// Respuesta vacía o demasiado corta = error/timeout → no cambiar is_active.\nif (!html || String(html).length < 500) {\n  await new Promise(r => setTimeout(r, 800));\n  return [{ json: { id: dbId, hasUpdates: false, updateSql: null } }];\n}\n\nconst s = String(html);\nconst exists = /\"@type\"\\s*:\\s*\"(Car|Vehicle)\"/i.test(s) || /initialVehicle|vehicleDetail/i.test(s);\n\nconst updateSql = exists\n  ? \"UPDATE moveadvisor_market_offers SET is_active = TRUE, last_seen_at = NOW(), updated_at = NOW() WHERE id = '\" + idEsc + \"'\"\n  : \"UPDATE moveadvisor_market_offers SET is_active = FALSE, updated_at = NOW() WHERE id = '\" + idEsc + \"'\";\n\nconsole.log('[flexicar-verif] id=' + dbId + ' existe=' + exists + ' html_len=' + s.length);\n\nawait new Promise(r => setTimeout(r, 800));\nreturn [{ json: { id: dbId, hasUpdates: true, updateSql: updateSql } }];\n"
-      },
-      "id": "fxv-d447652c-cb30-4d4c-a38f-d002b2b61a7c",
-      "name": "Code: Verificar ficha",
+      "id": "fv-code-salud",
+      "name": "Code: ¿Se puede dar de baja?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -5424,
-        256
-      ],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 1
-          },
-          "conditions": [
-            {
-              "id": "cond-has-updates",
-              "leftValue": "={{ $json.hasUpdates }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "true"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "fxv-193d74fb-f344-4152-bb88-8d5e0e3d82b8",
-      "name": "IF: ¿hay datos nuevos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        -5184,
-        256
+        -280,
+        300
       ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "{{ $json.updateSql }}",
-        "options": {}
-      },
-      "id": "fxv-35c5b927-f735-47f7-995a-a45e41dd019c",
-      "name": "PG: Actualizar oferta",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        -4944,
-        128
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
-        }
-      }
     },
     {
       "parameters": {
@@ -168,7 +80,92 @@
           },
           "conditions": [
             {
-              "id": "guarda-cola-vacia",
+              "id": "fv-c-seguir",
+              "leftValue": "={{ $json.seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "fv-if-seguir",
+      "name": "IF: ¿hay permiso?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las que se van a dar de baja, para preguntarle a la API por unas pocas.\n-- Al azar y no las primeras: si el scraper se dejara un trozo del catálogo,\n-- las candidatas estarían agrupadas y una muestra ordenada las tomaría todas\n-- del mismo sitio.\nSELECT id FROM moveadvisor_market_offers\nWHERE portal = 'flexicar'\n  AND is_active\n  AND last_seen_at < NOW() - INTERVAL '26 hours'\nORDER BY random()\nLIMIT 40",
+        "options": {}
+      },
+      "id": "fv-muestra",
+      "name": "PG: Muestra de candidatas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        120,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fv-loop",
+      "name": "Loop: cata una a una",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        320,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// La URL de la API para una candidata de la cata.\nconst item = $input.first().json || {};\nconst s = $getWorkflowStaticData('global');\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\nif (!item.id) return [{ json: { url: '', id: '' } }];\nreturn [{ json: {\n  id: String(item.id),\n  url: 'https://services.flexicar.es/api/v1/vehicles/' + String(item.id),\n} }];"
+      },
+      "id": "fv-url",
+      "name": "Code: URL de la cata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fv-c-url",
               "leftValue": "={{ $json.url }}",
               "rightValue": "",
               "operator": {
@@ -183,14 +180,190 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "if-cola-vacia",
-      "name": "IF: ¿hay oferta?",
+      "id": "fv-if-url",
+      "name": "IF: ¿hay ficha que preguntar?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        -5864,
-        396
+        720,
+        340
       ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            },
+            {
+              "name": "Origin",
+              "value": "https://www.flexicar.es"
+            },
+            {
+              "name": "Referer",
+              "value": "https://www.flexicar.es/"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 25000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "fv-http",
+      "name": "HTTP: ¿Sigue en la API?",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        920,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ¿Está muerta de verdad?\nconst s = $getWorkflowStaticData('global');\nconst res = $input.first().json;\nconst codigo = Number(res.statusCode || 0);\nconst id = String(($('Code: URL de la cata').item.json || {}).id || '');\nif (!id) return [{ json: { id: '', estado: 'sin id' } }];\n\ns.fv_catadas = (s.fv_catadas || 0) + 1;\n// 404 es la respuesta limpia de esta API a un coche que ya no está.\nif (codigo === 404) {\n  s.fv_muertas = (s.fv_muertas || 0) + 1;\n  return [{ json: { id: id, estado: 'muerta' } }];\n}\nif (codigo === 200) {\n  s.fv_vivas = (s.fv_vivas || 0) + 1;\n  console.log('[fx-verify] OJO: ' + id + ' sigue VIVA y el scraper no la vio');\n  return [{ json: { id: id, estado: 'VIVA' } }];\n}\n// Un 403 o un fallo de red no dicen nada: ni viva ni muerta, no cuenta.\ns.fv_catadas = s.fv_catadas - 1;\nreturn [{ json: { id: id, estado: 'no contesta (' + codigo + ')' } }];"
+      },
+      "id": "fv-code-cata",
+      "name": "Code: ¿Muerta de verdad?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Freno 3: la cata manda. Y si pasa, aquí se arma la baja.\nconst s = $getWorkflowStaticData('global');\nconst catadas = s.fv_catadas || 0;\nconst vivas = s.fv_vivas || 0;\nconst proporcion = catadas ? (vivas / catadas) : 0;\n\nconsole.log('[fx-verify] cata: ' + (s.fv_muertas || 0) + ' muertas y ' + vivas\n  + ' vivas de ' + catadas + ' preguntadas');\n\n// Si la API no contestó a ninguna, no hay cata y por tanto no hay permiso.\nif (catadas === 0) {\n  s.fv_motivo = 'la cata no obtuvo ni una respuesta';\n  console.log('[fx-verify] NO SE DAN BAJAS: ' + s.fv_motivo);\n  return [{ json: { sql: null } }];\n}\n// Mayor O IGUAL: en un freno, el límite exacto tiene que parar. Con «mayor\n// que», una cata con 10 vivas de 40 -un cuarto entero- daba las bajas por\n// buenas por un pelo.\nif (proporcion >= 0.25) {\n  s.fv_motivo = Math.round(proporcion * 100) + '% de la cata seguía viva: el scraper se ha dejado páginas';\n  console.log('[fx-verify] NO SE DAN BAJAS: ' + s.fv_motivo);\n  return [{ json: { sql: null } }];\n}\n\ns.fv_bajas = s.fv_candidatas || 0;\n// Dos escrituras en una: la baja de las que no aparecen, y la marca de\n// comprobado en TODAS las demás. Lo segundo es lo que permite decir «hoy se ha\n// mirado el catálogo entero» mirando la base, sin creerse un log.\nconst sql = \"WITH bajas AS (\"\n  + \"  UPDATE moveadvisor_market_offers\"\n  + \"     SET is_active = FALSE, last_checked_at = NOW()\"\n  + \"   WHERE portal = 'flexicar' AND is_active\"\n  + \"     AND last_seen_at < NOW() - INTERVAL '26 hours'\"\n  + \"  RETURNING 1\"\n  + \"), vivas AS (\"\n  + \"  UPDATE moveadvisor_market_offers\"\n  + \"     SET last_checked_at = NOW()\"\n  + \"   WHERE portal = 'flexicar' AND is_active\"\n  + \"     AND last_seen_at >= NOW() - INTERVAL '26 hours'\"\n  + \"  RETURNING 1\"\n  + \") SELECT (SELECT count(*) FROM bajas)::int AS bajas,\"\n  + \"         (SELECT count(*) FROM vivas)::int AS confirmadas\";\nreturn [{ json: { sql: sql } }];"
+      },
+      "id": "fv-veredicto",
+      "name": "Code: Veredicto de la cata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fv-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "fv-if-sql",
+      "name": "IF: ¿se dan las bajas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        720,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "fv-pg-bajas",
+      "name": "PG: Dar de baja y confirmar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        920,
+        40
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nlet bajas = 0, confirmadas = 0;\ntry {\n  const r = $('PG: Dar de baja y confirmar').first().json || {};\n  bajas = Number(r.bajas) || 0;\n  confirmadas = Number(r.confirmadas) || 0;\n} catch (e) { bajas = 0; confirmadas = 0; }\n\nconsole.log('[fx-verify] ── resumen ──');\nconsole.log('  activas al empezar : ' + (s.fv_activas || 0));\nconsole.log('  sin aparecer       : ' + (s.fv_candidatas || 0));\nconsole.log('  cata               : ' + (s.fv_muertas || 0) + ' muertas, '\n  + (s.fv_vivas || 0) + ' vivas de ' + (s.fv_catadas || 0));\nconsole.log('  BAJAS              : ' + bajas);\nconsole.log('  confirmadas vivas  : ' + confirmadas);\nif (s.fv_motivo) console.log('  NO SE DIERON BAJAS: ' + s.fv_motivo);\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores:\n//     checked  las que se han mirado (todo el catálogo activo)\n//     alive  confirmadas vivas    deactivated  bajas\n//     unclassified  candidatas que no se llegaron a dar de baja\n//     transient  las de la cata que no contestaron\n//     blocked  TRUE si algún freno paró la pasada\nconst paradas = s.fv_motivo ? (s.fv_candidatas || 0) : 0;\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('flexicar', NOW(), \" + n(s.fv_activas) + ', ' + n(confirmadas) + ', '\n  + n(bajas) + ', ' + n(paradas) + ', ' + n(40 - (s.fv_catadas || 0)) + ', '\n  + (s.fv_motivo ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, activas: s.fv_activas || 0, candidatas: s.fv_candidatas || 0,\n  bajas: bajas, confirmadas: confirmadas, vivasEnLaCata: s.fv_vivas || 0,\n  catadas: s.fv_catadas || 0, motivo: s.fv_motivo || '' };\nfor (const k of Object.keys(s)) { if (k.indexOf('fv_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "fv-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "fv-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "zoxD0jV8hxZqH0uY",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -198,116 +371,189 @@
       "main": [
         [
           {
-            "node": "PG: Fichas a verificar",
+            "node": "PG: ¿Cómo está el catálogo?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Fichas a verificar": {
+    "2 veces/día (12:50 y 22:50)": {
       "main": [
         [
           {
-            "node": "Loop: oferta por oferta",
+            "node": "PG: ¿Cómo está el catálogo?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop: oferta por oferta": {
+    "PG: ¿Cómo está el catálogo?": {
       "main": [
         [
           {
-            "node": "HTTP: Ficha HTML Flexicar",
+            "node": "Code: ¿Se puede dar de baja?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿Se puede dar de baja?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay permiso?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay permiso?": {
+      "main": [
+        [
+          {
+            "node": "PG: Muestra de candidatas",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "IF: ¿hay oferta?",
+            "node": "Code: Resumen",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Ficha HTML Flexicar": {
+    "PG: Muestra de candidatas": {
       "main": [
         [
           {
-            "node": "Code: Verificar ficha",
+            "node": "Loop: cata una a una",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Code: Verificar ficha": {
+    "Loop: cata una a una": {
       "main": [
         [
           {
-            "node": "IF: ¿hay datos nuevos?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay datos nuevos?": {
-      "main": [
-        [
-          {
-            "node": "PG: Actualizar oferta",
+            "node": "Code: Veredicto de la cata",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Loop: oferta por oferta",
+            "node": "Code: URL de la cata",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Actualizar oferta": {
+    "Code: URL de la cata": {
       "main": [
         [
           {
-            "node": "Loop: oferta por oferta",
+            "node": "IF: ¿hay ficha que preguntar?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "5 veces/día (8,11,14,17,20h)": {
+    "IF: ¿hay ficha que preguntar?": {
       "main": [
         [
           {
-            "node": "PG: Fichas a verificar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay oferta?": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Ficha HTML Flexicar",
+            "node": "HTTP: ¿Sigue en la API?",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Loop: oferta por oferta",
+            "node": "Loop: cata una a una",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ¿Sigue en la API?": {
+      "main": [
+        [
+          {
+            "node": "Code: ¿Muerta de verdad?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿Muerta de verdad?": {
+      "main": [
+        [
+          {
+            "node": "Loop: cata una a una",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Veredicto de la cata": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se dan las bajas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se dan las bajas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Dar de baja y confirmar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Dar de baja y confirmar": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
             "type": "main",
             "index": 0
           }
@@ -317,17 +563,11 @@
   },
   "settings": {
     "executionOrder": "v1",
-    "binaryMode": "separate",
-    "timeSavedMode": "fixed",
-    "errorWorkflow": "9BwKOPMIzjj3owho",
-    "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
     "saveManualExecutions": true,
     "saveDataSuccessExecution": "none",
-    "saveDataErrorExecution": "all"
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "pinData": {},
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

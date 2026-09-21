@@ -50,6 +50,17 @@ const ESPERA_SEGUNDOS = 1;
 // marca de «ya mirada», retrasándolas tres días. Con freno paramos a las 30.
 const MINIMO_PARA_JUZGAR = 30;
 const TOPE_SIN_DATO = 0.5;
+/*
+ * Y el otro freno: dar de baja media cola no es que Alemania haya vendido su
+ * parque móvil.
+ *
+ * Un 404 se toma por «ese coche ya no está» y desactiva la oferta. Pero si
+ * AutoScout24 cambia el formato de la URL de ficha —ya pasó con .es y .de— o
+ * un servidor suyo empieza a contestar 404, esta pasada desactivaría las 500
+ * de golpe, dos veces al día, y las publicadas saldrían del escaparate. El
+ * verificador del mismo portal tiene este freno desde entonces; aquí faltaba.
+ */
+const TOPE_BAJAS = 0.6;
 
 // ── la cola ────────────────────────────────────────────────────────────────
 const COLA = `-- Solo lo que decide algo hoy: lo publicado y lo publicable.
@@ -94,9 +105,25 @@ if (s.dd_parado) return [{ json: { saltar: true, url: '', id: oferta.id } }];
 
 const pedidas = s.dd_pedidas || 0;
 const sinDato = s.dd_sin_dato || 0;
-if (pedidas >= ${MINIMO_PARA_JUZGAR} && sinDato / pedidas > ${TOPE_SIN_DATO}) {
+const vendidas = s.dd_vendidas || 0;
+
+// Las vendidas no cuentan para juzgar si nos bloquean: contestaron, y lo que
+// contestaron es «este coche ya no está». Metiéndolas en el denominador, una
+// pasada con la mitad vendidas y la mitad bloqueadas no llegaba nunca al tope
+// y se gastaba entera marcando fichas que nadie pudo leer.
+const leidas = pedidas - vendidas;
+if (leidas >= ${MINIMO_PARA_JUZGAR} && sinDato / leidas > ${TOPE_SIN_DATO}) {
   s.dd_parado = true;
-  s.dd_motivo = sinDato + ' de ' + pedidas + ' fichas sin dato: parece bloqueo';
+  s.dd_motivo = sinDato + ' de ' + leidas + ' fichas sin dato: parece bloqueo';
+  console.log('[danos-de] PARADO: ' + s.dd_motivo);
+  return [{ json: { saltar: true, url: '', id: oferta.id } }];
+}
+
+// Y si lo que pasa es que casi todas «ya no están», tampoco se sigue: eso no
+// es que Alemania haya vendido su parque móvil, es que ha cambiado algo.
+if (pedidas >= ${MINIMO_PARA_JUZGAR} && vendidas / pedidas > ${TOPE_BAJAS}) {
+  s.dd_parado = true;
+  s.dd_motivo = vendidas + ' de ' + pedidas + ' fichas dadas por vendidas: parece un cambio del portal';
   console.log('[danos-de] PARADO: ' + s.dd_motivo);
   return [{ json: { saltar: true, url: '', id: oferta.id } }];
 }
@@ -384,4 +411,5 @@ console.log("escrito  " + destino);
 console.log("  " + nodos.length + " nodos, " + LOTE + " fichas por pasada, 2 pasadas/día = "
   + (LOTE * 2).toLocaleString("es") + " al día");
 console.log("  cortacircuitos: para si más del " + (TOPE_SIN_DATO * 100)
-  + "% de las fichas viene sin dato, tras " + MINIMO_PARA_JUZGAR);
+  + "% de las fichas leídas viene sin dato, o más del " + (TOPE_BAJAS * 100)
+  + "% se da por vendida, tras " + MINIMO_PARA_JUZGAR);

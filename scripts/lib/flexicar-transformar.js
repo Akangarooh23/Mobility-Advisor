@@ -112,7 +112,16 @@ for (const it of list) {
    */
   const kmTexto = String(it.km ?? '').trim();
   const km = (kmTexto !== '' && Number.isFinite(Number(kmTexto))) ? Number(kmTexto) : null;
-  const sede = String(it.carDealership || '');
+  /*
+   * La sede es «Madrid - Villaverde»: la ciudad es lo de delante.
+   *
+   * Iba entera en `city`, y `city` es un dato con el que se filtra y con el que
+   * se compone «Madrid - Villaverde, Madrid» en el listado. Las 27.454 filas
+   * viejas llevan solo la ciudad —así lo hacía el scraper anterior—, con lo
+   * que el catálogo tenía dos criterios según la antigüedad de la fila.
+   */
+  const sede = String(it.carDealership || '').trim();
+  const ciudad = sede.split(' - ')[0].trim();
   const provincia = provinciaDe[String(it.carDealershipSlug || '')] || '';
 
   // Las imágenes llegan de dos formas: cadenas en el listado y objetos
@@ -128,7 +137,7 @@ for (const it of list) {
     num(year) + ', ' + num(km) + ', ' + price + ', ' +
     txt(normFuel(it.fuel)) + ', ' + txt(normGear(it.transmission)) + ', ' + txt(it.color) + ', ' +
     txt(it.image) + ", '" + imagesJson + "', " + txt(normLabel(it.ecoSticker)) + ', ' +
-    txt(sede) + ', ' + txt(sede) + ', ' + txt(provincia) + ', ' + txt(sede) + ', ' +
+    txt(sede) + ', ' + txt(ciudad) + ', ' + txt(provincia) + ', ' + txt(ciudad) + ', ' +
     "'profesional', 'compra', 'ES', " + num(finance) + ', ' + num(cuota) +
     ', NOW(), NOW(), NOW()' +
   ')';
@@ -153,6 +162,13 @@ const onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +
   'transmission = COALESCE(NULLIF(EXCLUDED.transmission, \'\'), moveadvisor_market_offers.transmission), ' +
   'color = COALESCE(NULLIF(EXCLUDED.color, \'\'), moveadvisor_market_offers.color), ' +
   'province = COALESCE(NULLIF(EXCLUDED.province, \'\'), moveadvisor_market_offers.province), ' +
+  // La sede, la ciudad y el sitio sí se refrescan: no estaban en el UPSERT, y
+  // por eso convivían dos criterios de `city` según cuándo entró la fila. Una
+  // vuelta del scraper las deja todas iguales. El concesionario también cambia
+  // —un coche se mueve de sede—, así que tampoco vale dejarlo del alta.
+  "dealer_name = COALESCE(NULLIF(EXCLUDED.dealer_name, ''), moveadvisor_market_offers.dealer_name), " +
+  "city = COALESCE(NULLIF(EXCLUDED.city, ''), moveadvisor_market_offers.city), " +
+  "location = COALESCE(NULLIF(EXCLUDED.location, ''), moveadvisor_market_offers.location), " +
   "image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), " +
   "images = COALESCE(NULLIF(EXCLUDED.images, '[]'), moveadvisor_market_offers.images), " +
   'environmental_label = COALESCE(NULLIF(EXCLUDED.environmental_label, \'\'), moveadvisor_market_offers.environmental_label), ' +

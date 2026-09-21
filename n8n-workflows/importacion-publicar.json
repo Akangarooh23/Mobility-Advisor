@@ -1,0 +1,142 @@
+{
+  "name": "Importación – Publicar (regla de la ficha)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "pu-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 40 13,21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "pu-cron",
+      "name": "2 veces/día (13:40 y 21:40)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d \"C:\\Users\\Anapi\\Projects\\Mobility-Advisor\" && node scripts\\recalcula-publicacion.cjs --aplica"
+      },
+      "id": "pu-cmd",
+      "name": "Aplicar la regla de la ficha",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -280,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lo que ha hecho la pasada, leído de su propia salida.\n//\n// Sin expresiones regulares a propósito: aquí el código viaja dentro de una\n// cadena de JavaScript y dentro de un JSON, y por el camino «\\\\d» se queda en\n// «d». Ha pasado cuatro veces esta semana. Partir por líneas no se rompe.\nconst res = $input.first().json || {};\nconst salida = String(res.stdout || '');\nconst error = String(res.stderr || '');\nconst codigo = Number(res.exitCode === undefined ? 0 : res.exitCode);\n\nconst numeroDe = (etiqueta) => {\n  for (const linea of salida.split('\\n')) {\n    const i = linea.indexOf(etiqueta);\n    if (i === -1) continue;\n    const trozo = linea.slice(linea.indexOf(':', i) + 1).trim().replace(/\\./g, '');\n    const n = parseInt(trozo, 10);\n    if (!isNaN(n)) return n;\n  }\n  return null;\n};\n\nconst miradas = numeroDe('ofertas alemanas');\nconst antes = numeroDe('publicadas antes');\nconst ahora = numeroDe('publicadas ahora');\nconst entran = numeroDe('entran');\nconst salen = numeroDe('salen');\n\n// Que el script haya terminado NO basta: si no ha escrito nada, algo va mal\n// aunque el código de salida sea cero.\nconst fue = (codigo === 0 && ahora !== null);\n\nconsole.log('[publicar] ── resumen ──');\nconsole.log('  código de salida : ' + codigo);\nconsole.log('  ofertas miradas  : ' + (miradas === null ? '?' : miradas));\nconsole.log('  publicadas antes : ' + (antes === null ? '?' : antes));\nconsole.log('  publicadas ahora : ' + (ahora === null ? '?' : ahora));\nconsole.log('  entran / salen   : ' + (entran === null ? '?' : entran) + ' / ' + (salen === null ? '?' : salen));\nif (!fue) {\n  console.log('  LA PASADA NO HA PUBLICADO NADA.');\n  if (error) console.log('  error: ' + error.slice(0, 500));\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='publicar':\n//     checked  ofertas alemanas miradas   alive  publicadas ahora\n//     deactivated  las que salen          unclassified  las que entran\n//     blocked  TRUE si la pasada no llegó a publicar\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('publicar', NOW(), \" + n(miradas) + ', ' + n(ahora) + ', '\n  + n(salen) + ', ' + n(entran) + ', 0, ' + (fue ? 'FALSE' : 'TRUE') + ', 0)';\n\nreturn [{ json: { sql: sql, codigo: codigo, miradas: miradas, antes: antes,\n  ahora: ahora, entran: entran, salen: salen, bien: fue,\n  error: error.slice(0, 500) } }];"
+      },
+      "id": "pu-parte",
+      "name": "Code: Qué ha hecho",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -40,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "pu-pg",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Aplicar la regla de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 veces/día (13:40 y 21:40)": {
+      "main": [
+        [
+          {
+            "node": "Aplicar la regla de la ficha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar la regla de la ficha": {
+      "main": [
+        [
+          {
+            "node": "Code: Qué ha hecho",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Qué ha hecho": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

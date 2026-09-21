@@ -49,7 +49,10 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+// El id de la credencial que EXISTE en n8n. La plantilla de la que salieron
+// estos generadores llevaba otro que no existe en esta maquina, y los nodos
+// entraron sin credencial: dos triangulos de aviso y nada que escribiera.
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const ERROR_WF = "9BwKOPMIzjj3owho";
 

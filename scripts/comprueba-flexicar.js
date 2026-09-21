@@ -89,6 +89,36 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     comprueba(quien + ": ninguna conexión apunta a un nodo que no existe", rotas === 0);
   }
 
+  /*
+   * La credencial de Postgres tiene que EXISTIR en n8n.
+   *
+   * Estos generadores salieron de una plantilla con el id «zoxD0jV8hxZqH0uY»,
+   * que en esta máquina no existe: la única credencial de Postgres es otra, y
+   * la usan los 83 nodos que funcionan. Al importar, los nodos nuevos entraron
+   * SIN credencial -triángulo de aviso y nada que escribiera-, y encima n8n
+   * dejó suelto el nodo viejo, que sí la tenía.
+   *
+   * Se mira en la base de n8n, que es la que manda; si no está a mano, se dice
+   * y no se falla: el test tiene que poder correr sin n8n instalado.
+   */
+  const baseN8n = path.join(process.env.USERPROFILE || process.env.HOME, ".n8n", "database.sqlite");
+  if (!fs.existsSync(baseN8n)) {
+    console.log("        (no encuentro la base de n8n: no compruebo la credencial)");
+  } else {
+    const { DatabaseSync } = require("node:sqlite");
+    const db = new DatabaseSync(baseN8n, { readOnly: true });
+    const existen = new Set(db.prepare("SELECT id FROM credentials_entity WHERE type = 'postgres'")
+      .all().map((x) => x.id));
+    db.close();
+    for (const [quien, wf] of [["orquestador", orq], ["segmento", seg]]) {
+      const usadas = [...new Set(wf.nodes.filter((n) => n.credentials && n.credentials.postgres)
+        .map((n) => n.credentials.postgres.id))];
+      comprueba(quien + ": la credencial de Postgres existe en n8n",
+        usadas.length > 0 && usadas.every((id) => existen.has(id)),
+        usadas.join(", ") + (usadas.every((id) => existen.has(id)) ? "" : "  no está en n8n"));
+    }
+  }
+
   const sub = nodo(orq, "Scrapear segmento (Flexicar – Segmento)");
   comprueba("el orquestador ESPERA a cada segmento",
     ((sub.parameters.options || {}).waitForSubWorkflow) === true);

@@ -124,11 +124,29 @@ for (const it of list) {
   const ciudad = sede.split(' - ')[0].trim();
   const provincia = provinciaDe[String(it.carDealershipSlug || '')] || '';
 
-  // Las imágenes llegan de dos formas: cadenas en el listado y objetos
-  // {image, detail, label} en la ficha. Se aceptan las dos.
-  const fotos = Array.isArray(it.images)
-    ? it.images.map(x => (typeof x === 'string' ? x : (x && x.image) || null)).filter(Boolean).slice(0, 15)
-    : (it.image ? [it.image] : []);
+  /*
+   * Las imágenes llegan de dos formas: cadenas en el listado y objetos
+   * {image, detail, label} en la ficha. Se aceptan las dos.
+   *
+   * Y se tiran las genéricas: el banner de la red de concesionarios no es una
+   * foto del coche. El scraper viejo las filtraba y el enriquecedor también;
+   * al rehacer los dos se perdió el filtro en los dos sitios, y hoy hay 566
+   * coches cuya foto de portada es ese banner.
+   *
+   * La portada se toma de la primera foto de verdad cuando la que viene es
+   * genérica: así una vuelta del scraper cura las que ya están, porque el
+   * UPSERT prefiere lo nuevo cuando no viene vacío.
+   */
+  const esGenerica = (u) => {
+    const t = String(u || '');
+    return !t || t.indexOf('/generic/') !== -1 || t.indexOf('dealer_network') !== -1;
+  };
+  const fotos = (Array.isArray(it.images)
+    ? it.images.map(x => (typeof x === 'string' ? x : (x && x.image) || null))
+    : (it.image ? [it.image] : []))
+    .filter(u => !esGenerica(u))
+    .slice(0, 15);
+  const portada = !esGenerica(it.image) ? String(it.image) : (fotos[0] || '');
   const imagesJson = JSON.stringify(fotos).replace(/'/g, "''");
 
   const row = '(' +
@@ -136,7 +154,7 @@ for (const it of list) {
     txt(brand) + ', ' + txt(model) + ', ' + txt(version) + ', ' +
     num(year) + ', ' + num(km) + ', ' + price + ', ' +
     txt(normFuel(it.fuel)) + ', ' + txt(normGear(it.transmission)) + ', ' + txt(it.color) + ', ' +
-    txt(it.image) + ", '" + imagesJson + "', " + txt(normLabel(it.ecoSticker)) + ', ' +
+    txt(portada) + ", '" + imagesJson + "', " + txt(normLabel(it.ecoSticker)) + ', ' +
     txt(sede) + ', ' + txt(ciudad) + ', ' + txt(provincia) + ', ' + txt(ciudad) + ', ' +
     "'profesional', 'compra', 'ES', " + num(finance) + ', ' + num(cuota) +
     ', NOW(), NOW(), NOW()' +

@@ -232,6 +232,60 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
     conProvincia > 0 && sinProvincia === 0,
     conProvincia + " con provincia, " + sinProvincia + " sin concesionario conocido");
 
+  /*
+   * Y LOS DEMÁS VALORES, NO SOLO QUE LA COLUMNA ESTÉ.
+   *
+   * Todo lo de arriba comprueba estructura: que el id no lleve prefijo, que la
+   * columna exista, que el flujo no se rompa. Con eso, el día que Flexicar
+   * renombre `km` o `transmission` entra el catálogo entero con los
+   * kilómetros vacíos y el cambio en blanco, y este script sigue diciendo
+   * «todo correcto».
+   *
+   * Aquí se miran los valores de las doce ofertas reales de la página: que los
+   * kilómetros sean kilómetros, que el año sea un año, y que la mayoría traiga
+   * combustible y cambio. No se exige el 100 %: un coche sin uno de esos datos
+   * pasa, doce seguidos no.
+   */
+  const valores = [];
+  for (const id of Object.keys(porId)) {
+    const trozo = sql.split("('" + id + "', 'flexicar'")[1];
+    if (!trozo) continue;
+    const fila = trozo.slice(0, trozo.indexOf("NOW()"));
+    const campos = fila.split(", ");
+    // Van por orden: ..., version, year, mileage, price, fuel, transmission, ...
+    const i = campos.findIndex((x) => x === String(Number(porId[id].year)));
+    if (i < 1) continue;
+    valores.push({
+      year: Number(campos[i]),
+      km: campos[i + 1] === "NULL" ? null : Number(campos[i + 1]),
+      fuel: (campos[i + 3] || "").replace(/'/g, ""),
+      cambio: (campos[i + 4] || "").replace(/'/g, ""),
+    });
+  }
+  const ahora = new Date().getFullYear();
+  comprueba("se han podido leer los valores de las ofertas", valores.length >= 6,
+    valores.length + " de " + Object.keys(porId).length);
+  comprueba("los años son años",
+    valores.length > 0 && valores.every((v) => v.year >= 1990 && v.year <= ahora + 1));
+  const conKm = valores.filter((v) => v.km !== null);
+  comprueba("los kilómetros son kilómetros, y no todos cero",
+    conKm.length > 0 && conKm.every((v) => v.km >= 0 && v.km <= 600000) && conKm.some((v) => v.km > 0),
+    conKm.length + " con dato");
+  const conCombustible = valores.filter((v) => v.fuel).length;
+  const conCambio = valores.filter((v) => v.cambio).length;
+  comprueba("casi todos traen combustible", conCombustible >= valores.length * 0.8,
+    conCombustible + " de " + valores.length);
+  comprueba("y casi todos, cambio", conCambio >= valores.length * 0.8,
+    conCambio + " de " + valores.length);
+
+  /*
+   * Y que no entre el banner de la red de concesionarios como foto del coche.
+   * El filtro estaba en el scraper viejo y en el enriquecedor; al rehacer los
+   * dos se perdió, y hoy hay 566 coches con ese banner de portada.
+   */
+  comprueba("ninguna foto genérica entra como foto del coche",
+    sql.indexOf("/generic/") === -1 && sql.indexOf("dealer_network") === -1);
+
   // ══ contra la base ═══════════════════════════════════════════════════════
   console.log("\nCONTRA LA BASE (con ROLLBACK)");
   const c = new Client({ connectionString: DB_URL, statement_timeout: 300000 });

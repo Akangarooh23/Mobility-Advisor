@@ -20,7 +20,7 @@ require("dotenv").config({ path: ".env.local" });
 const { Pool } = require("pg");
 const {
   precioPuestoAqui, ahorroDelCliente, sePublica,
-  AHORRO_MINIMO, AHORRO_MAXIMO, COMPARABLES_MINIMOS,
+  AHORRO_MINIMO, AHORRO_MINIMO_EUROS, AHORRO_MAXIMO, COMPARABLES_MINIMOS,
   FEE_POPCAR, PRECIO_MINIMO_COCHE,
 } = require("../lib/coste-importacion.js");
 const { catalogoDeGarantias, opcionesParaElCoche } = require("../lib/garantias.js");
@@ -35,7 +35,8 @@ const APLICA = process.argv.includes("--aplica");
   });
 
   console.log(`fee ${FEE_POPCAR} € · coche desde ${PRECIO_MINIMO_COCHE} € · ` +
-    `ahorro mínimo ${(AHORRO_MINIMO * 100).toFixed(0)} % · máximo ${(AHORRO_MAXIMO * 100).toFixed(0)} % · ` +
+    `ahorro mínimo ${AHORRO_MINIMO_EUROS.toLocaleString("es")} € y ${(AHORRO_MINIMO * 100).toFixed(0)} % · ` +
+    `máximo ${(AHORRO_MAXIMO * 100).toFixed(0)} % · ` +
     `mínimo ${COMPARABLES_MINIMOS} comparables\n`);
 
   /**

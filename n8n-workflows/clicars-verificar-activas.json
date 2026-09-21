@@ -1,0 +1,430 @@
+{
+  "name": "Clicars – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 50 11,14,17,22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cv-cron",
+      "name": "4 veces/día (11:50, 14:50, 17:50 y 22:50)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Las activas de Clicars, las que llevan más tiempo sin mirar primero.\nSELECT id FROM moveadvisor_market_offers\nWHERE portal = 'clicars' AND is_active\nORDER BY last_checked_at NULLS FIRST\nLIMIT 700",
+        "options": {}
+      },
+      "id": "cv-cola",
+      "name": "PG: Cola a verificar",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cv-loop",
+      "name": "Loop: oferta por oferta",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cortacircuitos, guarda de cola vacía y la url por id.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.cv_run || s.cv_run !== $execution.id) {\n  s.cv_run = $execution.id;\n  s.cv_parado = false;\n  s.cv_pedidas = 0;\n  s.cv_vivas = 0;\n  s.cv_bajas = 0;\n  s.cv_otro = 0;\n  s.cv_fallos = 0;\n  s.cv_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\n// Así cayeron cuatro ejecuciones de Gamboa el 2026-09-07.\nif (!item || !item.id) {\n  console.log('[cl-verify] no hay nada que verificar ahora mismo.');\n  return [{ json: { url: '', id: '' } }];\n}\nif (s.cv_parado) return [{ json: { url: '', id: String(item.id) } }];\n\n// La url se construye con el id: la guardada puede ser la de la versión, que\n// comparten hasta 18 coches.\nconst numero = String(item.id).split('_')[1] || '';\nif (!numero) return [{ json: { url: '', id: String(item.id) } }];\nreturn [{ json: {\n  id: String(item.id),\n  url: 'https://www.clicars.com/coches-segunda-mano-ocasion/comprar-coche-' + numero,\n} }];"
+      },
+      "id": "cv-toca",
+      "name": "Code: ¿toca pedirla?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cv-c-url",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "cv-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "cv-http",
+      "name": "HTTP: ¿sigue la ficha?",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clicars - ¿sigue a la venta?\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst baja = (motivo) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET is_active = FALSE, last_checked_at = NOW()'\n    + ' WHERE id = ' + esc(id),\n  veredicto: motivo,\n} }];\nconst sigue = () => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET last_checked_at = NOW() WHERE id = ' + esc(id),\n  veredicto: 'viva',\n} }];\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\ns.cv_pedidas = (s.cv_pedidas || 0) + 1;\n\n// Un 403, un 429 o un 500 no dicen nada de la oferta: no se toca.\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.cv_fallos = (s.cv_fallos || 0) + 1;\n  const pedidas = s.cv_pedidas || 0;\n  if (pedidas >= 50 && (s.cv_fallos / pedidas) > 0.3) {\n    s.cv_parado = true;\n    s.cv_motivo = Math.round(100 * s.cv_fallos / pedidas) + '% de respuestas cerradas en '\n      + pedidas + ' intentos: nos han bloqueado';\n    console.log('[cl-verify] PARADO: ' + s.cv_motivo);\n  }\n  return [{ json: { sql: null, veredicto: 'pasajero' } }];\n}\n\n/*\n * Una redirección NO es una baja, y casi me cuesta cara.\n *\n * La primera versión daba por vendido todo lo que redirigiera. Probándolo con\n * fichas de verdad, DIEZ DE DIEZ redirigían... y al seguirlas, dos de cada\n * cuatro acababan en una página cuyo sku era el nuestro: coches vivos que\n * habría dado de baja.\n *\n * Clicars redirige por dos motivos distintos y solo uno es la muerte:\n *\n *     comprar-coche-138159  ->  /smart/3/3-premium-...   sku 138159   VIVO\n *     comprar-coche-138326  ->  /                        la home     ya no está\n *\n * Así que el nodo sigue las redirecciones y se decide por lo que haya al final.\n * Aquí solo quedan los códigos que sí son definitivos.\n */\nif (codigo === 404 || codigo === 410) {\n  s.cv_bajas = (s.cv_bajas || 0) + 1;\n  return baja('no existe');\n}\nif (codigo !== 200 || !cuerpo) {\n  s.cv_fallos = (s.cv_fallos || 0) + 1;\n  return [{ json: { sql: null, veredicto: 'sin ficha' } }];\n}\n\n/*\n * El bloque JSON-LD del coche, que es el que lleva sku y availability.\n *\n * Se recorren todos los bloques y se coge el que tenga sku: la ficha trae\n * varios -migas de pan, organización- y solo uno es el coche.\n */\nlet ld = null;\nfor (const trozo of cuerpo.split('application/ld+json').slice(1)) {\n  const ini = trozo.indexOf('>');\n  const fin = trozo.indexOf('</script>');\n  if (ini === -1 || fin === -1) continue;\n  let j = null;\n  try { j = JSON.parse(trozo.slice(ini + 1, fin).trim()); } catch (e) { continue; }\n  if (j && j.sku !== undefined) { ld = j; break; }\n}\n/*\n * Sin bloque de coche, la redirección ha acabado en otro sitio -la home, un\n * listado- y eso SÍ es que la oferta ya no está. Medido sobre 20: le pasa al\n * 40 %, y es la baja más común de este portal.\n */\nif (!ld) {\n  s.cv_bajas = (s.cv_bajas || 0) + 1;\n  return baja('la url ya no lleva a ningún coche');\n}\n\n/*\n * Que la ficha sea la de NUESTRO coche.\n *\n * Con la url por id esto debería cumplirse siempre, pero comprobarlo cuesta una\n * línea y equivocarse no se deshace: preguntando por la url que teníamos\n * guardada, 10 de cada 30 devolvían la ficha de otro coche.\n */\nconst numero = id.split('_')[1] || '';\nif (String(ld.sku) !== numero) {\n  s.cv_otro = (s.cv_otro || 0) + 1;\n  s.cv_bajas = (s.cv_bajas || 0) + 1;\n  return baja('la ficha es de otro coche (' + ld.sku + ')');\n}\n\nconst disponible = String((ld.offers || {}).availability || '');\nif (disponible.indexOf('InStock') !== -1) {\n  s.cv_vivas = (s.cv_vivas || 0) + 1;\n  return sigue();\n}\nif (disponible.indexOf('OutOfStock') !== -1 || disponible.indexOf('SoldOut') !== -1) {\n  s.cv_bajas = (s.cv_bajas || 0) + 1;\n  return baja('vendida');\n}\n// Sin disponibilidad no se decide: ni viva ni muerta.\ns.cv_fallos = (s.cv_fallos || 0) + 1;\nreturn [{ json: { sql: null, veredicto: 'sin disponibilidad' } }];"
+      },
+      "id": "cv-code",
+      "name": "Code: ¿sigue a la venta?",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cv-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "cv-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cv-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada, y el freno de mortandad.\nconst s = $getWorkflowStaticData('global');\nconst pedidas = s.cv_pedidas || 0;\nconst bajas = s.cv_bajas || 0;\nconst decididas = bajas + (s.cv_vivas || 0);\n\nconsole.log('[cl-verify] ── resumen ──');\nconsole.log('  fichas pedidas   : ' + pedidas);\nconsole.log('  siguen vivas     : ' + (s.cv_vivas || 0));\nconsole.log('  BAJAS            : ' + bajas);\nconsole.log('  de ellas, «era otro coche»: ' + (s.cv_otro || 0));\nconsole.log('  sin poder decidir: ' + (s.cv_fallos || 0));\nif (s.cv_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.cv_motivo);\n// Una pasada que pide fichas y no decide ninguna no es un éxito: o el portal ha\n// cambiado el formato, o nos han cerrado.\nif (!s.cv_parado && pedidas > 0 && decididas === 0) {\n  console.log('  OJO: ni una decidida. O Clicars ha cambiado la ficha, o nos han cerrado.');\n}\n/*\n * El techo de mortandad se mira AQUÍ, no al dar cada baja: las bajas ya están\n * escritas. Lo que hace es dejarlo dicho en el parte, que es donde se mira si\n * algo va mal. Va al 90 % a propósito: la mortandad real de este portal tras un\n * mes parado es del 80 %, así que un tope bajo saltaría cada día sin motivo.\n */\nconst mortandad = decididas ? (bajas / decididas) : 0;\nconst sospechosa = decididas >= 100 && mortandad > 0.9;\nif (sospechosa) {\n  console.log('  OJO: ' + Math.round(mortandad * 100) + '% de bajas. Eso no es un mal mes,'\n    + ' es que algo ha cambiado en el portal.');\n}\n\nconst n = v => String(Number(v) || 0);\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('clicars', NOW(), \" + n(pedidas) + ', ' + n(s.cv_vivas) + ', '\n  + n(bajas) + ', ' + n(s.cv_otro) + ', ' + n(s.cv_fallos) + ', '\n  + ((s.cv_parado || sospechosa) ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: pedidas, vivas: s.cv_vivas || 0, bajas: bajas,\n  eraOtro: s.cv_otro || 0, fallos: s.cv_fallos || 0, parado: !!s.cv_parado,\n  mortandad: Math.round(mortandad * 100) };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('cv_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "cv-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cv-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (11:50, 14:50, 17:50 y 22:50)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola a verificar": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: oferta por oferta": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: ¿toca pedirla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: ¿sigue la ficha?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: ¿sigue la ficha?": {
+      "main": [
+        [
+          {
+            "node": "Code: ¿sigue a la venta?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: ¿sigue a la venta?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

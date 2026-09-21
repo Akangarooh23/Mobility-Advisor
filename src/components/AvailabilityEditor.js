@@ -190,10 +190,19 @@ export default function AvailabilityEditor({ offerId, source, onSlotsChange, api
     if (slot.status === "booked") { setError("Este horario ya tiene una reserva — cancela la cita primero"); return; }
     setRemoving(slot.id);
     try {
-      await fetch(`${API}?route=delete_slot&slotId=${slot.id}&offerId=${offerId}`, { method: "DELETE" });
-      const updated = slots.filter((s) => s.id !== slot.id);
-      setSlots(updated);
-      if (onSlotsChange) onSlotsChange(updated);
+      /*
+       * Se mira la respuesta, y luego se recarga.
+       *
+       * No se miraba: la fila desaparecía de la pantalla aunque el servidor
+       * hubiera contestado que no, y al recargar volvía a estar. Y como una
+       * franja de varias horas se ofrece hora a hora, quitar una de ellas la
+       * parte en dos —10:00-11:00 y 12:00-14:00—, así que lo que queda hay que
+       * volver a pedirlo: no es «esta fila menos».
+       */
+      const r = await fetch(`${API}?route=delete_slot&slotId=${encodeURIComponent(slot.id)}&offerId=${encodeURIComponent(offerId)}`, { method: "DELETE" });
+      const datos = await r.json().catch(() => ({}));
+      if (!r.ok) { setError(datos.error || "No hemos podido quitar ese horario"); setRemoving(null); return; }
+      await loadSlots();
     } catch { setError("Error al eliminar"); }
     setRemoving(null);
   }

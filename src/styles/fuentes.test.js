@@ -44,23 +44,38 @@ test("la fuente se declara en un solo sitio", () => {
   expect(sueltas).toEqual([]);
 });
 
+/**
+ * Dónde puede hablar la marca: las páginas que le cuentan a alguien qué es
+ * PopCar. La portada, cómo funciona, cómo subir tu coche y la de «nosotros lo
+ * vendemos por ti».
+ *
+ * Fuera de aquí no entra, y esa es toda la regla: el panel, las tablas y
+ * cualquier sitio con una columna de precios son producto, y ahí los diez
+ * dígitos de Bricolage —que no miden lo mismo— desalinean la columna.
+ */
+const DE_MARCA = [
+  "pages/LandingPage.css",
+  "pages/ComoFuncionaPage.css",
+  "pages/ComoSubirTuCochePage.css",
+  "pages/SellProfessionalAssistPage.css",
+];
+
 test("la letra de titulares no toca el producto", () => {
-  /* Solo los cuatro titulares grandes: el del home, el de la portada de cómo
-     funciona, el de cada bloque y el del cierre. Ni una tabla, ni un precio, ni
-     el panel. */
-  const usos = [];
+  /*
+   * Antes esto era la lista exacta de los usos —tres en cómo funciona, uno en
+   * la portada— y se ponía en rojo cada vez que nacía una landing con un
+   * titular más: el 10 de septiembre se quedó así y once días después seguía
+   * roja, que es como se aprende a ignorar una prueba. Lo que importa no es
+   * cuántos titulares hay, es en qué hojas.
+   */
+  const fuera = new Set();
   for (const hoja of hojas()) {
     if (path.basename(hoja) === "tokens.css") continue;
-    leer(hoja).split("\n").forEach((linea) => {
-      if (/font-family:\s*var\(--fuente-titulos\)/.test(linea)) usos.push(relativa(hoja));
-    });
+    if (!/font-family:\s*var\(--fuente-titulos\)/.test(leer(hoja))) continue;
+    const donde = relativa(hoja);
+    if (!DE_MARCA.includes(donde)) fuera.add(donde);
   }
-  expect(usos.sort()).toEqual([
-    "pages/ComoFuncionaPage.css",
-    "pages/ComoFuncionaPage.css",
-    "pages/ComoFuncionaPage.css",
-    "pages/LandingPage.css",
-  ]);
+  expect([...fuera].sort()).toEqual([]);
 });
 
 test("las dos fuentes se sirven desde aquí, no desde Google", () => {

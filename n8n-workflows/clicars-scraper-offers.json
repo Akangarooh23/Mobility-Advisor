@@ -1,15 +1,15 @@
 {
-  "name": "Clicars – Scraper",
+  "name": "Clicars – Scraper (mercado)",
   "nodes": [
     {
       "parameters": {},
-      "id": "clc-manual",
+      "id": "cl-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        300
+        -600,
+        200
       ]
     },
     {
@@ -18,144 +18,150 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 30 1 * * *"
+              "expression": "0 35 9,21 * * *"
             }
           ]
         }
       },
-      "id": "clc-cron",
-      "name": "Cada día a las 01:30",
+      "id": "cl-cron",
+      "name": "2 veces/día (9:35 y 21:35)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        500
+        -600,
+        400
       ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "https://www.clicars.com/coches-segunda-mano-ocasion",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
           }
         }
       },
-      "id": "clc-count",
-      "name": "HTTP: Contar (pág 1)",
+      "id": "cl-contar",
+      "name": "HTTP: Contar el catálogo",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        -20,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
+        -400,
+        300
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Lee el total de coches de la pagina 1 y cuenta coches/pagina -> genera 1..N\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nlet total = 0; const m = html.match(/([0-9.]+)\\s*coches/i); if (m) total = parseInt(m[1].replace(/\\./g,''),10) || 0;\nconst perPage = ([...html.matchAll(/data-analytics-vehicle-maker=/g)].length) || 12;\nconst pages = Math.min(Math.max(Math.ceil(total / perPage), 1), 200);\nconst out = []; for (let p = 1; p <= pages; p++) out.push({ json: { page: p } });\nreturn out;"
+        "jsCode": "// Cuántas páginas hay hoy, y la lista de urls.\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst html = String(res.data || res.body || '');\n\n/*\n * El total, de la frase «1.257 coches» del propio listado.\n *\n * Sin expresión regular: este código viaja dentro de una cadena y dentro de un\n * JSON, y por el camino las barras se pierden. Ha pasado cuatro veces hoy.\n */\nlet total = 0;\nconst i = html.indexOf(' coches');\nif (i !== -1) {\n  let n = '';\n  for (let k = i - 1; k >= 0 && k > i - 12; k--) {\n    const ch = html.charAt(k);\n    if (ch >= '0' && ch <= '9') n = ch + n;\n    else if (ch === '.') continue;\n    else break;\n  }\n  total = Number(n) || 0;\n}\n\nlet paginas = total > 0 ? Math.ceil(total / 12) : 0;\nif (paginas > 400) paginas = 400;\nif (!(paginas > 0)) {\n  // Sin medida no se inventa un número: una pasada que no hace nada y lo dice\n  // es mejor que una que recorre cuatrocientas páginas vacías.\n  console.log('[clicars] el listado no dice cuántos coches tiene. Nada que hacer.');\n  return [];\n}\n\nconst out = [];\nfor (let p = 1; p <= paginas; p++) {\n  out.push({ json: { page: p, url: p === 1 ? 'https://www.clicars.com/coches-segunda-mano-ocasion' : 'https://www.clicars.com/coches-segunda-mano-ocasion?page=' + p } });\n}\nconsole.log('[clicars] ' + total + ' coches en ' + paginas + ' páginas');\nreturn out;"
       },
-      "id": "clc-gen",
+      "id": "cl-paginas",
       "name": "Code: Generar páginas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        200,
-        400
+        -200,
+        300
       ]
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "clc-loop",
+      "id": "cl-loop",
       "name": "Loop: página por página",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        420,
-        400
+        0,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "=https://www.clicars.com/coches-segunda-mano-ocasion?page={{ $json.page }}",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
           }
         }
       },
-      "id": "clc-http",
-      "name": "HTTP: Listado Clicars",
+      "id": "cl-http",
+      "name": "HTTP: Página del listado",
+      "onError": "continueRegularOutput",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        640,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
+        240,
+        420
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Clicars - transform: HTML -> tarjetas (anchor data-analytics-vehicle-maker) -> UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nfunction tagAttr(t,name){ const m=t.match(new RegExp(name+'=\"([^\"]*)\"','i')); return m?m[1]:''; }\nfunction esc(v){ if(v===null||v===undefined) return 'NULL'; if(typeof v==='number') return isNaN(v)?'NULL':String(v); return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction normFuel(s){ s=String(s).toLowerCase(); if(/gnc|glp|gas natural/.test(s)) return 'Gas'; if(/eléctric|electric/.test(s)) return 'Eléctrico'; if(/híbrid|hibrid/.test(s)) return 'Híbrido'; if(/diésel|diesel/.test(s)) return 'Diesel'; if(/gasolina/.test(s)) return 'Gasolina'; return ''; }\nfunction normGear(s){ s=String(s).toLowerCase(); if(/autom/.test(s)) return 'Automatica'; if(/manual/.test(s)) return 'Manual'; return ''; }\nconst anchors = [...html.matchAll(/<a\\b[^>]*data-analytics-vehicle-maker=\"[^\"]*\"[^>]*>/gi)];\nconst seen = new Set(); const rows = [];\nfor (let i=0;i<anchors.length;i++){\n  const tag=anchors[i][0];\n  const id=tagAttr(tag,'data-vehicle-web-id'); if(!id||seen.has(id)) continue; seen.add(id);\n  const brand=tagAttr(tag,'data-analytics-vehicle-maker');\n  const model=tagAttr(tag,'data-analytics-vehicle-model');\n  const href=tagAttr(tag,'href'); const url=href.startsWith('http')?href:('https://www.clicars.com'+href);\n  const start=anchors[i].index; const end=(i+1<anchors.length)?anchors[i+1].index:start+4000;\n  const body=html.slice(start,end);\n  const price=num(tagAttr(body,'data-price-web-offer'))||num(tagAttr(body,'data-price-web'));\n  const img=(body.match(/<img[^>]+src=\"(https:\\/\\/storage[^\"]+)\"/i)||[])[1]||'';\n  const text=body.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\\s+/g,' ').trim();\n  const year=(text.match(/\\b(20\\d{2}|19\\d{2})\\b/)||[])[1]||null;\n  const km=num((text.match(/([0-9.]+)\\s*km/i)||[])[1]);\n  const cv=num((text.match(/(\\d+)\\s*CV/i)||[])[1]);\n  const trans=normGear((text.match(/Manual|Autom[aá]tic[oa]/i)||[])[0]);\n  const fuel=normFuel((text.match(/GNC|GLP|Di[eé]sel|Gasolina|El[eé]ctric[oa]|H[ií]brid[oa]/i)||[])[0]);\n  let version='';\n  if(brand&&model){ const vm=text.match(new RegExp(brand+'\\\\s+'+model.replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')+'\\\\s+([^|0-9][^0-9]*?)\\\\s*(20\\\\d{2}|19\\\\d{2}|\\\\d[\\\\d.]*\\\\s*km)','i')); if(vm) version=vm[1].replace(/\\s+/g,' ').trim().slice(0,80); }\n  if(!price) continue;\n  const title=(brand+' '+model+' '+version).replace(/\\s+/g,' ').trim();\n  const imagesJson=(img?JSON.stringify([img]):'[]').replace(/'/g,\"''\");\n  const row='('+esc('clc_'+id)+\", 'clicars', \"+esc(url)+', '+esc(title)+', '+esc(brand)+', '+esc(model)+', '+esc(version)+', '+\n    (year!=null?String(year):'NULL')+', '+(km!=null?String(km):'NULL')+', '+(price!=null?String(price):'NULL')+', '+\n    esc(fuel)+', '+esc(trans)+', '+(cv!=null?String(cv):'NULL')+', '+esc(img)+\", '\"+imagesJson+\"', 'profesional', 'compra', NOW(), NOW(), NOW())\";\n  rows.push(row);\n}\nif(!rows.length) return [{ json:{ sql:null, count:0 } }];\nconst cols='id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, power_cv, image_url, images, seller_type, listing_type, first_seen_at, scraped_at, last_seen_at';\nconst onConflict=\"ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, price=EXCLUDED.price, mileage=EXCLUDED.mileage, image_url=COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), power_cv=COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), last_seen_at=NOW(), updated_at=NOW()\";\nconst sql='INSERT INTO moveadvisor_market_offers ('+cols+') VALUES '+rows.join(', ')+' '+onConflict;\nreturn [{ json:{ sql:sql, count:rows.length } }];"
+        "jsCode": "// Clicars – transform: HTML del listado → tarjetas <article> → UPSERT market_offers\n//\n// El id es «clc_» + el data-vehicle-web-id de la tarjeta, que es como están las\n// filas que ya hay. Cualquier otra forma de construirlo las duplicaría todas.\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\n/*\n * Aplanar ANTES de partir.\n *\n * La etiqueta <article trae saltos de línea dentro, así que partir por\n * «<article data-vehicle-web-id=» sobre el html crudo encuentra CERO tarjetas.\n */\nconst plano = html.split(/\\s+/).join(' ');\nconst tarjetas = plano.split('<article data-vehicle-web-id=').slice(1);\nif (!tarjetas.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction txt(v) {\n  return \"'\" + String(v === null || v === undefined ? '' : v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  const n = Number(v);\n  return isNaN(n) ? 'NULL' : String(n);\n}\n/** El valor de un atributo, sin expresiones regulares. */\nfunction atributo(trozo, nombre) {\n  const i = trozo.indexOf(nombre + '=\"');\n  if (i === -1) return null;\n  const desde = i + nombre.length + 2;\n  const fin = trozo.indexOf('\"', desde);\n  return fin === -1 ? null : trozo.slice(desde, fin);\n}\n/** Los dígitos de un texto: «10.990€» -> 10990, «95.556km» -> 95556. */\nfunction digitos(t) {\n  if (t === null || t === undefined) return null;\n  let n = '';\n  const s = String(t);\n  for (let i = 0; i < s.length; i++) {\n    const ch = s.charAt(i);\n    if (ch >= '0' && ch <= '9') n += ch;\n  }\n  return n ? Number(n) : null;\n}\n/** Lo que hay entre dos marcas, que es como se saca el texto de un span. */\nfunction entre(trozo, desde, hasta) {\n  const i = trozo.indexOf(desde);\n  if (i === -1) return null;\n  const j = trozo.indexOf(hasta, i + desde.length);\n  return j === -1 ? null : trozo.slice(i + desde.length, j).trim();\n}\nfunction normGear(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\n\nconst rows = [];\nfor (const t of tarjetas) {\n  // El id va al principio del trozo: data-vehicle-web-id=\"139250\"\n  const idWeb = digitos(t.slice(0, 14));\n  if (!idWeb) continue;\n  const id = 'clc_' + idWeb;\n\n  /*\n   * La url DEL COCHE, no la de la versión.\n   *\n   * Clicars sirve dos formas y solo una es de un coche concreto:\n   *\n   *     /coches-segunda-mano-ocasion/comprar-toyota-yaris-...-2015-139250\n   *     /coches-segunda-mano-ocasion/toyota/yaris/yaris-1-0-city-...\n   *\n   * La segunda es la página de la VERSIÓN: en nuestra base hay 18 coches\n   * distintos compartiendo una, y preguntarle por ella no dice nada de ninguno\n   * en concreto. Aquí se guarda la primera, que acaba en el id.\n   */\n  const href = atributo(t, 'href');\n  const url = (href && href.indexOf('/comprar-') !== -1)\n    ? href.split('?')[0]\n    : 'https://www.clicars.com/coches-segunda-mano-ocasion/comprar-coche-' + idWeb;\n\n  const brand = atributo(t, 'data-analytics-vehicle-maker') || '';\n  const modelo = atributo(t, 'data-analytics-vehicle-model') || '';\n  const version = entre(t, '<span class=\"version ellipsis\">', '</span>') || '';\n\n  /*\n   * La línea de datos: « 2015 | 95.556km | 69CV | Manual ».\n   *\n   * Se parte por la barra en vez de buscar cada cosa con un patrón: si un día\n   * falta un trozo, los demás siguen leyéndose.\n   */\n  const info = entre(t, '<span class=\"info ellipsis\">', '</span>') || '';\n  const partes = info.split('|').map((x) => x.trim());\n  let anio = null, km = null, cv = null, cambio = '';\n  for (const p of partes) {\n    const n = digitos(p);\n    if (p.indexOf('km') !== -1) km = n;\n    else if (p.indexOf('CV') !== -1) cv = n;\n    else if (n !== null && n > 1900 && n < 2100) anio = n;\n    else if (normGear(p)) cambio = normGear(p);\n  }\n\n  /*\n   * LOS PRECIOS, Y CUÁL ES «EL PRECIO».\n   *\n   * La tarjeta da cuatro: data-price-web (contado), data-price-financing\n   * (financiado), data-price-quota (cuota mensual) y data-amount-without-\n   * discount (antes del descuento).\n   *\n   * Se guarda el de CONTADO, que es el que se ve en grande y el que paga quien\n   * no se compromete a financiar. Guardar el financiado hunde el comparable\n   * español, y con él el margen de cada coche alemán: eso es exactamente lo que\n   * pasaba en Flexicar hasta hoy, entre 1.500 y 3.000 € por coche.\n   */\n  const contado = digitos(atributo(t, 'data-price-web'));\n  const financiado = digitos(atributo(t, 'data-price-financing'));\n  const cuota = digitos(atributo(t, 'data-price-quota'));\n  const precio = contado !== null ? contado : financiado;\n  if (!(precio > 0)) continue;\n  // El financiado solo si de verdad es otro número: repetirlo haría pensar que\n  // hay una oferta de financiación cuando no la hay.\n  const finance = (contado !== null && financiado !== null && financiado < contado) ? financiado : null;\n\n  const imagen = atributo(t, 'src') || '';\n  const titulo = (brand + ' ' + modelo + ' ' + version).split(/\\s+/).join(' ').trim();\n\n  const row = '(' +\n    txt(id) + \", 'clicars', \" + txt(url) + ', ' + txt(titulo) + ', ' +\n    txt(brand) + ', ' + txt(modelo) + ', ' + txt(version) + ', ' +\n    num(anio) + ', ' + num(km) + ', ' + precio + ', ' +\n    txt(cambio) + ', ' + num(cv) + ', ' +\n    txt(imagen.indexOf('http') === 0 ? imagen : '') + ', ' +\n    \"'profesional', 'compra', 'ES', \" + num(finance) + ', ' + num(cuota) +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, transmission, ' +\n  'power_cv, image_url, seller_type, listing_type, country, finance_price, monthly_price, ' +\n  'first_seen_at, scraped_at, last_seen_at';\n\n/*\n * Lo que el listado NO trae se queda como está: combustible, color, puertas,\n * plazas, carrocería, cilindrada y etiqueta. De eso se encarga el enriquecedor,\n * y machacarlo con vacío en cada pasada sería borrar su trabajo cada noche.\n */\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  // La url se pisa a propósito: 2.083 de las 2.788 filas tienen guardada la\n  // página de la VERSIÓN en vez de la del coche, y esto las corrige.\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, ' +\n  'mileage = COALESCE(EXCLUDED.mileage, moveadvisor_market_offers.mileage), ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  \"transmission = COALESCE(NULLIF(EXCLUDED.transmission, ''), moveadvisor_market_offers.transmission), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  \"image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), \" +\n  // Los precios se pisan sin COALESCE: son datos vivos, y un NULL aquí también\n  // es la verdad -«este coche no tiene oferta de financiación»-.\n  'finance_price = EXCLUDED.finance_price, ' +\n  'monthly_price = EXCLUDED.monthly_price, ' +\n  'last_seen_at = NOW(), updated_at = NOW(), ' +\n  // Verla en el listado ES la prueba de vida, así que resucita.\n  'is_active = TRUE';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
       },
-      "id": "clc-transform",
+      "id": "cl-transf",
       "name": "Code: Transformar ofertas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        860,
-        400
+        480,
+        420
       ]
     },
     {
@@ -164,68 +170,58 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "loose",
+            "version": 2
           },
           "conditions": [
             {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
+              "id": "cl-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
               "operator": {
-                "type": "number",
-                "operation": "gt"
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {}
       },
-      "id": "clc-if",
+      "id": "cl-if",
       "name": "IF: ¿hay ofertas?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1080,
-        400
+        720,
+        420
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.sql }}",
-        "additionalFields": {}
+        "options": {}
       },
-      "id": "clc-pg",
+      "id": "cl-pg",
       "name": "PG: Upsert ofertas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        1320,
-        280
+        960,
+        340
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
       },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "clc-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1560,
-        400
-      ],
-      "webhookId": "wait-clicars"
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -233,25 +229,25 @@
       "main": [
         [
           {
-            "node": "HTTP: Contar (pág 1)",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cada día a las 01:30": {
+    "2 veces/día (9:35 y 21:35)": {
       "main": [
         [
           {
-            "node": "HTTP: Contar (pág 1)",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Contar (pág 1)": {
+    "HTTP: Contar el catálogo": {
       "main": [
         [
           {
@@ -278,14 +274,14 @@
         [],
         [
           {
-            "node": "HTTP: Listado Clicars",
+            "node": "HTTP: Página del listado",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Listado Clicars": {
+    "HTTP: Página del listado": {
       "main": [
         [
           {
@@ -318,7 +314,7 @@
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Loop: página por página",
             "type": "main",
             "index": 0
           }
@@ -326,17 +322,6 @@
       ]
     },
     "PG: Upsert ofertas": {
-      "main": [
-        [
-          {
-            "node": "Esperar 1s",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s": {
       "main": [
         [
           {
@@ -351,12 +336,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

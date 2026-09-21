@@ -65,7 +65,7 @@ const ERROR_WF = "9BwKOPMIzjj3owho";
 
 // El id del workflow «OcasionPlus – Segmento (páginas)» YA IMPORTADO en n8n.
 // Se rellena solo con:  npm run enlaza-segmento-ocasionplus
-const ID_SEGMENTO = "PENDIENTE_DE_ENLAZAR";
+const ID_SEGMENTO = "xGu951IrzVrWkBPB";
 
 const BASE = "https://www.ocasionplus.com/coches-segunda-mano";
 const POR_PAGINA = 20;

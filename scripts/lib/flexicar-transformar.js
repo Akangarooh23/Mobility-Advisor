@@ -74,8 +74,33 @@ for (const it of list) {
   const model = String(it.model || '');
   const version = String(it.version || '');
   const title = (brand + ' ' + model + ' ' + version).replace(/\s+/g, ' ').trim();
-  const price = (it.price !== null && it.price !== undefined) ? Number(it.price) : null;
-  if (price === null || !(price > 0)) continue;
+
+  /*
+   * LOS TRES PRECIOS, Y CUÁL ES «EL PRECIO».
+   *
+   * Flexicar llama `price` al precio CON financiación, y `cashPrice` al de
+   * contado. Son distintos y no por poco: un Toyota C-HR sale a 17.290
+   * financiado y 19.490 al contado; un BMW Serie 1, 20.490 y 23.490.
+   *
+   * Guardar `price` como precio -lo que venía haciéndose desde el scraper
+   * viejo, no es cosa de la versión nueva- mete el catálogo español entero
+   * entre 1.500 y 3.000 € por debajo de lo que vale. Y estas ofertas son
+   * COMPARABLES: de su mediana sale market_price_es, y de ahí el margen de
+   * cada coche alemán. Un comparable barato de más hace que un coche alemán
+   * parezca peor negocio de lo que es.
+   *
+   * El precio que se publica es el de contado, que es lo que cuesta el coche
+   * sin comprometerse a financiar.
+   */
+  const contado = Number(it.cashPrice) > 0 ? Number(it.cashPrice) : null;
+  const financiado = Number(it.price) > 0 ? Number(it.price) : null;
+  const price = (contado !== null) ? contado : financiado;
+  if (price === null) continue;
+  // El financiado solo se guarda si de verdad hay dos precios distintos. Si el
+  // coche no tiene oferta de financiación, repetir el mismo número en las dos
+  // columnas haría pensar que sí la tiene.
+  const finance = (contado !== null && financiado !== null && financiado < contado) ? financiado : null;
+  const cuota = Number(it.quotaPrice) > 0 ? Number(it.quotaPrice) : null;
 
   const year = Number(it.year) > 0 ? Number(it.year) : null;
   const km = (it.km !== null && it.km !== undefined) ? Number(it.km) : null;
@@ -96,7 +121,7 @@ for (const it of list) {
     txt(normFuel(it.fuel)) + ', ' + txt(normGear(it.transmission)) + ', ' + txt(it.color) + ', ' +
     txt(it.image) + ", '" + imagesJson + "', " + txt(normLabel(it.ecoSticker)) + ', ' +
     txt(sede) + ', ' + txt(sede) + ', ' + txt(provincia) + ', ' + txt(sede) + ', ' +
-    "'profesional', 'compra', 'ES', " + num(it.quotaPrice) +
+    "'profesional', 'compra', 'ES', " + num(finance) + ', ' + num(cuota) +
     ', NOW(), NOW(), NOW()' +
   ')';
   rows.push(row);
@@ -105,7 +130,7 @@ if (!rows.length) return [{ json: { sql: null, count: 0 } }];
 
 const cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, color, ' +
   'image_url, images, environmental_label, dealer_name, city, province, location, seller_type, listing_type, ' +
-  'country, finance_price, first_seen_at, scraped_at, last_seen_at';
+  'country, finance_price, monthly_price, first_seen_at, scraped_at, last_seen_at';
 
 // Lo que el listado NO trae -puertas, plazas, carrocería, cilindrada, potencia-
 // se queda como está: lo rellena el enriquecedor mirando la ficha, y machacarlo
@@ -120,7 +145,13 @@ const onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +
   "image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), " +
   "images = COALESCE(NULLIF(EXCLUDED.images, '[]'), moveadvisor_market_offers.images), " +
   'environmental_label = COALESCE(NULLIF(EXCLUDED.environmental_label, \'\'), moveadvisor_market_offers.environmental_label), ' +
-  'finance_price = COALESCE(EXCLUDED.finance_price, moveadvisor_market_offers.finance_price), ' +
+  // Los tres precios se PISAN, sin COALESCE. Son datos vivos y además es lo
+  // que corrige las filas que se escribieron con el precio financiado en la
+  // columna del de contado: basta una vuelta del scraper. Un NULL aquí también
+  // es la verdad -«este coche no tiene oferta de financiación»- y por eso tiene
+  // que poder borrar lo que hubiera.
+  'finance_price = EXCLUDED.finance_price, ' +
+  'monthly_price = EXCLUDED.monthly_price, ' +
   'last_seen_at = NOW(), updated_at = NOW(), ' +
   // Verla en el catálogo ES la prueba de vida, así que resucita.
   //

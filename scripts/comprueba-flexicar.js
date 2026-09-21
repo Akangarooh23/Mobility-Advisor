@@ -151,8 +151,56 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
   comprueba("NO machaca lo que rellena el enriquecedor",
     !/\bdoors\b/.test(sql) && !/\bseats\b/.test(sql) && !/body_type/.test(sql) && !/displacement/.test(sql));
   comprueba("guarda la provincia, que la API no trae", /province/.test(sql));
-  const conProvincia = (sql.match(/'(Madrid|Barcelona|Sevilla|Valencia|Málaga|Murcia|A Coruña)'/g) || []).length;
-  comprueba("y alguna provincia real ha entrado", conProvincia > 0, conProvincia + " en esta página");
+
+  /*
+   * LOS TRES PRECIOS. Esta es la prueba que faltaba y costó dinero.
+   *
+   * Flexicar llama `price` al precio CON financiación y `cashPrice` al de
+   * contado. Guardar el primero como precio dejó el catálogo español entre
+   * 1.500 y 3.000 € por debajo -desde el scraper viejo, no solo desde el
+   * nuevo-, y estas ofertas son COMPARABLES: de su mediana sale
+   * market_price_es y de ahí el margen de cada coche alemán.
+   *
+   * Se comprueba contra la API de verdad, coche a coche, no contra un ejemplo
+   * inventado: el fallo era precisamente creerse qué significaba cada campo.
+   */
+  const porId = {};
+  for (const v of j1.results) porId[String(v.id)] = v;
+  const filas = sql.slice(sql.indexOf("VALUES ") + 7).split("),(").length;
+  let precioMal = 0, cuotaMal = 0, comprobados = 0;
+  for (const id of Object.keys(porId)) {
+    const v = porId[id];
+    const trozo = sql.split("('" + id + "', 'flexicar'")[1];
+    if (!trozo) continue;
+    comprobados++;
+    const esperado = Number(v.cashPrice) > 0 ? Number(v.cashPrice) : Number(v.price);
+    // El precio va justo detrás de los kilómetros, y es el único número que
+    // tiene que coincidir con el de contado.
+    if (trozo.indexOf(", " + esperado + ", ") === -1) precioMal++;
+    if (Number(v.quotaPrice) > 0 && trozo.indexOf(String(v.quotaPrice)) === -1) cuotaMal++;
+  }
+  comprueba("el precio guardado es el de CONTADO, no el financiado",
+    comprobados > 0 && precioMal === 0, comprobados - precioMal + " de " + comprobados);
+  comprueba("y la cuota mensual está, en su columna",
+    cuotaMal === 0 && /monthly_price/.test(sql), "monthly_price en el INSERT");
+  comprueba("el financiado no se pierde: va a finance_price",
+    /finance_price/.test(sql) && filas > 0);
+  comprueba("y los tres precios se pisan, para que una vuelta corrija lo viejo",
+    /finance_price = EXCLUDED\.finance_price/.test(sql)
+    && /monthly_price = EXCLUDED\.monthly_price/.test(sql)
+    && /price = EXCLUDED\.price/.test(sql));
+  // Contra el mapa de concesionarios, no contra una lista de provincias
+  // escrita a mano: la primera versión buscaba Madrid o Barcelona y esta página
+  // traía Cáceres, Badajoz y Tarragona. El test fallaba con el código bien.
+  let sinProvincia = 0, conProvincia = 0;
+  for (const v of j1.results) {
+    const esperada = (ventanas[0].provincias || {})[String(v.carDealershipSlug || "")];
+    if (!esperada) { sinProvincia++; continue; }
+    if (sql.indexOf("'" + esperada.replace(/'/g, "''") + "'") !== -1) conProvincia++;
+  }
+  comprueba("cada coche lleva la provincia de su concesionario",
+    conProvincia > 0 && sinProvincia === 0,
+    conProvincia + " con provincia, " + sinProvincia + " sin concesionario conocido");
 
   // ══ contra la base ═══════════════════════════════════════════════════════
   console.log("\nCONTRA LA BASE (con ROLLBACK)");

@@ -155,6 +155,35 @@ const APLICA = process.argv.includes("--aplica");
     escritas += r.rowCount;
   }
   console.log(`\nactualizadas ${escritas} filas`);
+
+  /*
+   * Y el parte, para que se sepa que esto ha corrido.
+   *
+   * Desde el 21-sep esto no lo lanza una persona: lo lanza el programador de
+   * tareas de Windows a las 13:40 y a las 21:40. Y una tarea programada que
+   * falla no dice nada —no sale en la pantalla de n8n, no manda correo—, así
+   * que el escaparate podría quedarse congelado con todo pareciendo normal.
+   *
+   * Se apunta en la misma tabla que los verificadores, con portal='publicar',
+   * y así se mira igual que todo lo demás: si un día no hay parte de hoy, es
+   * que la tarea no corrió.
+   *
+   *     checked  ofertas alemanas miradas   alive  publicadas ahora
+   *     deactivated  las que salen          unclassified  las que entran
+   */
+  try {
+    await pool.query(
+      `INSERT INTO moveadvisor_verify_runs
+         (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)
+       VALUES ('publicar', NOW(), $1, $2, $3, $4, 0, FALSE, 0)`,
+      [decididas.length, publicar.length, salen.length, entran.length]
+    );
+    console.log("parte apuntado");
+  } catch (e) {
+    // Que no se pueda apuntar el parte no invalida el trabajo hecho: las
+    // ofertas ya están publicadas. Se dice y se sigue.
+    console.error("no se pudo apuntar el parte:", e.message);
+  }
   await pool.end();
 })().catch((e) => {
   console.error("ERROR:", e.message);

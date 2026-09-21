@@ -58,10 +58,22 @@ const APLICA = process.argv.includes("--aplica");
             title, fuel, power_cv, co2, displacement, body_type,
             import_comps AS comps, import_published AS publicada, import_locked AS fijada,
             COALESCE(is_active, TRUE) AS viva,
-            -- Los daños mandan tanto como el precio: ver sePublica. Y hace
-            -- falta damage_checked_at además de is_damaged, porque un NULL en
-            -- is_damaged no distingue «mirado y limpio» de «sin mirar».
-            is_damaged AS danado, (damage_checked_at IS NOT NULL) AS danos_vistos
+            -- Los daños mandan tanto como el precio: ver sePublica.
+            --
+            -- La prueba de que se han mirado es is_damaged IS NOT NULL, no la
+            -- fecha: cuando AutoScout24 nos bloquea, el comprobador estampa
+            -- damage_checked_at y deja is_damaged en NULL para volver a
+            -- intentarlo, así que la fecha solo dice «se intentó». Tomándola
+            -- por veredicto, un NULL contaba como «mirado y limpio» y esto
+            -- publicaba lo que nadie ha podido mirar —hoy hay 555 coches así—.
+            -- Es la misma regla que pide el flujo de scoring y la que usa
+            -- ajusta-publicadas-importacion.js: mirado y limpio, las dos.
+            is_damaged AS danado, (is_damaged IS NOT NULL) AS danos_vistos,
+            -- Un precio neto —sin IVA, de furgoneta comercial— frente a un
+            -- comparable español con IVA inventa un ahorro del 19 %. El flujo
+            -- lo exige y el comprobador retira en el acto lo que lo lleva; sin
+            -- mirarlo aquí, cada recálculo volvía a publicarlo.
+            COALESCE(price_is_net, FALSE) AS precio_neto
        FROM moveadvisor_market_offers
       WHERE country = 'DE'`
   );
@@ -72,7 +84,7 @@ const APLICA = process.argv.includes("--aplica");
     // La que lleva su precio: la más barata que se le pueda dar a **este**
     // coche. A uno de quince años no se le puede dar ninguna y no sube nada.
     const gar = opcionesParaElCoche(garantias, f).porDefecto?.precio || 0;
-    const publica = sePublica({
+    const publica = !f.precio_neto && sePublica({
       precioAleman: al, precioEspanol: es, comparables: f.comps,
       viva: f.viva !== false,
       danado: f.danado === true, danosComprobados: f.danos_vistos === true,

@@ -110,7 +110,7 @@
     "enlaza-segmento-es": "node scripts/enlaza-segmento-as24-es.js",
     "test:as24-es-verificar": "node scripts/comprueba-as24-es-verificar.js",
     "test:as24-es-enrich": "node scripts/comprueba-as24-es-enrich.js",
-    "arregla-cilindrada": "node scripts/arregla-cilindrada-es.js",
+    "arregla-cilindrada": "node scripts/arregla-cilindrada.js",
     "enlaza-segmento-autocasion": "node scripts/enlaza-segmento-autocasion.js",
     "test:autocasion": "node scripts/comprueba-autocasion.js",
     "test:autocasion-enrich": "node scripts/comprueba-autocasion-enrich.js",

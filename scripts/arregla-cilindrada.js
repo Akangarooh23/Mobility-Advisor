@@ -50,9 +50,21 @@ const DB_URL = (env.match(/^DATABASE_URL=(.*)$/m) || [])[1].trim().replace(/^["'
 
 const APLICA = process.argv.includes("--aplica");
 
-// Se acota a lo que es un coche de calle: de 0,6 a 8,0 litros.
-const CANDIDATAS = `COALESCE(country,'ES') = 'ES'
-  AND displacement ~ '^[0-9]+\\.[0-9]+$'
+/*
+ * Se acota a lo que es un coche de calle: de 0,6 a 8,0 litros.
+ *
+ * Y el punto va ENTRE CORCHETES, no escapado con barra. Una barra no sobrevive
+ * a viajar dentro de una cadena, y un punto suelto casa con cualquier carácter:
+ * con «^[0-9]+.[0-9]+$», el valor «1000» cuenta como litros y el script lo
+ * multiplicaría por mil. Midiendo esto el 21-sep salieron cuatro portales con
+ * cifras idénticas de «litros» y «cc», que era la pista.
+ *
+ * Sin filtro de país desde el 21-sep: el problema de las unidades no es
+ * español. En Alemania quedaban 34.862, y ahí duele más —la cilindrada entra
+ * en la estimación del CO₂, que decide la banda del impuesto de matriculación,
+ * que va dentro del precio que se le enseña al cliente—.
+ */
+const CANDIDATAS = `displacement ~ '^[0-9]+[.][0-9]+$'
   AND displacement::numeric >= 0.6
   AND displacement::numeric <= 8.0`;
 
@@ -61,10 +73,10 @@ const CANDIDATAS = `COALESCE(country,'ES') = 'ES'
   await c.connect();
 
   const antes = (await c.query(`SELECT
-      count(*) FILTER (WHERE displacement ~ '^[0-9]+\\.[0-9]+$')::int en_litros,
+      count(*) FILTER (WHERE displacement ~ '^[0-9]+[.][0-9]+$')::int en_litros,
       count(*) FILTER (WHERE displacement ~ '^[0-9]{3,5}$')::int en_cc,
       count(*) FILTER (WHERE ${CANDIDATAS})::int convertibles
-    FROM moveadvisor_market_offers WHERE COALESCE(country,'ES')='ES'`)).rows[0];
+    FROM moveadvisor_market_offers`)).rows[0];
   console.log("  ANTES");
   console.log("      en litros    : " + Number(antes.en_litros).toLocaleString("es"));
   console.log("      en cc        : " + Number(antes.en_cc).toLocaleString("es"));
@@ -102,9 +114,9 @@ const CANDIDATAS = `COALESCE(country,'ES') = 'ES'
   }
 
   const desp = (await c.query(`SELECT
-      count(*) FILTER (WHERE displacement ~ '^[0-9]+\\.[0-9]+$')::int en_litros,
+      count(*) FILTER (WHERE displacement ~ '^[0-9]+[.][0-9]+$')::int en_litros,
       count(*) FILTER (WHERE displacement ~ '^[0-9]{3,5}$')::int en_cc
-    FROM moveadvisor_market_offers WHERE COALESCE(country,'ES')='ES'`)).rows[0];
+    FROM moveadvisor_market_offers`)).rows[0];
   console.log("\n  DESPUES");
   console.log("      en litros: " + Number(desp.en_litros).toLocaleString("es")
     + "   en cc: " + Number(desp.en_cc).toLocaleString("es"));

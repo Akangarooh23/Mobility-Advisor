@@ -137,8 +137,27 @@ const muchas = (n, r) => Array(n).fill(r);
   console.log("\nY CUANDO NO HAY NADA QUE HACER");
   const limpio = pasada({ activas: 24000, candidatas: 0, horas_sin_ver: 1 }, []);
   comprueba("con todo el catálogo visto hoy, no se sigue", !limpio.permiso);
-  comprueba("y no es un error, es que no hay nada",
-    /no hay ninguna/.test(limpio.estatico.fv_motivo || ""), limpio.estatico.fv_motivo);
+  /*
+   * Y esto NO es una frenada.
+   *
+   * Las tres primeras pasadas de verdad, el 21-sep, salieron asi: la primera
+   * dio 1.677 bajas y las dos siguientes tardaron un segundo y se apuntaron
+   * como FRENADA, con «22.731 miradas, 0 vivas». Las dos cosas mentian. Un
+   * parte que mezcla «he parado porque algo va mal» con «no habia nada que
+   * hacer» hace que el panel parezca roto dos veces al dia.
+   */
+  comprueba("no se apunta como frenada: no hay freno que haya saltado",
+    !limpio.estatico.fv_motivo && limpio.estatico.fv_nada === true);
+  const parteLimpio = ejecuta(codigo("Code: Resumen"), {
+    estatico: limpio.estatico, $input: uno({}), $: () => uno({}),
+  }).items[0].json;
+  // Sin expresiones regulares: los paréntesis y las barras no sobreviven a
+  // viajar dentro de cadenas, y ya me ha costado tres veces hoy.
+  comprueba("el parte dice FALSE en blocked",
+    String(parteLimpio.sql).indexOf("FALSE, 0)") !== -1);
+  comprueba("y cuenta las activas como confirmadas vivas",
+    String(parteLimpio.sql).indexOf("NOW(), 24000, 24000, 0,") !== -1,
+    "si no hay candidatas es que el scraper las vio todas");
 
   // ══ el parte ═════════════════════════════════════════════════════════════
   console.log("\nEL PARTE");

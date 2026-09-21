@@ -101,6 +101,7 @@ s.fv_muertas = 0;
 s.fv_catadas = 0;
 s.fv_bajas = 0;
 s.fv_motivo = '';
+s.fv_nada = false;
 
 const pct = s.fv_activas ? (s.fv_candidatas / s.fv_activas) : 0;
 console.log('[fx-verify] ' + s.fv_activas + ' activas, ' + s.fv_candidatas
@@ -119,9 +120,13 @@ if (pct > ${TOPE_MORTANDAD}) {
   console.log('[fx-verify] NO SE DAN BAJAS: ' + s.fv_motivo);
   return [{ json: { seguir: '' } }];
 }
+// Que no haya nada que dar de baja NO es un freno: es que el scraper acaba de
+// ver el catálogo entero y está todo vivo. Apuntarlo como «frenada», que es lo
+// que hacía antes, mezcla «he parado porque algo va mal» con «no había nada que
+// hacer», y un parte que mezcla esas dos cosas miente.
 if (!s.fv_candidatas) {
-  s.fv_motivo = 'no hay ninguna que dar de baja';
-  console.log('[fx-verify] nada que hacer: todo el catálogo se ha visto hoy.');
+  s.fv_nada = true;
+  console.log('[fx-verify] nada que hacer: todo el catálogo se ha visto hoy, ninguna ha desaparecido.');
   return [{ json: { seguir: '' } }];
 }
 return [{ json: { seguir: 'si' } }];`;
@@ -219,6 +224,7 @@ console.log('  cata               : ' + (s.fv_muertas || 0) + ' muertas, '
   + (s.fv_vivas || 0) + ' vivas de ' + (s.fv_catadas || 0));
 console.log('  BAJAS              : ' + bajas);
 console.log('  confirmadas vivas  : ' + confirmadas);
+if (s.fv_nada) console.log('  nada que dar de baja: el catálogo entero se ha visto hoy.');
 if (s.fv_motivo) console.log('  NO SE DIERON BAJAS: ' + s.fv_motivo);
 
 const n = v => String(Number(v) || 0);
@@ -228,10 +234,16 @@ const n = v => String(Number(v) || 0);
 //     unclassified  candidatas que no se llegaron a dar de baja
 //     transient  las de la cata que no contestaron
 //     blocked  TRUE si algún freno paró la pasada
+// «blocked» solo cuando ha saltado un freno de verdad. Una pasada sin nada que
+// hacer no está frenada, y contarla así haría que el panel pareciera roto dos
+// veces al día.
 const paradas = s.fv_motivo ? (s.fv_candidatas || 0) : 0;
+// Y en esa pasada, las activas sí están confirmadas vivas: para que no haya
+// candidatas, el scraper tiene que haberlas visto todas hace menos de 26 horas.
+const vivasDeVerdad = s.fv_nada ? (s.fv_activas || 0) : confirmadas;
 const sql = 'INSERT INTO moveadvisor_verify_runs'
   + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'
-  + " VALUES ('flexicar', NOW(), " + n(s.fv_activas) + ', ' + n(confirmadas) + ', '
+  + " VALUES ('flexicar', NOW(), " + n(s.fv_activas) + ', ' + n(vivasDeVerdad) + ', '
   + n(bajas) + ', ' + n(paradas) + ', ' + n(${MUESTRA} - (s.fv_catadas || 0)) + ', '
   + (s.fv_motivo ? 'TRUE' : 'FALSE') + ', 0)';
 

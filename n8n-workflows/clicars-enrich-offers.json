@@ -1,15 +1,15 @@
 {
-  "name": "Clicars – Enriquecer (versión, carrocería, puertas, plazas, tracción, etiqueta)",
+  "name": "Clicars – Enriquecer (plazas, CO₂, consumo, etiqueta)",
   "nodes": [
     {
       "parameters": {},
-      "id": "cle-manual",
+      "id": "ce-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        300
+        -560,
+        200
       ]
     },
     {
@@ -18,179 +18,69 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 15 2 * * *"
+              "expression": "0 5 13,16,19 * * *"
             }
           ]
         }
       },
-      "id": "cle-cron",
-      "name": "Cada día a las 02:15",
+      "id": "ce-cron",
+      "name": "3 veces/día (13:05, 16:05 y 19:05)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        500
+        -560,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, url FROM moveadvisor_market_offers WHERE portal='clicars' AND COALESCE(url,'')<>'' ORDER BY (body_type IS NULL) DESC, last_seen_at DESC LIMIT 300",
-        "additionalFields": {}
+        "query": "-- Las de Clicars a las que les falta algo de la ficha.\n--\n-- Solo lo VISTO VIVO hace poco: last_seen_at, no last_checked_at. La diferencia\n-- es que la primera dice «lo vimos vivo» y la segunda solo «lo intentamos», y\n-- gastar 215 KB en un coche vendido es tirarlos. Lo aprendimos en AutoScout24\n-- España, donde la primera versión de la cola traía seis coches muertos de cada\n-- seis.\nSELECT id,\n       COALESCE(seats, 0) AS seats,\n       COALESCE(co2, '') AS co2,\n       COALESCE(consumption, 0) AS consumption,\n       COALESCE(environmental_label, '') AS environmental_label\nFROM moveadvisor_market_offers\nWHERE portal = 'clicars'\n  AND is_active\n  AND enrich_tried_at IS NULL\n  AND (seats IS NULL OR seats = 0\n       OR COALESCE(co2, '') = ''\n       OR COALESCE(consumption, 0) = 0\n       OR COALESCE(environmental_label, '') = '')\nORDER BY (last_seen_at > NOW() - INTERVAL '2 days') DESC, scraped_at DESC\nLIMIT 400",
+        "options": {}
       },
-      "id": "cle-cola",
+      "id": "ce-cola",
       "name": "PG: Cola a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -20,
-        400
+        -320,
+        300
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "cle-loop",
-      "name": "Loop: coche por coche",
+      "id": "ce-loop",
+      "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        200,
-        400
+        -100,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "={{ $json.url }}",
-        "options": {
-          "timeout": 25000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
-          }
-        }
+        "jsCode": "// Cortacircuitos, guarda de cola vacía y la url por id.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.ce_run || s.ce_run !== $execution.id) {\n  s.ce_run = $execution.id;\n  s.ce_parado = false;\n  s.ce_intentos = 0;\n  s.ce_fallos = 0;\n  s.ce_leidas = 0;\n  s.ce_otro = 0;\n  s.ce_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\n// Así cayeron cuatro ejecuciones de Gamboa el 2026-09-07.\nif (!item || !item.id) {\n  console.log('[cl-enrich] no hay nada que enriquecer ahora mismo.');\n  return [{ json: { url: '', id: '' } }];\n}\nif (s.ce_parado) return [{ json: { url: '', id: String(item.id) } }];\n\n// La url se construye con el id: la guardada puede ser la de la versión, que\n// comparten hasta 18 coches.\nconst numero = String(item.id).split('_')[1] || '';\nif (!numero) return [{ json: { url: '', id: String(item.id) } }];\nreturn [{ json: Object.assign({}, item, {\n  id: String(item.id),\n  url: 'https://www.clicars.com/coches-segunda-mano-ocasion/comprar-coche-' + numero,\n}) }];"
       },
-      "id": "cle-http",
-      "name": "HTTP: Ficha Clicars",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        420,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 2,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "language": "javaScript",
-        "jsCode": "const httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst id = $('Loop: coche por coche').item.json.id;\nfunction esc(v){ if(v===null||v===undefined||v==='') return null; return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nlet v={};\nconst blocks=[...html.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1].trim());\nfor(const b of blocks){ try{ const j=JSON.parse(b); const a=Array.isArray(j)?j:(j['@graph']||[j]); for(const o of a) if(o&&['Vehicle','Car','Product'].includes(o['@type'])) v=o; }catch(e){} }\nconst version=v.vehicleConfiguration||'';\nconst bodyType=v.bodyType||'';\nconst doors=v.numberOfDoors!=null?Number(v.numberOfDoors):null;\nconst seats=v.vehicleSeatingCapacity!=null?Number(v.vehicleSeatingCapacity):null;\nconst text=html.replace(/<script[\\s\\S]*?<\\/script>/g,' ').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\\s+/g,' ').trim();\nfunction afterLabel(label,valRe){ const i=text.indexOf(label); if(i<0) return ''; const seg=text.slice(i+label.length,i+label.length+40); const m=seg.match(valRe); return m?(m[1]||m[0]).trim():''; }\nconst traction=afterLabel('Tracción',/\\s*(Delantera|Trasera|Total|4x4|Integral|4WD|AWD)/i);\nconst etiqueta=afterLabel('Etiqueta medioambiental',/\\s*(ECO|CERO|C|B|0)\\b/i);\nconst sets=[];\nif(esc(version)) sets.push('version='+esc(version));\nif(esc(bodyType)) sets.push('body_type='+esc(bodyType));\nif(doors!=null) sets.push('doors='+doors);\nif(seats!=null) sets.push('seats='+seats);\nif(esc(traction)) sets.push('traction='+esc(traction));\nif(esc(etiqueta)) sets.push('environmental_label='+esc(etiqueta));\nif(!sets.length) return [{ json:{ sql:null, count:0 } }];\nsets.push('last_seen_at=NOW()','updated_at=NOW()');\nconst sql='UPDATE moveadvisor_market_offers SET '+sets.join(', ')+' WHERE id='+esc(id);\nreturn [{ json:{ sql:sql, count:1 } }];"
-      },
-      "id": "cle-code",
-      "name": "Code: Enriquecer",
+      "id": "ce-toca",
+      "name": "Code: ¿toca pedirla?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        640,
-        400
+        120,
+        420
       ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "cle-if",
-      "name": "IF: ¿hay datos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        860,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "additionalFields": {}
-      },
-      "id": "cle-pg",
-      "name": "PG: Update ficha",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        1080,
-        280
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "cle-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1300,
-        400
-      ],
-      "webhookId": "wait-clicars-enrich"
     },
     {
       "parameters": {
@@ -203,7 +93,7 @@
           },
           "conditions": [
             {
-              "id": "guarda-cola-vacia",
+              "id": "ce-c-url",
               "leftValue": "={{ $json.url }}",
               "rightValue": "",
               "operator": {
@@ -218,14 +108,170 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "if-cola-vacia",
-      "name": "IF: ¿hay oferta?",
+      "id": "ce-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        220,
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "ce-http",
+      "name": "HTTP: Ficha de Clicars",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
         540
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clicars - de la ficha a plazas, CO2, consumo y etiqueta.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla vuelve\n// en cada pasada y la cola no avanza nunca.\nconst soloIntento = (motivo) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: motivo,\n} }];\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\ns.ce_intentos = (s.ce_intentos || 0) + 1;\n\n// Un 403, un 429 o un 500 no dicen nada de la oferta: NO gastan su intento.\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.ce_fallos = (s.ce_fallos || 0) + 1;\n  const intentos = s.ce_intentos || 0;\n  if (intentos >= 50 && (s.ce_fallos / intentos) > 0.3) {\n    s.ce_parado = true;\n    s.ce_motivo = Math.round(100 * s.ce_fallos / intentos) + '% de respuestas cerradas en '\n      + intentos + ' intentos: nos han bloqueado';\n    console.log('[cl-enrich] PARADO: ' + s.ce_motivo);\n  }\n  return [{ json: { sql: null, veredicto: 'pasajero' } }];\n}\nif (codigo !== 200 || !cuerpo) return soloIntento('sin ficha');\n\n// El bloque JSON-LD del coche, que es el único que lleva sku.\nlet ld = null;\nfor (const trozo of cuerpo.split('application/ld+json').slice(1)) {\n  const ini = trozo.indexOf('>');\n  const fin = trozo.indexOf('</script>');\n  if (ini === -1 || fin === -1) continue;\n  let j = null;\n  try { j = JSON.parse(trozo.slice(ini + 1, fin).trim()); } catch (e) { continue; }\n  if (j && j.sku !== undefined) { ld = j; break; }\n}\nif (!ld) return soloIntento('la url ya no lleva a ningún coche');\n\n/*\n * Que la ficha sea la de NUESTRO coche, antes de escribir nada.\n *\n * Preguntando por la url guardada, 10 de cada 30 devolvían la ficha de otro.\n * Aquí se pregunta por el id, así que no debería pasar; pero esto ESCRIBE, y\n * meterle a un coche las plazas y el CO₂ de otro no se deshace.\n */\nconst numero = id.split('_')[1] || '';\nif (String(ld.sku) !== numero) {\n  s.ce_otro = (s.ce_otro || 0) + 1;\n  return soloIntento('la ficha es de otro coche (' + ld.sku + ')');\n}\ns.ce_leidas = (s.ce_leidas || 0) + 1;\n\n/*\n * Los datos están en el texto de la ficha, no en el JSON-LD.\n *\n * Se quitan las etiquetas y se leen los números que van detrás de cada título.\n * Sin expresiones regulares: este código viaja dentro de una cadena y dentro de\n * un JSON, y por el camino las barras se pierden. Hoy ha pasado cuatro veces.\n */\nconst texto = cuerpo.split('<').join(' <').split('>').join('> ')\n  .split(/<[^>]*>/).join(' ').split(/\\s+/).join(' ');\n\n/** Los dígitos que siguen a un título, con su parte decimal si la tiene. */\nconst numeroTras = (titulo) => {\n  const i = texto.indexOf(titulo);\n  if (i === -1) return null;\n  const trozo = texto.slice(i + titulo.length, i + titulo.length + 24);\n  let n = '', visto = false;\n  for (let k = 0; k < trozo.length; k++) {\n    const ch = trozo.charAt(k);\n    if (ch >= '0' && ch <= '9') { n += ch; visto = true; }\n    else if ((ch === '.' || ch === ',') && visto && n.indexOf('.') === -1) n += '.';\n    else if (visto) break;\n  }\n  if (!n || n.charAt(n.length - 1) === '.') n = n.split('.')[0];\n  return n ? Number(n) : null;\n};\n\nconst entre = (x, min, max) => (x !== null && x >= min && x <= max) ? x : null;\n\n// Filtro de cordura: un 100 en plazas es basura, y guardarla es peor que no\n// guardar nada.\nconst plazas = entre(numeroTras('Nº plazas'), 2, 9);\nconst consumo = entre(numeroTras('Consumo mixto'), 0.5, 30);\n\n/*\n * El CO₂, y el 2 que no es un dato.\n *\n * La ficha escribe «Emisiones 99 CO 2» —el subíndice del CO₂ sale como un 2\n * suelto—. Cuando el coche NO trae el dato queda «Emisiones CO 2», y leer «el\n * primer número tras Emisiones» devolvía 2: un coche con 2 g/km, que es el\n * tramo más limpio de cualquier filtro. Salió en la tercera ficha que probé.\n *\n * Así que el número tiene que estar ENTRE «Emisiones» y el «CO» que va detrás.\n * Si entre los dos no hay dígitos, es que no hay dato.\n */\nlet co2 = null;\nconst iEmis = texto.indexOf('Emisiones');\nif (iEmis !== -1) {\n  const desde = iEmis + 9;\n  const iCO = texto.indexOf('CO', desde);\n  if (iCO !== -1 && iCO - desde < 20) {\n    let n = '';\n    for (let k = desde; k < iCO; k++) {\n      const ch = texto.charAt(k);\n      if (ch >= '0' && ch <= '9') n += ch;\n    }\n    co2 = n ? entre(Number(n), 1, 500) : null;\n  }\n}\n\n/*\n * La etiqueta de la DGT: «Etiqueta medioambiental C».\n *\n * Es una letra, no un número, así que se lee el primer carácter que no sea un\n * espacio y se comprueba contra las cuatro que existen.\n */\nconst ETIQUETAS = { '0': '0 Emisiones', 'ECO': 'ECO', 'C': 'C', 'B': 'B' };\nlet etiqueta = '';\nconst iEtq = texto.indexOf('Etiqueta medioambiental');\nif (iEtq !== -1) {\n  const trozo = texto.slice(iEtq + 23, iEtq + 32).trim();\n  const primera = trozo.split(' ')[0].toUpperCase();\n  etiqueta = ETIQUETAS[primera] || '';\n}\n\n// Todo con COALESCE: lo que ya hubiera manda. Esto rellena huecos, no corrige.\nconst sets = ['enrich_tried_at = NOW()'];\nif (plazas !== null) sets.push('seats = COALESCE(NULLIF(seats, 0), ' + plazas + ')');\nif (co2 !== null) sets.push(\"co2 = COALESCE(NULLIF(co2, ''), '\" + co2 + \"')\");\nif (consumo !== null) sets.push('consumption = COALESCE(NULLIF(consumption, 0), '\n  + (Math.round(consumo * 100) / 100) + ')');\nif (etiqueta) sets.push(\"environmental_label = COALESCE(NULLIF(environmental_label, ''), \"\n  + esc(etiqueta) + ')');\n\n// updated_at NO se toca: enriquecer no es que el anuncio haya cambiado, es que\n// nosotros nos hemos puesto al día. Y updated_at ordena el escaparate.\nconsole.log('[cl-enrich] ' + id + ': plazas=' + (plazas === null ? '-' : plazas)\n  + ' co2=' + (co2 === null ? '-' : co2) + ' consumo=' + (consumo === null ? '-' : consumo)\n  + ' etiqueta=' + (etiqueta || '-'));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: sets.length > 1 ? 'enriquecida' : 'sin datos nuevos',\n  plazas: plazas, co2: co2, consumo: consumo, etiqueta: etiqueta,\n} }];"
+      },
+      "id": "ce-code",
+      "name": "Code: Extraer plazas, CO2, consumo y etiqueta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ce-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "ce-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ce-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconst leidas = s.ce_leidas || 0;\n\nconsole.log('[cl-enrich] ── resumen ──');\nconsole.log('  fichas pedidas : ' + (s.ce_intentos || 0));\nconsole.log('  leídas         : ' + leidas);\nconsole.log('  era otro coche : ' + (s.ce_otro || 0));\nconsole.log('  sin poder leer : ' + (s.ce_fallos || 0));\nif (s.ce_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.ce_motivo);\n// Una pasada que no lee ni una ficha no es un éxito, es una cola vacía o algo\n// roto. En Gamboa eso pasó tres días seguidos sin que lo dijera nadie.\nif (!s.ce_parado && (s.ce_intentos || 0) > 0 && leidas === 0) {\n  console.log('  OJO: ni una ficha leída. O el portal ha cambiado, o nos han cerrado.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='clicars-enrich':\n//     checked  fichas pedidas   alive  leídas\n//     deactivated  0            unclassified  era otro coche\n//     transient  sin poder leer\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('clicars-enrich', NOW(), \" + n(s.ce_intentos) + ', ' + n(leidas) + ', 0, '\n  + n(s.ce_otro) + ', ' + n(s.ce_fallos) + ', ' + (s.ce_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: s.ce_intentos || 0, leidas: leidas,\n  eraOtro: s.ce_otro || 0, fallos: s.ce_fallos || 0, parado: !!s.ce_parado };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('ce_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "ce-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "ce-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -240,7 +286,7 @@
         ]
       ]
     },
-    "Cada día a las 02:15": {
+    "3 veces/día (13:05, 16:05 y 19:05)": {
       "main": [
         [
           {
@@ -255,99 +301,116 @@
       "main": [
         [
           {
-            "node": "Loop: coche por coche",
+            "node": "Loop: oferta por oferta",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop: coche por coche": {
-      "main": [
-        [],
-        [
-          {
-            "node": "IF: ¿hay oferta?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Ficha Clicars": {
+    "Loop: oferta por oferta": {
       "main": [
         [
           {
-            "node": "Code: Enriquecer",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Enriquecer": {
-      "main": [
-        [
-          {
-            "node": "IF: ¿hay datos?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay datos?": {
-      "main": [
-        [
-          {
-            "node": "PG: Update ficha",
+            "node": "Code: Resumen",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Code: ¿toca pedirla?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Update ficha": {
+    "Code: ¿toca pedirla?": {
       "main": [
         [
           {
-            "node": "Esperar 1s",
+            "node": "IF: ¿hay ficha que pedir?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Esperar 1s": {
+    "IF: ¿hay ficha que pedir?": {
       "main": [
         [
           {
-            "node": "Loop: coche por coche",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay oferta?": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Ficha Clicars",
+            "node": "HTTP: Ficha de Clicars",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Loop: coche por coche",
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de Clicars": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer plazas, CO2, consumo y etiqueta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer plazas, CO2, consumo y etiqueta": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
             "type": "main",
             "index": 0
           }
@@ -358,12 +421,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

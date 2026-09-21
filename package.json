@@ -99,6 +99,7 @@
     "test:flexicar-enrich": "node scripts/comprueba-flexicar-enrich.js",
     "test:flexicar-verify": "node scripts/comprueba-flexicar-verify.js",
     "test:ocasionplus": "node scripts/comprueba-ocasionplus.js",
+    "test:ocasionplus-enrich": "node scripts/comprueba-ocasionplus-enrich.js",
     "test:ocasionplus-verify": "node scripts/comprueba-ocasionplus-verify.js",
     "test:importacion-scoring": "node scripts/comprueba-importacion-scoring.js",
     "despublica-horquilla": "node scripts/despublica-fuera-de-horquilla.js",

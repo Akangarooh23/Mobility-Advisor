@@ -1,15 +1,15 @@
 {
-  "name": "OcasionPlus – Enriquecer (color, carrocería, puertas, plazas, cilindrada, co2, etiqueta, tracción, consumo)",
+  "name": "OcasionPlus – Enriquecer (puertas, plazas, color, carrocería, etiqueta)",
   "nodes": [
     {
       "parameters": {},
-      "id": "ope-manual",
+      "id": "oe-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        300
+        -560,
+        200
       ]
     },
     {
@@ -18,179 +18,69 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 15 3 * * *"
+              "expression": "0 15 12,15,18,23 * * *"
             }
           ]
         }
       },
-      "id": "ope-cron",
-      "name": "Cada día a las 03:15",
+      "id": "oe-cron",
+      "name": "4 veces/día (12:15, 15:15, 18:15 y 23:15)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        500
+        -560,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, url FROM moveadvisor_market_offers WHERE portal='ocasionplus' AND COALESCE(url,'')<>'' ORDER BY (displacement IS NULL) DESC, last_seen_at DESC LIMIT 150",
-        "additionalFields": {}
+        "query": "-- Las ofertas de OcasionPlus a las que les falta algo de la ficha.\n--\n-- Solo lo VISTO VIVO hace poco: last_seen_at, no last_checked_at. La diferencia\n-- es que la primera dice «lo vimos vivo» y la segunda solo «lo intentamos», y\n-- gastar media mega en un coche vendido es tirarla. Lo aprendimos en\n-- AutoScout24 España, donde la primera versión de la cola traía seis coches\n-- muertos de cada seis.\nSELECT id, url,\n       COALESCE(color, '') AS color,\n       COALESCE(body_type, '') AS body_type,\n       COALESCE(doors, 0) AS doors,\n       COALESCE(seats, 0) AS seats,\n       COALESCE(environmental_label, '') AS environmental_label\nFROM moveadvisor_market_offers\nWHERE portal = 'ocasionplus'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND enrich_tried_at IS NULL\n  AND (COALESCE(color, '') = ''\n       OR COALESCE(body_type, '') = ''\n       OR doors IS NULL OR doors = 0\n       OR seats IS NULL OR seats = 0\n       OR COALESCE(environmental_label, '') = '')\nORDER BY (last_seen_at > NOW() - INTERVAL '2 days') DESC, scraped_at DESC\nLIMIT 500",
+        "options": {}
       },
-      "id": "ope-cola",
+      "id": "oe-cola",
       "name": "PG: Cola a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -20,
-        400
+        -320,
+        300
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "ope-loop",
-      "name": "Loop: coche por coche",
+      "id": "oe-loop",
+      "name": "Loop: oferta por oferta",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        200,
-        400
+        -100,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "={{ $json.url }}",
-        "options": {
-          "timeout": 25000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
-          }
-        }
+        "jsCode": "// Cortacircuitos y guarda de cola vacía, antes de gastar la ficha.\nconst s = $getWorkflowStaticData('global');\nconst item = $input.first().json;\n\nif (!s.oe_run || s.oe_run !== $execution.id) {\n  s.oe_run = $execution.id;\n  s.oe_parado = false;\n  s.oe_intentos = 0;\n  s.oe_fallos = 0;\n  s.oe_leidas = 0;\n  s.oe_vendidas = 0;\n  s.oe_motivo = '';\n}\n\n// Una cola vacía NO llega como \"nada\": n8n manda UN ITEM VACÍO, que recorre el\n// bucle y revienta el HTTP con \"URL parameter must be a string, got undefined\".\n// Así cayeron cuatro ejecuciones de Gamboa el 2026-09-07.\nif (!item || !item.id || !String(item.url || '').trim()) {\n  console.log('[op-enrich] no hay nada que enriquecer ahora mismo.');\n  return [{ json: Object.assign({}, item || {}, { url: '' }) }];\n}\nif (s.oe_parado) return [{ json: Object.assign({}, item, { url: '' }) }];\nreturn [{ json: item }];"
       },
-      "id": "ope-http",
-      "name": "HTTP: Ficha OcasionPlus",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        420,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 2,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "language": "javaScript",
-        "jsCode": "// OcasionPlus - enricher: ficha (Next.js RSC stream) -> vehicle object -> UPDATE\nconst httpOut = $input.item.json;\nlet html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst id = $('Loop: coche por coche').item.json.id;\nfunction esc(v){ if(v===null||v===undefined||v==='') return null; return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\n// des-escapar el stream RSC\nconst un = html.replace(/\\\\\"/g,'\"').replace(/\\\\\\\\/g,'\\\\').replace(/\\\\u002F/gi,'/');\n// color (anclado en \"metallic\" para no coger la etiqueta i18n \"Color\")\nlet color=''; { const m=un.match(/\"color\"\\s*:\\s*\"([^\"]{1,40})\"\\s*,\\s*\"metallic\"/); if(m) color=m[1].trim(); }\n// carroceria\nlet body=''; { const m=un.match(/\"bodyStyle\"\\s*:\\s*\"([^\"]{1,40})\"/); if(m) body=m[1].trim(); }\n// puertas / plazas (numericos -> saltan la etiqueta string)\nlet doors=null; { const m=un.match(/\"doors\"\\s*:\\s*(\\d+)/); if(m) doors=parseInt(m[1],10); }\nlet seats=null; { const m=un.match(/\"seats\"\\s*:\\s*(\\d+)/); if(m) seats=parseInt(m[1],10); }\n// etiqueta medioambiental\nlet etiqueta=''; { const m=un.match(/\"environmentalLabel\"\\s*:\\s*\"([^\"]{1,20})\"/); if(m && !/undefined/i.test(m[1])) etiqueta=m[1].trim(); }\n// engine: cilindrada (cc), potencia (cv), traccion (drive bool)\nlet cc='', cv=null, drive=null;\n{ const em=un.match(/\"engine\"\\s*:\\s*\\{([^}]*)\\}/); if(em){ const e=em[1];\n    const mc=e.match(/\"cc\"\\s*:\\s*\"?(\\d+)\"?/); if(mc) cc=mc[1];\n    const mv=e.match(/\"cv\"\\s*:\\s*(\\d+)/); if(mv) cv=parseInt(mv[1],10);\n    const md=e.match(/\"drive\"\\s*:\\s*(true|false)/); if(md) drive=(md[1]==='true');\n} }\n// consumo (consumption.combined, L/100)\nlet consumo=null; { const m=un.match(/\"consumption\"\\s*:\\s*\\{[^}]*?\"combined\"\\s*:\\s*\"?([\\d.,]+)\"?/); if(m){ const n=parseFloat(String(m[1]).replace(',','.')); if(!isNaN(n)) consumo=n; } }\n// co2 (emissions.WLTP preferido, si no combustion)\nlet co2=''; { const m=un.match(/\"emissions\"\\s*:\\s*\\{([^}]*)\\}/); if(m){ const e=m[1];\n    const w=e.match(/\"WLTP\"\\s*:\\s*\"?(\\d+)\"?/); const cb=e.match(/\"combustion\"\\s*:\\s*\"?(\\d+)\"?/);\n    if(w && w[1]) co2=w[1]; else if(cb && cb[1]) co2=cb[1];\n} }\n// traccion: OcasionPlus solo expone flag 4x4 si/no (drive). Solo afirmamos 4x4 cuando es true.\nlet traction=''; if(drive===true) traction='4x4';\n// construir UPDATE\nconst sets=[];\nif(esc(color)) sets.push(\"color=COALESCE(NULLIF(color,''),\"+esc(color)+\")\"); // no pisar un color ya puesto: puede ser una respuesta de una persona, y aqui nada la protegia\nif(esc(body)) sets.push('body_type='+esc(body));\nif(doors!=null) sets.push('doors='+doors);\nif(seats!=null) sets.push('seats='+seats);\nif(esc(cc)) sets.push('displacement='+esc(cc));\nif(cv!=null && cv>0) sets.push('power_cv='+cv);\nif(consumo!=null) sets.push('consumption='+consumo);\nif(esc(co2)) sets.push('co2='+esc(co2));\nif(esc(etiqueta)) sets.push('environmental_label='+esc(etiqueta));\nif(esc(traction)) sets.push('traction='+esc(traction));\nif(!sets.length) return [{ json:{ sql:null, count:0 } }];\nsets.push('last_seen_at=NOW()','updated_at=NOW()');\nconst sql='UPDATE moveadvisor_market_offers SET '+sets.join(', ')+' WHERE id='+esc(id);\nreturn [{ json:{ sql:sql, count:1 } }];"
-      },
-      "id": "ope-code",
-      "name": "Code: Enriquecer",
+      "id": "oe-toca",
+      "name": "Code: ¿toca pedirla?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        640,
-        400
+        120,
+        420
       ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "ope-if",
-      "name": "IF: ¿hay datos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        860,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "additionalFields": {}
-      },
-      "id": "ope-pg",
-      "name": "PG: Update ficha",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        1080,
-        280
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "ope-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1300,
-        400
-      ],
-      "webhookId": "wait-ocasionplus-enrich"
     },
     {
       "parameters": {
@@ -203,7 +93,7 @@
           },
           "conditions": [
             {
-              "id": "guarda-cola-vacia",
+              "id": "oe-c-url",
               "leftValue": "={{ $json.url }}",
               "rightValue": "",
               "operator": {
@@ -218,14 +108,170 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "if-cola-vacia",
-      "name": "IF: ¿hay oferta?",
+      "id": "oe-if-url",
+      "name": "IF: ¿hay ficha que pedir?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        220,
+        340,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "id": "oe-http",
+      "name": "HTTP: Ficha de OcasionPlus",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        560,
         540
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// OcasionPlus - de la ficha a las columnas que faltan.\nconst oferta = $('Code: ¿toca pedirla?').item.json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst cuerpo = String(res.body || res.data || '');\nconst codigo = Number(res.statusCode || 0);\nconst id = String(oferta.id || '');\nconst s = $getWorkflowStaticData('global');\n\nconst esc = v => (v === null || v === undefined || v === '') ? 'NULL'\n  : (typeof v === 'number' ? String(v) : \"'\" + String(v).replace(/'/g, \"''\") + \"'\");\n\n// enrich_tried_at se mueve pase lo que pase: sin eso, una ficha que falla vuelve\n// en cada pasada y la cola no avanza nunca.\nconst soloIntento = (motivo) => [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW() WHERE id = ' + esc(id),\n  veredicto: motivo,\n} }];\n\nif (!id) return [{ json: { sql: null, veredicto: 'sin id' } }];\ns.oe_intentos = (s.oe_intentos || 0) + 1;\n\n// Un 403, un 429 o un 500 no dicen nada de la oferta: NO gastan su intento.\nif (codigo === 0 || codigo === 403 || codigo === 429 || codigo >= 500) {\n  s.oe_fallos = (s.oe_fallos || 0) + 1;\n  const intentos = s.oe_intentos || 0;\n  if (intentos >= 50 && (s.oe_fallos / intentos) > 0.3) {\n    s.oe_parado = true;\n    s.oe_motivo = Math.round(100 * s.oe_fallos / intentos) + '% de respuestas cerradas en '\n      + intentos + ' intentos: nos han bloqueado';\n    console.log('[op-enrich] PARADO: ' + s.oe_motivo);\n  }\n  return [{ json: { sql: null, veredicto: 'pasajero' } }];\n}\n// Un 410 o un 404 aquí significan vendida. Ya que lo sabemos, se da por muerta\n// en el acto en vez de esperar al verificador.\nif (codigo === 410 || codigo === 404) {\n  s.oe_vendidas = (s.oe_vendidas || 0) + 1;\n  return [{ json: {\n    sql: 'UPDATE moveadvisor_market_offers SET enrich_tried_at = NOW(), is_active = FALSE,'\n      + ' last_checked_at = NOW() WHERE id = ' + esc(id),\n    veredicto: 'vendida',\n  } }];\n}\nif (codigo !== 200 || !cuerpo) return soloIntento('sin ficha');\n\n/*\n * El payload de Next.js del nuevo: trozos self.__next_f.push([1,\"...json...\"])\n * que hay que juntar y desescapar.\n */\nconst BARRA = String.fromCharCode(92);\nlet payload = '';\nfor (const t of cuerpo.split('self.__next_f.push(').slice(1)) {\n  const fin = t.indexOf(')</script>');\n  payload += t.slice(0, fin === -1 ? 400 : fin);\n}\nconst limpio = payload.split(BARRA).join('');\nif (!limpio) return soloIntento('ficha sin datos');\n\n/*\n * El objeto del coche, localizado por \"bodyStyle\".\n *\n * La PRIMERA aparición de cada clave es el diccionario de traducciones de la\n * interfaz -\"doors\":\"Puertas\"-, no el dato. Buscándola concluí dos veces que\n * este portal no tenía estos campos. \"bodyStyle\" no está en el diccionario, así\n * que sirve de ancla: el coche está a su alrededor.\n */\nconst ancla = limpio.indexOf('\"bodyStyle\":');\nif (ancla === -1) return soloIntento('ficha sin el bloque del coche');\nconst ventana = limpio.slice(Math.max(0, ancla - 600), ancla + 300);\n\n// Lectores sin expresiones regulares: este código viaja dentro de una cadena y\n// dentro de un JSON, y por el camino las barras se pierden. Hoy ha pasado\n// cuatro veces.\nconst tras = (clave) => {\n  // La ULTIMA aparicion dentro de la ventana, no la primera: el objeto del\n  // coche esta pegado al ancla y el diccionario queda por delante. Buscando la\n  // primera, una ficha con el diccionario cerca devolvia «Color» como color.\n  const i = ventana.lastIndexOf('\"' + clave + '\":');\n  return i === -1 ? null : ventana.slice(i + clave.length + 3, i + clave.length + 60);\n};\nconst texto = (clave) => {\n  const t = tras(clave);\n  if (!t || t.charAt(0) !== '\"') return null;\n  const fin = t.indexOf('\"', 1);\n  return fin === -1 ? null : t.slice(1, fin).trim();\n};\nconst numero = (clave) => {\n  const t = tras(clave);\n  if (!t) return null;\n  let n = '';\n  for (let i = 0; i < t.length; i++) {\n    const ch = t.charAt(i);\n    if (ch >= '0' && ch <= '9') n += ch; else break;\n  }\n  return n ? Number(n) : null;\n};\n\ns.oe_leidas = (s.oe_leidas || 0) + 1;\nconst entre = (x, min, max) => (x !== null && x >= min && x <= max) ? x : null;\n\n// Filtro de cordura, como en Autocasión: un 6 en puertas o un 100 en plazas es\n// basura, y guardarla es peor que no guardar nada.\nconst puertas = entre(numero('doors'), 2, 5);\nconst plazas = entre(numero('seats'), 2, 9);\nconst color = texto('color');\n\n/*\n * La carrocería, a la forma que usa el resto del mercado.\n *\n * El portal las da en mayúsculas y así están las 3.431 filas viejas, pero los\n * demás portales guardan «Todoterreno» o «Cabrio»: un filtro por carrocería\n * trata las dos formas como valores distintos.\n */\nconst CARROCERIAS = {\n  'TODOTERRENO': 'Todoterreno', 'SUV': 'SUV', 'COMPACTO': 'Compacto',\n  'BERLINA': 'Berlina', 'FAMILIAR': 'Familiar', 'MONOVOLUMEN': 'Monovolumen',\n  'INDUSTRIAL': 'Furgoneta', 'FURGONETA': 'Furgoneta', 'COUPE': 'Coupé',\n  'CABRIO_DESCAPOTABLE': 'Cabrio', 'CABRIO': 'Cabrio', 'CAMPER': 'Camper',\n  'PICKUP': 'Pick Up', 'PICK_UP': 'Pick Up', 'DEPORTIVO': 'Deportivo',\n};\nconst bruta = texto('bodyStyle');\nconst carroceria = bruta ? (CARROCERIAS[bruta.toUpperCase()] || '') : '';\n\n// La etiqueta de la DGT, que sí viene con su valor.\nconst ETIQUETAS = { '0': '0 Emisiones', 'ECO': 'ECO', 'C': 'C', 'B': 'B' };\nconst etiquetaBruta = texto('environmentalLabel');\nconst etiqueta = etiquetaBruta ? (ETIQUETAS[etiquetaBruta.toUpperCase()] || '') : '';\n\n// Todo con COALESCE: lo que ya hubiera manda. Esto rellena huecos, no corrige.\nconst sets = ['enrich_tried_at = NOW()'];\nif (puertas !== null) sets.push('doors = COALESCE(NULLIF(doors, 0), ' + puertas + ')');\nif (plazas !== null) sets.push('seats = COALESCE(NULLIF(seats, 0), ' + plazas + ')');\nif (color) sets.push(\"color = COALESCE(NULLIF(color, ''), \" + esc(color) + ')');\nif (carroceria) sets.push(\"body_type = COALESCE(NULLIF(body_type, ''), \" + esc(carroceria) + ')');\nif (etiqueta) sets.push(\"environmental_label = COALESCE(NULLIF(environmental_label, ''), \"\n  + esc(etiqueta) + ')');\n\n// updated_at NO se toca: enriquecer no es que el anuncio haya cambiado, es que\n// nosotros nos hemos puesto al día. Y updated_at ordena el escaparate.\nconsole.log('[op-enrich] ' + id + ': puertas=' + (puertas === null ? '-' : puertas)\n  + ' plazas=' + (plazas === null ? '-' : plazas) + ' ' + (color || '-')\n  + ' ' + (carroceria || '-') + ' etiqueta=' + (etiqueta || '-'));\n\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  veredicto: sets.length > 1 ? 'enriquecida' : 'sin datos nuevos',\n  puertas: puertas, plazas: plazas, color: color,\n  carroceria: carroceria, carroceriaBruta: bruta, etiqueta: etiqueta,\n} }];"
+      },
+      "id": "oe-code",
+      "name": "Code: Extraer puertas, plazas, color, carrocería y etiqueta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "oe-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "oe-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        540
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "oe-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        460
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 15000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconst leidas = s.oe_leidas || 0;\n\nconsole.log('[op-enrich] ── resumen ──');\nconsole.log('  fichas pedidas : ' + (s.oe_intentos || 0));\nconsole.log('  leídas         : ' + leidas);\nconsole.log('  ya vendidas    : ' + (s.oe_vendidas || 0));\nconsole.log('  sin poder leer : ' + (s.oe_fallos || 0));\nif (s.oe_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.oe_motivo);\n// Una pasada que no lee ni una ficha no es un éxito, es una cola vacía o algo\n// roto. En Gamboa eso pasó tres días seguidos sin que lo dijera nadie.\nif (!s.oe_parado && (s.oe_intentos || 0) > 0 && leidas === 0) {\n  console.log('  OJO: ni una ficha leída. O el portal ha cambiado, o nos han cerrado.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='ocasionplus-enrich':\n//     checked  fichas pedidas   alive  leídas\n//     deactivated  ya vendidas  unclassified  pedidas sin leer\n//     transient  sin poder leer\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('ocasionplus-enrich', NOW(), \" + n(s.oe_intentos) + ', ' + n(leidas) + ', '\n  + n(s.oe_vendidas) + ', ' + n((s.oe_intentos || 0) - leidas) + ', ' + n(s.oe_fallos) + ', '\n  + (s.oe_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: s.oe_intentos || 0, leidas: leidas,\n  vendidas: s.oe_vendidas || 0, fallos: s.oe_fallos || 0, parado: !!s.oe_parado };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('oe_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "oe-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        120,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "oe-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        340,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -240,7 +286,7 @@
         ]
       ]
     },
-    "Cada día a las 03:15": {
+    "4 veces/día (12:15, 15:15, 18:15 y 23:15)": {
       "main": [
         [
           {
@@ -255,99 +301,116 @@
       "main": [
         [
           {
-            "node": "Loop: coche por coche",
+            "node": "Loop: oferta por oferta",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop: coche por coche": {
-      "main": [
-        [],
-        [
-          {
-            "node": "IF: ¿hay oferta?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Ficha OcasionPlus": {
+    "Loop: oferta por oferta": {
       "main": [
         [
           {
-            "node": "Code: Enriquecer",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Enriquecer": {
-      "main": [
-        [
-          {
-            "node": "IF: ¿hay datos?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay datos?": {
-      "main": [
-        [
-          {
-            "node": "PG: Update ficha",
+            "node": "Code: Resumen",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Code: ¿toca pedirla?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Update ficha": {
+    "Code: ¿toca pedirla?": {
       "main": [
         [
           {
-            "node": "Esperar 1s",
+            "node": "IF: ¿hay ficha que pedir?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Esperar 1s": {
+    "IF: ¿hay ficha que pedir?": {
       "main": [
         [
           {
-            "node": "Loop: coche por coche",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay oferta?": {
-      "main": [
-        [
-          {
-            "node": "HTTP: Ficha OcasionPlus",
+            "node": "HTTP: Ficha de OcasionPlus",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Loop: coche por coche",
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de OcasionPlus": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer puertas, plazas, color, carrocería y etiqueta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer puertas, plazas, color, carrocería y etiqueta": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
+      "main": [
+        [
+          {
+            "node": "Loop: oferta por oferta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
             "type": "main",
             "index": 0
           }
@@ -358,12 +421,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

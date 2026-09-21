@@ -98,6 +98,7 @@
     "test:flexicar": "node scripts/comprueba-flexicar.js",
     "test:flexicar-enrich": "node scripts/comprueba-flexicar-enrich.js",
     "test:flexicar-verify": "node scripts/comprueba-flexicar-verify.js",
+    "test:ocasionplus": "node scripts/comprueba-ocasionplus.js",
     "test:ocasionplus-verify": "node scripts/comprueba-ocasionplus-verify.js",
     "test:importacion-scoring": "node scripts/comprueba-importacion-scoring.js",
     "despublica-horquilla": "node scripts/despublica-fuera-de-horquilla.js",
@@ -120,6 +121,7 @@
     "test:autocasion-verificar": "node scripts/comprueba-autocasion-verificar.js",
     "enlaza-segmento-cochescom": "node scripts/enlaza-segmento-cochescom.js",
     "enlaza-segmento-flexicar": "node scripts/enlaza-segmento-flexicar.js",
+    "enlaza-segmento-ocasionplus": "node scripts/enlaza-segmento-ocasionplus.js",
     "test:cochescom": "node scripts/comprueba-cochescom.js",
     "test:cochescom-verificar": "node scripts/comprueba-cochescom-verificar.js",
     "test:cochescom-enrich": "node scripts/comprueba-cochescom-enrich.js"

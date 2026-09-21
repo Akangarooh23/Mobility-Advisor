@@ -1,0 +1,302 @@
+{
+  "name": "OcasionPlus – Segmento (páginas)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "op-s-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        200
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "op-s-trigger",
+      "name": "Llamada desde orquestador",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const inp = $input.item.json || {};\n\n// SIN ventana no se hace nada. En Autocasión había aquí un valor por defecto y\n// el 15-sep, al recibir un segmento vacío, se puso a scrapear otra marca por su\n// cuenta: 360 ofertas saltándose el cursor. Un defecto esconde el fallo.\nconst desde = Number(inp.desde);\nconst hasta = Number(inp.hasta);\nif (!(desde > 0) || !(hasta >= desde)) {\n  console.log('[ocasionplus] segmento sin ventana de páginas: no hay nada que hacer.');\n  return [];\n}\nreturn [{ json: { desde: desde, hasta: hasta } }];"
+      },
+      "id": "op-s-params",
+      "name": "Params",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Las páginas de esta ventana, una por item.\n//\n// La página 1 es la url base: «?page=1» devuelve 404. Ya estaba así en el\n// scraper viejo y se conserva.\nconst seg = $input.first().json;\nconst out = [];\nfor (let p = seg.desde; p <= seg.hasta; p++) {\n  out.push({ json: {\n    page: p,\n    url: p === 1 ? 'https://www.ocasionplus.com/coches-segunda-mano' : 'https://www.ocasionplus.com/coches-segunda-mano?page=' + p,\n  } });\n}\nconsole.log('[ocasionplus] ventana ' + seg.desde + '-' + seg.hasta + ': ' + out.length + ' páginas');\nreturn out;"
+      },
+      "id": "op-s-paginas",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "op-s-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "op-s-http",
+      "name": "HTTP: Página del listado",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        360,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// OcasionPlus – transform: HTML del listado → JSON-LD ItemList → UPSERT market_offers\n//\n// El id es «op_» más la cola de la url, que es como están las 27.000 filas que\n// ya hay: comprobado sobre ocho al azar, ocho de ocho. Cualquier otra forma de\n// construirlo las duplicaría todas y dejaría las viejas muertas para siempre.\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\n/*\n * Los coches vienen en un bloque JSON-LD de tipo ItemList, veinte por página.\n *\n * El HTML tiene seis bloques JSON-LD -BreadcrumbList, WebPage, Product,\n * ItemList, Organization, WebSite- y solo uno es el que lleva coches. Se\n * recorren todos y se parsea cada uno por separado: si uno viene roto, los\n * demás siguen sirviendo.\n */\nlet coches = [];\nfor (const trozo of html.split('application/ld+json').slice(1)) {\n  const ini = trozo.indexOf('>');\n  const fin = trozo.indexOf('</script>');\n  if (ini === -1 || fin === -1) continue;\n  let j = null;\n  try { j = JSON.parse(trozo.slice(ini + 1, fin).trim()); } catch (e) { continue; }\n  if (!j || j['@type'] !== 'ItemList') continue;\n  const lista = j.itemListElement || [];\n  coches = lista.filter((x) => x && (x['@type'] === 'Vehicle' || x['@type'] === 'Car'));\n  if (coches.length) break;\n}\nif (!coches.length) return [{ json: { sql: null, count: 0 } }];\n\n// Dos escapadores, y la diferencia importa: casi todas las columnas de texto de\n// esta tabla son NOT NULL con '' por defecto, así que un vacío tiene que viajar\n// como cadena vacía y no como NULL, o la fila entera se rechaza.\nfunction txt(v) {\n  return \"'\" + String(v === null || v === undefined ? '' : v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  const n = Number(v);\n  return isNaN(n) ? 'NULL' : String(n);\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  const ench = s.indexOf('enchufable') !== -1 && s.indexOf('no enchufable') === -1;\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1 || s.indexOf('gasoleo') !== -1) return 'Diesel';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return ench ? 'Híbrido enchufable' : 'Híbrido';\n  // OJO con el acento: \"eléctrico\".indexOf(\"lectric\") da -1 porque la é no es\n  // una e. En coches.com eso habría dejado a todos los eléctricos sin CO₂.\n  if (s.indexOf('éctric') !== -1 || s.indexOf('ectric') !== -1) return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas') !== -1) return 'Gas';\n  return '';\n}\nfunction normGear(s) {\n  s = String(s || '').toUpperCase();\n  if (s.indexOf('AUTOM') !== -1) return 'Automatica';\n  if (s.indexOf('MANUAL') !== -1) return 'Manual';\n  return '';\n}\n// La potencia viene dentro del nombre: «Hyundai i30 1.4 CVVT Comfort (109 CV)».\n// Sin expresión regular: este código viaja dentro de una cadena y dentro de un\n// JSON, y por el camino las barras se pierden.\nfunction caballos(nombre) {\n  const t = String(nombre || '');\n  const i = t.indexOf(' CV)');\n  if (i === -1) return null;\n  const abre = t.lastIndexOf('(', i);\n  if (abre === -1) return null;\n  const n = Number(t.slice(abre + 1, i).trim());\n  return (Number.isFinite(n) && n >= 20 && n <= 1500) ? Math.round(n) : null;\n}\n\nconst rows = [];\nfor (const it of coches) {\n  const url = String((it.offers && it.offers.url) || '').trim();\n  if (!url) continue;\n  // El id, de la cola de la url. Sin cola no hay id estable y la fila se queda\n  // fuera: inventarse uno sería crear un duplicado en cada pasada.\n  const limpia = url.charAt(url.length - 1) === '/' ? url.slice(0, -1) : url;\n  const partes = limpia.split('-');\n  const cola = partes[partes.length - 1];\n  if (!cola || cola.length < 4) continue;\n  const id = 'op_' + cola;\n\n  const precio = Number(it.offers && it.offers.price);\n  if (!(precio > 0)) continue;\n\n  const brand = String((it.brand && it.brand.name) || '');\n  const nombre = String(it.name || '');\n  // `model` trae marca, modelo y versión juntos: «Hyundai i30 1.4 CVVT Comfort\n  // (109 CV)». El modelo corto está en `name`: «Hyundai i30».\n  const completo = String(it.model || nombre);\n  const modelo = nombre.indexOf(brand) === 0 ? nombre.slice(brand.length).trim() : nombre;\n  const version = completo.indexOf(nombre) === 0 ? completo.slice(nombre.length).trim() : completo;\n\n  const anio = String(it.productionDate || '').slice(0, 4);\n  const km = (it.mileageFromOdometer && it.mileageFromOdometer.value !== undefined)\n    ? Number(it.mileageFromOdometer.value) : null;\n\n  const row = '(' +\n    txt(id) + \", 'ocasionplus', \" + txt(limpia) + ', ' + txt(completo) + ', ' +\n    txt(brand) + ', ' + txt(modelo) + ', ' + txt(version) + ', ' +\n    num(anio) + ', ' + num(km) + ', ' + precio + ', ' +\n    txt(normFuel(it.fuelType)) + ', ' + txt(normGear(it.vehicleTransmission)) + ', ' +\n    txt(it.image) + ', ' + num(caballos(completo)) + ', ' +\n    \"'profesional', 'compra', 'ES'\" +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, ' +\n  'image_url, power_cv, seller_type, listing_type, country, first_seen_at, scraped_at, last_seen_at';\n\n/*\n * Lo que el listado NO trae se queda como está: color, carrocería, provincia,\n * etiqueta, puertas, plazas, cilindrada y CO₂.\n *\n * Las 8.036 filas vivas ya tienen color, carrocería, provincia y etiqueta al\n * 100 % de la época en que el scraper leía la ficha. Machacarlas con vacío en\n * cada pasada sería tirar ese trabajo cada noche.\n */\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, ' +\n  'mileage = COALESCE(EXCLUDED.mileage, moveadvisor_market_offers.mileage), ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  \"fuel = COALESCE(NULLIF(EXCLUDED.fuel, ''), moveadvisor_market_offers.fuel), \" +\n  \"transmission = COALESCE(NULLIF(EXCLUDED.transmission, ''), moveadvisor_market_offers.transmission), \" +\n  \"image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), \" +\n  'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), ' +\n  'last_seen_at = NOW(), updated_at = NOW(), ' +\n  // Verla en el listado ES la prueba de vida, así que resucita.\n  //\n  // Sin esto, una oferta que el verificador diera de baja por error se queda\n  // muerta para siempre aunque el scraper la vuelva a ver: el UPSERT le\n  // refresca precio y kilómetros y la deja is_active = FALSE.\n  'is_active = TRUE';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
+      },
+      "id": "op-s-transf",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "op-s-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "op-s-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        840,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "op-s-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamada desde orquestador": {
+      "main": [
+        [
+          {
+            "node": "Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Params": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Página del listado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página del listado": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

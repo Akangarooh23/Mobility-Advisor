@@ -8,17 +8,18 @@
  *
  * ── Por qué por sitemap, y no preguntando coche a coche ────────────────────
  *
- * Porque su robots.txt lo pide:
+ * Porque publican su catálogo entero y preguntar uno por uno sería trabajo
+ * tirado: 10.209 peticiones para averiguar lo que una sola ya dice.
  *
- *     Crawl-delay: 60
+ * (Aquí había escrito que su robots.txt nos pedía 60 segundos entre
+ * peticiones. NO ES CIERTO: ese Crawl-delay está bajo «User-agent: dotbot,
+ * AhrefsBot, SemrushBot», tres rastreadores de SEO. Al grupo «*» no le pide
+ * ninguna espera. Lo leí sin mirar a qué grupo pertenecía. Preguntar coche a
+ * coche sí sería posible —HEAD dice la verdad aquí, 14 de 14, y el 410 es la
+ * señal de vendido—, pero sigue sin tener sentido cuando una petición hace el
+ * trabajo de diez mil.)
  *
- * Sesenta segundos entre peticiones. A ese ritmo, preguntar por las 10.209
- * ofertas una a una son 170 HORAS. No es que fuera lento: es que el portal
- * está diciendo que no lo hagamos. Los demás portales que verificamos así
- * -AutoScout24, Autocasión, coches.com- no declaran ningún Crawl-delay, y por
- * eso allí sí se va rápido.
- *
- * Y no hace falta, porque publican su catálogo entero:
+ * Su catálogo está en:
  *
  *     https://www.ocasionplus.com/sitemap.fichas-coches.xml
  *
@@ -285,4 +286,4 @@ const PASADAS = String(nodos.find((n) => String(n.type).endsWith("scheduleTrigge
   .parameters.rule.interval[0].expression).split(" ")[2].split(",").length;
 console.log("  " + nodos.length + " nodos, " + PASADAS + " pasadas/día");
 console.log("  UNA petición por pasada para verificar 10.209 ofertas");
-console.log("  su robots.txt pide Crawl-delay 60, y esto lo respeta de sobra");
+console.log("  (su Crawl-delay de 60 s es solo para dotbot, AhrefsBot y SemrushBot)");

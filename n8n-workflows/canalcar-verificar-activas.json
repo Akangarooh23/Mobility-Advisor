@@ -1,0 +1,542 @@
+{
+  "name": "CanalCar – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cv-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -860,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 45 9,13,17,21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cv-cron",
+      "name": "4 veces/día (9:45, 13:45, 17:45 y 21:45)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -860,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Lo que damos por vivo de CanalCar, para cruzarlo con su listado.\n--\n-- Solo el id: el cruce va por id y traer lo demás sería memoria tirada. n8n\n-- guarda en memoria la salida de cada nodo, iteración a iteración.\nSELECT id FROM moveadvisor_market_offers\nWHERE portal = 'canalcar' AND is_active",
+        "options": {}
+      },
+      "id": "cv-activas",
+      "name": "PG: Las que damos por vivas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -660,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "url": "https://www.canalcar.es/coches-ocasion",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "cv-contar",
+      "name": "HTTP: Contar el catálogo",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cuántas páginas hay hoy, y a la vez el arranque de la pasada.\nconst s = $getWorkflowStaticData('global');\n// La memoria es del workflow, no de la pasada: sin limpiarla aquí, los ids de\n// ayer contarían como vivos hoy y no se daría ni una baja.\nfor (const k of Object.keys(s)) { if (k.indexOf('cc_') === 0) delete s[k]; }\ns.cc_run = $execution.id;\ns.cc_ids = [];\ns.cc_fallos = 0;\ns.cc_paginas_ok = 0;\ns.cc_motivo = '';\n\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst html = String(res.data || res.body || '');\nconst codigo = Number(res.statusCode || 0);\n\nif (codigo !== 200 || !html) {\n  s.cc_motivo = 'el listado no contestó (HTTP ' + codigo + ')';\n  console.log('[canalcar-verify] NO SE DAN BAJAS: ' + s.cc_motivo);\n  return [{ json: { hay: '', url: '' } }];\n}\n\n// El total declarado, del campo oculto <input id=\"resultado-total-coches\">.\nlet total = 0;\n{\n  const i = html.indexOf('resultado-total-coches');\n  if (i !== -1) {\n    let j = html.indexOf('value=\"', i);\n    if (j === -1 || j - i > 60) j = html.lastIndexOf('value=\"', i);\n    if (j !== -1 && Math.abs(j - i) < 120) {\n      let n = '';\n      for (let k = j + 7; k < j + 20; k++) {\n        const ch = html.charAt(k);\n        if (ch >= '0' && ch <= '9') n += ch;\n        else if (ch === '.') continue;\n        else break;\n      }\n      total = Number(n) || 0;\n    }\n  }\n}\ns.cc_total = total;\n\n// Y las páginas que enlaza, que es la otra medida.\nlet porEnlaces = 0;\n{\n  let i = 0;\n  for (;;) {\n    const j = html.indexOf('page=', i);\n    if (j === -1) break;\n    let n = '';\n    for (let k = j + 5; k < j + 11; k++) {\n      const ch = html.charAt(k);\n      if (ch >= '0' && ch <= '9') n += ch; else break;\n    }\n    if (n && Number(n) > porEnlaces) porEnlaces = Number(n);\n    i = j + 1;\n  }\n}\n\nlet paginas = Math.max(porEnlaces, total > 0 ? Math.ceil(total / 71) : 0);\nif (paginas > 40) paginas = 40;\nif (!(paginas > 0)) {\n  s.cc_motivo = 'el listado no dice cuántas páginas tiene';\n  console.log('[canalcar-verify] NO SE DAN BAJAS: ' + s.cc_motivo);\n  return [{ json: { hay: '', url: '' } }];\n}\n\nconst out = [];\nfor (let p = 1; p <= paginas; p++) {\n  out.push({ json: { hay: 'si', page: p, url: p === 1 ? 'https://www.canalcar.es/coches-ocasion' : 'https://www.canalcar.es/coches-ocasion?page=' + p } });\n}\nconsole.log('[canalcar-verify] su catálogo declara ' + total + ' coches en ' + paginas + ' páginas');\nreturn out;"
+      },
+      "id": "cv-paginas",
+      "name": "Code: Generar páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cv-c-hay",
+              "leftValue": "={{ $json.hay }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "cv-if-hay",
+      "name": "IF: ¿se pudo medir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cv-loop",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        160,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "cv-http",
+      "name": "HTTP: Página del listado",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        380,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Los ids de esta página, al montón.\nconst s = $getWorkflowStaticData('global');\nconst res = $input.first().json;\nconst html = String(res.data || res.body || '');\nconst codigo = Number(res.statusCode || 0);\nconst pagina = $('Loop: página por página').first().json.page;\n\nif (codigo !== 200 || !html) {\n  // FRENO 1: una página que falla son 71 coches que parecerían vendidos.\n  s.cc_fallos = (s.cc_fallos || 0) + 1;\n  console.log('[canalcar-verify] la página ' + pagina + ' falló (HTTP ' + codigo + ')');\n  return [{ json: { pagina: pagina, ids: 0, fallo: true } }];\n}\n\n/*\n * El id vive en data-coche-id, y en ningún otro sitio.\n *\n * Sin expresiones regulares: este código viaja dentro de una cadena y dentro\n * de un JSON, y por el camino las barras se pierden.\n */\nconst marca = 'data-coche-id=\"';\nlet n = 0;\nlet i = 0;\nfor (;;) {\n  const j = html.indexOf(marca, i);\n  if (j === -1) break;\n  const desde = j + marca.length;\n  const fin = html.indexOf('\"', desde);\n  i = desde;\n  if (fin === -1) continue;\n  const id = html.slice(desde, fin);\n  if (id) { s.cc_ids.push('cnc_' + id); n++; }\n}\n\nif (!n) {\n  // Una página sin una sola tarjeta también es una página que no sirve: la 8\n  // devuelve un 520 y ese caso ya lo coge el HTTP, pero una página 200 y vacía\n  // engañaría igual.\n  s.cc_fallos = (s.cc_fallos || 0) + 1;\n  console.log('[canalcar-verify] la página ' + pagina + ' vino sin tarjetas');\n  return [{ json: { pagina: pagina, ids: 0, fallo: true } }];\n}\ns.cc_paginas_ok = (s.cc_paginas_ok || 0) + 1;\nreturn [{ json: { pagina: pagina, ids: n, fallo: false } }];"
+      },
+      "id": "cv-apuntar",
+      "name": "Code: Apuntar los ids",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cruzar lo nuestro con lo suyo, por id.\nconst s = $getWorkflowStaticData('global');\nconst nuestras = $('PG: Las que damos por vivas').all().map(x => x.json);\ns.cc_nuestras = nuestras.length;\n\nconst suyos = new Set(s.cc_ids || []);\ns.cc_suyos = suyos.size;\n\n// Si la medida ya falló, el motivo está puesto y aquí no hay nada que decidir.\nif (!s.cc_motivo) {\n  // FRENO 1: ninguna página puede haber fallado.\n  if (s.cc_fallos > 0) {\n    s.cc_motivo = s.cc_fallos + ' página(s) no se pudieron leer: faltan coches de la lista';\n  // FRENO 2: hay que haber recogido el catálogo entero.\n  //\n  // Se admite un 3 % de merma: vender un coche a mitad de la vuelta corre las\n  // tarjetas de sitio y puede dejar una sin ver.\n  } else if (s.cc_total > 0 && suyos.size < Math.floor(s.cc_total * 0.97)) {\n    s.cc_motivo = 'recogimos ' + suyos.size + ' de los ' + s.cc_total + ' que declaran: la vuelta vino corta';\n  }\n}\n\nif (s.cc_motivo) {\n  console.log('[canalcar-verify] NO SE DAN BAJAS: ' + s.cc_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\n\nconsole.log('[canalcar-verify] su listado trae ' + suyos.size\n  + ' coches; nosotros damos por vivas ' + nuestras.length);\n\nconst muertas = [];\nfor (const o of nuestras) {\n  if (!suyos.has(String(o.id))) muertas.push(String(o.id));\n}\ns.cc_muertas = muertas.length;\ns.cc_vivas = nuestras.length - muertas.length;\n\n// FRENO 3: una mortandad imposible es la lista rota, no un buen mes de ventas.\nconst pct = nuestras.length ? (muertas.length / nuestras.length) : 0;\nif (pct > 0.4) {\n  s.cc_motivo = 'faltan el ' + Math.round(pct * 100) + '% de las nuestras: la lista no es de fiar';\n  console.log('[canalcar-verify] NO SE DAN BAJAS: ' + s.cc_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\nif (!muertas.length) {\n  s.cc_nada = true;\n  console.log('[canalcar-verify] nada que dar de baja: todas siguen en su listado.');\n  return [{ json: { seguir: '', sql: null } }];\n}\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst out = [];\nfor (let i = 0; i < muertas.length; i += 1500) {\n  const trozo = muertas.slice(i, i + 1500);\n  out.push({ json: {\n    seguir: 'si',\n    sql: 'UPDATE moveadvisor_market_offers SET is_active = FALSE, last_checked_at = NOW()'\n      + ' WHERE id IN (' + trozo.map(esc).join(', ') + ')',\n    cuantas: trozo.length,\n  } });\n}\nconsole.log('[canalcar-verify] ' + muertas.length + ' bajas en ' + out.length + ' trozos');\nreturn out;"
+      },
+      "id": "cv-cruzar",
+      "name": "Code: Cruzar por id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        380,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cv-c-seguir",
+              "leftValue": "={{ $json.seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "cv-if",
+      "name": "IF: ¿se dan las bajas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        600,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "cv-loop2",
+      "name": "Loop: trozo a trozo",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        820,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cv-pg-bajas",
+      "name": "PG: Dar de baja",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\n\nconsole.log('[canalcar-verify] ── resumen ──');\nconsole.log('  dábamos por vivas : ' + (s.cc_nuestras || 0));\nconsole.log('  su listado trae   : ' + (s.cc_suyos || 0) + ' de ' + (s.cc_total || 0) + ' declarados');\nconsole.log('  páginas leídas    : ' + (s.cc_paginas_ok || 0) + '   fallidas: ' + (s.cc_fallos || 0));\nconsole.log('  BAJAS             : ' + (s.cc_muertas || 0));\nconsole.log('  siguen vivas      : ' + (s.cc_vivas || 0));\nif (s.cc_nada) console.log('  nada que dar de baja: todas siguen en su listado.');\nif (s.cc_motivo) console.log('  NO SE DIERON BAJAS: ' + s.cc_motivo);\n\n// Si un freno paró la pasada, no se ha dado ni una baja: el recuento de\n// muertas es lo que HABRÍA hecho, no lo que hizo.\nconst frenada = !!s.cc_motivo;\nconst bajas = frenada ? 0 : (s.cc_muertas || 0);\nconst vivas = frenada ? 0 : (s.cc_vivas || 0);\n\nconst n = v => String(Number(v) || 0);\n// La tabla de los verificadores, con portal='canalcar':\n//     checked  las que dábamos por vivas   alive  las que siguen\n//     deactivated  las bajas               unclassified  las que no se dieron\n//     transient  las páginas que fallaron  blocked  TRUE si frenó\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('canalcar', NOW(), \" + n(s.cc_nuestras) + ', ' + n(vivas) + ', '\n  + n(bajas) + ', ' + n(frenada ? (s.cc_muertas || 0) : 0) + ', ' + n(s.cc_fallos) + ', '\n  + (frenada ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, nuestras: s.cc_nuestras || 0, suyos: s.cc_suyos || 0,\n  bajas: bajas, vivas: vivas, motivo: s.cc_motivo || '' };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('cc_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "cv-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cv-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        -40
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Las que damos por vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (9:45, 13:45, 17:45 y 21:45)": {
+      "main": [
+        [
+          {
+            "node": "PG: Las que damos por vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Las que damos por vivas": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar el catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar el catálogo": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar páginas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se pudo medir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se pudo medir?": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Cruzar por id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [
+          {
+            "node": "Code: Cruzar por id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Página del listado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página del listado": {
+      "main": [
+        [
+          {
+            "node": "Code: Apuntar los ids",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Apuntar los ids": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Cruzar por id": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se dan las bajas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se dan las bajas?": {
+      "main": [
+        [
+          {
+            "node": "Loop: trozo a trozo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: trozo a trozo": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PG: Dar de baja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Dar de baja": {
+      "main": [
+        [
+          {
+            "node": "Loop: trozo a trozo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

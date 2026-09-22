@@ -1,15 +1,15 @@
 {
-  "name": "Canalcar – Enriquecer (color, carrocería, CV, puertas, plazas, etiqueta)",
+  "name": "CanalCar – Enriquecer (color, carrocería, potencia, puertas, plazas, sitio)",
   "nodes": [
     {
       "parameters": {},
-      "id": "cne-manual",
+      "id": "cn-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        300
+        -660,
+        200
       ]
     },
     {
@@ -18,179 +18,69 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 45 2 * * *"
+              "expression": "0 5 12,18,22 * * *"
             }
           ]
         }
       },
-      "id": "cne-cron",
-      "name": "Cada día a las 02:45",
+      "id": "cn-cron",
+      "name": "3 veces/día (12:05, 18:05 y 22:05)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        500
+        -660,
+        400
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, url FROM moveadvisor_market_offers WHERE portal='canalcar' AND COALESCE(url,'')<>'' ORDER BY (power_cv IS NULL) DESC, last_seen_at DESC LIMIT 300",
-        "additionalFields": {}
+        "query": "-- Las de CanalCar a las que les falta algo de la ficha.\n--\n-- Solo lo que damos por vivo: gastar una petición en un coche vendido es\n-- tirarla. Lo aprendimos en AutoScout24 España, donde la primera versión de la\n-- cola traía seis coches muertos de cada seis.\n--\n-- enrich_tried_at es lo que impide que la cola sea siempre la misma: sin él,\n-- las 48 que no tienen color se volverían a pedir tres veces al día para\n-- siempre. Se reintenta a la semana por si la ficha cambia.\nSELECT id, url\nFROM moveadvisor_market_offers\nWHERE portal = 'canalcar'\n  AND is_active\n  AND COALESCE(url, '') <> ''\n  AND (power_cv IS NULL\n       OR doors IS NULL\n       OR seats IS NULL\n       OR COALESCE(color, '') = ''\n       OR COALESCE(body_type, '') = ''\n       OR COALESCE(dealer_name, '') = ''\n       OR COALESCE(city, '') = '')\n  AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '7 days')\nORDER BY (enrich_tried_at IS NULL) DESC, last_seen_at DESC\nLIMIT 300",
+        "options": {}
       },
-      "id": "cne-cola",
+      "id": "cn-cola",
       "name": "PG: Cola a enriquecer",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        -20,
-        400
+        -460,
+        300
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "cne-loop",
+      "id": "cn-loop",
       "name": "Loop: coche por coche",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        200,
-        400
+        -240,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "={{ $json.url }}",
-        "options": {
-          "timeout": 25000,
-          "response": {
-            "response": {
-              "responseFormat": "text"
-            }
-          },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
-          }
-        }
+        "jsCode": "// ¿Toca pedir esta ficha?\nconst s = $getWorkflowStaticData('global');\nif (s.cn_run !== $execution.id) {\n  // Arranque de pasada. La memoria es del workflow, no de la pasada.\n  for (const k of Object.keys(s)) { if (k.indexOf('cn_') === 0) delete s[k]; }\n  s.cn_run = $execution.id;\n  s.cn_intentos = 0;\n  s.cn_leidas = 0;\n  s.cn_otro = 0;\n  s.cn_fallos = 0;\n  s.cn_seguidos = 0;\n  s.cn_parado = false;\n  s.cn_motivo = '';\n}\n\nconst o = $input.item.json;\nconst id = String(o.id || '');\nconst url = String(o.url || '');\n\n// Una consulta que no devuelve filas hace que n8n emita UN ITEM VACÍO. Sin\n// esta salida, el HTTP se dispararía con la url en blanco.\nif (!id || !url) return [{ json: { pedir: '', id: id, url: '' } }];\n\n// CORTACIRCUITOS.\nif (s.cn_parado) return [{ json: { pedir: '', id: id, url: '' } }];\nif (s.cn_seguidos >= 15) {\n  s.cn_parado = true;\n  s.cn_motivo = s.cn_seguidos + ' fichas seguidas sin poder leerse';\n  console.log('[cn-enrich] PARADO: ' + s.cn_motivo);\n  return [{ json: { pedir: '', id: id, url: '' } }];\n}\n\ns.cn_intentos = (s.cn_intentos || 0) + 1;\n// El número de nuestro id es lo que tiene que aparecer en la ficha.\nconst numero = id.indexOf('_') !== -1 ? id.split('_')[1] : '';\nreturn [{ json: { pedir: 'si', id: id, url: url, numero: numero } }];"
       },
-      "id": "cne-http",
-      "name": "HTTP: Ficha Canalcar",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [
-        420,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 2,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "language": "javaScript",
-        "jsCode": "const httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst id = $('Loop: coche por coche').item.json.id;\nfunction esc(v){ if(v===null||v===undefined||v==='') return null; return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\n// --- JSON-LD @type Car ---\nlet v={};\nconst blocks=[...html.matchAll(/<script[^>]*application\\/ld\\+json[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1].trim());\nfor(const b of blocks){ try{ const j=JSON.parse(b); const a=Array.isArray(j)?j:(j['@graph']||[j]); for(const o of a) if(o&&['Vehicle','Car','Product'].includes(o['@type'])) v=o; }catch(e){} }\nconst color=(v.color||'').trim();\nconst bodyType=(v.bodyType||'').trim();\nconst doors=v.numberOfDoors!=null?Number(v.numberOfDoors):null;\nconst seatsRaw=(v.seatingCapacity!=null?v.seatingCapacity:v.vehicleSeatingCapacity);\nconst seats=seatsRaw!=null?Number(seatsRaw):null;\nlet powerCv=null;\ntry{ let ep=v.vehicleEngine&&v.vehicleEngine.enginePower; if(Array.isArray(ep)) ep=ep[0]; const val=ep&&ep.value; if(val!=null) powerCv=Number(val); }catch(e){}\n// --- texto plano para etiqueta y tracción ---\nconst desc=String(v.description||'');\nconst text=html.replace(/<script[\\s\\S]*?<\\/script>/g,' ').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\\s+/g,' ').trim();\nlet etiqueta='';\n{ const m=(desc+' '+text).match(/distintivo ambiental\\s+(Cero|ECO|C|B|0)/i); if(m){ etiqueta=/cero/i.test(m[1])?'0':m[1].toUpperCase(); } }\n// --- construir UPDATE (tracción excluida: Canalcar solo publica un checklist genérico '4x4' idéntico en todas las fichas, no la tracción real) ---\nconst sets=[];\nif(esc(color)) sets.push(\"color=COALESCE(NULLIF(color,''),\"+esc(color)+\")\"); // no pisar un color ya puesto: puede ser una respuesta de una persona, y aqui nada la protegia\nif(esc(bodyType)) sets.push('body_type='+esc(bodyType));\nif(powerCv!=null && powerCv>0) sets.push('power_cv='+powerCv);\nif(doors!=null) sets.push('doors='+doors);\nif(seats!=null) sets.push('seats='+seats);\nif(esc(etiqueta)) sets.push('environmental_label='+esc(etiqueta));\nif(!sets.length) return [{ json:{ sql:null, count:0 } }];\nsets.push('last_seen_at=NOW()','updated_at=NOW()');\nconst sql='UPDATE moveadvisor_market_offers SET '+sets.join(', ')+' WHERE id='+esc(id);\nreturn [{ json:{ sql:sql, count:1 } }];"
-      },
-      "id": "cne-code",
-      "name": "Code: Enriquecer",
+      "id": "cn-toca",
+      "name": "Code: ¿toca pedirla?",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        640,
-        400
+        0,
+        420
       ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "cne-if",
-      "name": "IF: ¿hay datos?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [
-        860,
-        400
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "={{ $json.sql }}",
-        "additionalFields": {}
-      },
-      "id": "cne-pg",
-      "name": "PG: Update ficha",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2,
-      "position": [
-        1080,
-        280
-      ],
-      "credentials": {
-        "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
-          "name": "Postgres account"
-        }
-      },
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
-      },
-      "id": "cne-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1300,
-        400
-      ],
-      "webhookId": "wait-canalcar-enrich"
     },
     {
       "parameters": {
@@ -203,8 +93,8 @@
           },
           "conditions": [
             {
-              "id": "guarda-cola-vacia",
-              "leftValue": "={{ $json.url }}",
+              "id": "cn-c-pedir",
+              "leftValue": "={{ $json.pedir }}",
               "rightValue": "",
               "operator": {
                 "type": "string",
@@ -218,14 +108,183 @@
         "looseTypeValidation": true,
         "options": {}
       },
-      "id": "if-cola-vacia",
-      "name": "IF: ¿hay oferta?",
+      "id": "cn-if-pedir",
+      "name": "IF: ¿hay ficha que pedir?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
         220,
-        540
+        420
       ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "cn-http",
+      "name": "HTTP: Ficha de CanalCar",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        440,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Sacar de la ficha lo que la tarjeta no trae.\nconst s = $getWorkflowStaticData('global');\nconst pedida = $('Code: ¿toca pedirla?').item.json;\nconst id = String(pedida.id || '');\nconst numero = String(pedida.numero || '');\n\nconst res = $input.item.json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst html = typeof res === 'string' ? res : String(res.data || res.body || '');\nconst codigo = Number((res || {}).statusCode || 0);\n\nfunction esc(v) {\n  if (v === null || v === undefined || v === '') return null;\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\n// Marcar el intento SIEMPRE, salga bien o mal: si no, la misma ficha rota\n// vuelve a la cola tres veces al día para siempre.\nconst soloIntento = { json: { sql: 'UPDATE moveadvisor_market_offers'\n  + ' SET enrich_tried_at = NOW() WHERE id = ' + esc(id), campos: 0, id: id } };\n\nif (codigo !== 200 || !html) {\n  s.cn_fallos = (s.cn_fallos || 0) + 1;\n  s.cn_seguidos = (s.cn_seguidos || 0) + 1;\n  return [soloIntento];\n}\n\n/*\n * ¿ES LA FICHA DE ESTE COCHE?\n *\n * La url de CanalCar no lleva número y la reescriben. La ficha sí trae\n * data-coche-id=\"<número>\", y es lo único que ata la página a la fila. Sin\n * esta comprobación se le escribiría el color de otro coche a esta oferta,\n * que es exactamente lo que pasó en Clicars: 10 de cada 30.\n */\nif (numero && html.indexOf('data-coche-id=\"' + numero + '\"') === -1) {\n  s.cn_otro = (s.cn_otro || 0) + 1;\n  s.cn_seguidos = 0;   // contestó bien; no es la puerta cerrada\n  console.log('[cn-enrich] ' + id + ': la ficha no es de este coche');\n  return [soloIntento];\n}\ns.cn_seguidos = 0;\n\n// El JSON-LD de tipo Car, que es donde está todo.\nlet v = {};\nfor (const trozo of html.split('application/ld+json').slice(1)) {\n  const a = trozo.indexOf('>');\n  const b = trozo.indexOf('</script>');\n  if (a === -1 || b === -1) continue;\n  let j;\n  try { j = JSON.parse(trozo.slice(a + 1, b).trim()); } catch (e) { continue; }\n  const lista = Array.isArray(j) ? j : (j['@graph'] || [j]);\n  for (const o of lista) {\n    if (!o) continue;\n    const tipo = JSON.stringify(o['@type'] || '');\n    if (tipo.indexOf('Car') !== -1 || tipo.indexOf('Vehicle') !== -1) v = o;\n  }\n}\nif (!v || v.color === undefined && v.bodyType === undefined && v.vehicleEngine === undefined) {\n  s.cn_fallos = (s.cn_fallos || 0) + 1;\n  console.log('[cn-enrich] ' + id + ': la ficha no trae JSON-LD de coche');\n  return [soloIntento];\n}\ns.cn_leidas = (s.cn_leidas || 0) + 1;\n\nconst color = String(v.color || '').trim();\nconst carroceria = String(v.bodyType || '').trim();\nconst puertas = v.numberOfDoors !== undefined && v.numberOfDoors !== null ? Number(v.numberOfDoors) : null;\nconst plazasCrudo = v.seatingCapacity !== undefined && v.seatingCapacity !== null\n  ? v.seatingCapacity : v.vehicleSeatingCapacity;\nconst plazas = plazasCrudo !== undefined && plazasCrudo !== null ? Number(plazasCrudo) : null;\n\n/*\n * LA POTENCIA: dice BHP y es CV.\n *\n * El Citroën C3 Aircross «BlueHDi 110» trae value 110, y el Volkswagen Taigo\n * que ellos mismos llaman «81 kW (110 CV)» trae también 110. El número son\n * caballos y el unitCode está mal puesto. Convertir de BHP metería un 1,4 %\n * de error en cada potencia del portal, así que se guarda tal cual.\n */\nlet cv = null;\ntry {\n  let ep = v.vehicleEngine && v.vehicleEngine.enginePower;\n  if (Array.isArray(ep)) ep = ep[0];\n  const val = ep && ep.value;\n  if (val !== null && val !== undefined) cv = Number(val);\n} catch (e) { cv = null; }\nif (!(cv > 30 && cv < 1000)) cv = null;\n// 1 CV son 0,7355 kW. Se deriva en vez de leerlo porque la ficha no lo da.\nconst kw = cv !== null ? Math.round(cv * 0.7355) : null;\n\n// Dónde está el coche: el vendedor va dentro de la oferta.\nlet concesionario = '';\nlet ciudad = '';\ntry {\n  const ven = v.offers && v.offers.seller;\n  concesionario = String((ven && ven.name) || '').trim();\n  ciudad = String((ven && ven.address && ven.address.addressLocality) || '').trim();\n} catch (e) { concesionario = ''; ciudad = ''; }\n\nconst sets = [];\n// El color NO se pisa: puede llevar puesto el que contestó una persona, y\n// aquí no había nada que lo protegiera antes.\nif (esc(color)) sets.push(\"color = COALESCE(NULLIF(color, ''), \" + esc(color) + \")\");\nif (esc(carroceria)) sets.push('body_type = ' + esc(carroceria));\nif (puertas !== null && puertas > 0) sets.push('doors = ' + puertas);\nif (plazas !== null && plazas > 0) sets.push('seats = ' + plazas);\nif (cv !== null) sets.push('power_cv = ' + cv);\nif (kw !== null) sets.push('power_kw = ' + kw);\nif (esc(concesionario)) sets.push(\"dealer_name = COALESCE(NULLIF(dealer_name, ''), \" + esc(concesionario) + \")\");\nif (esc(ciudad)) sets.push(\"city = COALESCE(NULLIF(city, ''), \" + esc(ciudad) + \")\");\n\nif (!sets.length) return [soloIntento];\n// enrich_tried_at siempre; is_active y last_seen_at nunca: que la ficha\n// conteste 200 no prueba que el coche esté a la venta.\nsets.push('enrich_tried_at = NOW()', 'updated_at = NOW()');\nreturn [{ json: {\n  sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),\n  campos: sets.length - 2,\n  id: id,\n} }];"
+      },
+      "id": "cn-extraer",
+      "name": "Code: Extraer color, carrocería, potencia y sitio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cn-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "cn-if-sql",
+      "name": "IF: ¿hay algo que guardar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cn-pg",
+      "name": "PG: Actualizar oferta",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        580
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "cn-esperar",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        580
+      ],
+      "webhookId": "cn-esperar-canalcar"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\nconst leidas = s.cn_leidas || 0;\n\nconsole.log('[cn-enrich] ── resumen ──');\nconsole.log('  fichas pedidas : ' + (s.cn_intentos || 0));\nconsole.log('  leídas         : ' + leidas);\nconsole.log('  era otro coche : ' + (s.cn_otro || 0));\nconsole.log('  sin poder leer : ' + (s.cn_fallos || 0));\nif (s.cn_parado) console.log('  PARADO POR EL CORTACIRCUITOS: ' + s.cn_motivo);\n// Una pasada que no lee ni una ficha no es un éxito, es una cola vacía o algo\n// roto. En Gamboa eso pasó tres días seguidos sin que lo dijera nadie.\nif (!s.cn_parado && (s.cn_intentos || 0) > 0 && leidas === 0) {\n  console.log('  OJO: ni una ficha leída. O el portal ha cambiado, o nos han cerrado.');\n}\n\nconst n = v => String(Number(v) || 0);\n// Se reaprovecha la tabla de los verificadores con portal='canalcar-enrich':\n//     checked  fichas pedidas   alive  leídas\n//     deactivated  0            unclassified  era otro coche\n//     transient  sin poder leer\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('canalcar-enrich', NOW(), \" + n(s.cn_intentos) + ', ' + n(leidas) + ', 0, '\n  + n(s.cn_otro) + ', ' + n(s.cn_fallos) + ', ' + (s.cn_parado ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, pedidas: s.cn_intentos || 0, leidas: leidas,\n  eraOtro: s.cn_otro || 0, fallos: s.cn_fallos || 0, parado: !!s.cn_parado,\n  motivo: s.cn_motivo || '' };\nfor (const k of Object.keys(s)) { if (k.indexOf('cn_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "cn-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "cn-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        220,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -240,7 +299,7 @@
         ]
       ]
     },
-    "Cada día a las 02:45": {
+    "3 veces/día (12:05, 18:05 y 22:05)": {
       "main": [
         [
           {
@@ -264,57 +323,92 @@
     },
     "Loop: coche por coche": {
       "main": [
-        [],
         [
           {
-            "node": "IF: ¿hay oferta?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP: Ficha Canalcar": {
-      "main": [
-        [
-          {
-            "node": "Code: Enriquecer",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code: Enriquecer": {
-      "main": [
-        [
-          {
-            "node": "IF: ¿hay datos?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF: ¿hay datos?": {
-      "main": [
-        [
-          {
-            "node": "PG: Update ficha",
+            "node": "Code: Resumen",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Code: ¿toca pedirla?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "PG: Update ficha": {
+    "Code: ¿toca pedirla?": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ficha que pedir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ficha que pedir?": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Ficha de CanalCar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Ficha de CanalCar": {
+      "main": [
+        [
+          {
+            "node": "Code: Extraer color, carrocería, potencia y sitio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Extraer color, carrocería, potencia y sitio": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay algo que guardar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay algo que guardar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Actualizar oferta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop: coche por coche",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Actualizar oferta": {
       "main": [
         [
           {
@@ -336,18 +430,11 @@
         ]
       ]
     },
-    "IF: ¿hay oferta?": {
+    "Code: Resumen": {
       "main": [
         [
           {
-            "node": "HTTP: Ficha Canalcar",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Loop: coche por coche",
+            "node": "PG: Apuntar el parte",
             "type": "main",
             "index": 0
           }
@@ -358,12 +445,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

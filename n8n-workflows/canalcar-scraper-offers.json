@@ -1,15 +1,15 @@
 {
-  "name": "Canalcar – Scraper",
+  "name": "CanalCar – Scraper (mercado)",
   "nodes": [
     {
       "parameters": {},
-      "id": "cnc-manual",
+      "id": "cc-manual",
       "name": "Ejecutar manualmente",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        300
+        -600,
+        200
       ]
     },
     {
@@ -18,144 +18,150 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 45 1 * * *"
+              "expression": "0 15 11,23 * * *"
             }
           ]
         }
       },
-      "id": "cnc-cron",
-      "name": "Cada día a las 01:45",
+      "id": "cc-cron",
+      "name": "2 veces/día (11:15 y 23:15)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
-        -240,
-        500
+        -600,
+        400
       ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "https://www.canalcar.es/coches-ocasion",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
           }
         }
       },
-      "id": "cnc-count",
-      "name": "HTTP: Contar (pág 1)",
+      "id": "cc-contar",
+      "name": "HTTP: Contar el catálogo",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        -20,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
+        -400,
+        300
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "const httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nconst nums = [...html.matchAll(/[?&]page=(\\d+)/g)].map(m => parseInt(m[1],10)).filter(n => !isNaN(n));\nconst maxPage = nums.length ? Math.min(Math.max(...nums), 50) : 1;\nconst out = []; for (let p = 1; p <= maxPage; p++) out.push({ json: { page: p } });\nreturn out;"
+        "jsCode": "// Cuántas páginas hay hoy, y la lista de urls.\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no en\n// 'body'. Mirar solo 'body' dejó 4.484 ofertas sin clasificar en Wallapop.\nconst html = String(res.data || res.body || '');\n\n/*\n * Dos medidas, y se hace caso a la mayor.\n *\n * (1) LOS ENLACES DE PAGINACIÓN. El listado enlaza todas sus páginas,\n *     ?page=2 ... ?page=7. El número más alto es la última página.\n * (2) EL CAMPO OCULTO <input id=\"resultado-total-coches\" value=\"454\">, que da\n *     el total de coches.\n *\n * Se usa la mayor de las dos porque fallan de maneras distintas: si un día\n * dejan de pintar los enlaces queda el total, y si le cambian el nombre al\n * campo quedan los enlaces. Quedarse corto significa no ver los coches de las\n * últimas páginas, y eso no se nota: la pasada termina en verde.\n *\n * (El total también está escrito en prosa, «Mostrando del 1 al 71 de 454 de\n * segunda mano». No se lee de ahí: buscar el número detrás del último ' de '\n * cae en «de segunda mano» y da cero. Lo intenté y eso hacía.)\n *\n * Sin expresiones regulares: este código viaja dentro de una cadena y dentro\n * de un JSON, y por el camino las barras se pierden. Ha pasado seis veces.\n */\nlet porEnlaces = 0;\n{\n  let i = 0;\n  for (;;) {\n    const j = html.indexOf('page=', i);\n    if (j === -1) break;\n    let n = '';\n    for (let k = j + 5; k < j + 11; k++) {\n      const ch = html.charAt(k);\n      if (ch >= '0' && ch <= '9') n += ch; else break;\n    }\n    if (n && Number(n) > porEnlaces) porEnlaces = Number(n);\n    i = j + 1;\n  }\n}\n\nlet total = 0;\n{\n  const i = html.indexOf('resultado-total-coches');\n  if (i !== -1) {\n    // El value puede ir detrás del id o delante; se mira a los dos lados.\n    let j = html.indexOf('value=\"', i);\n    if (j === -1 || j - i > 60) j = html.lastIndexOf('value=\"', i);\n    if (j !== -1 && Math.abs(j - i) < 120) {\n      let n = '';\n      for (let k = j + 7; k < j + 20; k++) {\n        const ch = html.charAt(k);\n        if (ch >= '0' && ch <= '9') n += ch;\n        else if (ch === '.') continue;\n        else break;\n      }\n      total = Number(n) || 0;\n    }\n  }\n}\n\nconst porTotal = total > 0 ? Math.ceil(total / 71) : 0;\nlet paginas = Math.max(porEnlaces, porTotal);\nif (paginas > 40) paginas = 40;\nif (!(paginas > 0)) {\n  // Sin medida no se inventa un número: una pasada que no hace nada y lo dice\n  // es mejor que una que recorre cuarenta páginas vacías.\n  console.log('[canalcar] el listado no dice cuántas páginas tiene. Nada que hacer.');\n  return [];\n}\n\nconst out = [];\nfor (let p = 1; p <= paginas; p++) {\n  out.push({ json: { page: p, url: p === 1 ? 'https://www.canalcar.es/coches-ocasion' : 'https://www.canalcar.es/coches-ocasion?page=' + p } });\n}\nconsole.log('[canalcar] ' + (total || '?') + ' coches; ' + paginas + ' páginas'\n  + ' (los enlaces dicen ' + porEnlaces + ', el total dice ' + porTotal + ')');\nreturn out;"
       },
-      "id": "cnc-gen",
+      "id": "cc-paginas",
       "name": "Code: Generar páginas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        200,
-        400
+        -200,
+        300
       ]
     },
     {
       "parameters": {
-        "batchSize": 1,
         "options": {}
       },
-      "id": "cnc-loop",
+      "id": "cc-loop",
       "name": "Loop: página por página",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        420,
-        400
+        0,
+        300
       ]
     },
     {
       "parameters": {
-        "method": "GET",
-        "url": "=https://www.canalcar.es/coches-ocasion?page={{ $json.page }}",
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
         "options": {
-          "timeout": 25000,
           "response": {
             "response": {
+              "fullResponse": true,
+              "neverError": true,
               "responseFormat": "text"
             }
           },
-          "headers": {
-            "values": [
-              {
-                "name": "User-Agent",
-                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-              },
-              {
-                "name": "Accept",
-                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-              },
-              {
-                "name": "Accept-Language",
-                "value": "es-ES,es;q=0.9"
-              }
-            ]
+          "timeout": 30000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
           }
         }
       },
-      "id": "cnc-http",
-      "name": "HTTP: Listado Canalcar",
+      "id": "cc-http",
+      "name": "HTTP: Página del listado",
+      "onError": "continueRegularOutput",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
       "position": [
-        640,
-        400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 2000,
-      "continueOnFail": true
+        240,
+        420
+      ]
     },
     {
       "parameters": {
-        "language": "javaScript",
-        "jsCode": "// Canalcar - transform: tarjetas (data-coche-id/data-precio/data-url) -> UPSERT\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\nfunction num(s){ const n=parseInt(String(s).replace(/[^0-9]/g,''),10); return isNaN(n)?null:n; }\nfunction attr(c,name){ const m=c.match(new RegExp(name+'=\"([^\"]*)\"','i')); return m?m[1]:''; }\nfunction cap(s){ return String(s).split('-').map(w=>w?w[0].toUpperCase()+w.slice(1):w).join(' '); }\nfunction esc(v){ if(v===null||v===undefined) return 'NULL'; if(typeof v==='number') return isNaN(v)?'NULL':String(v); return \"'\"+String(v).replace(/'/g,\"''\")+\"'\"; }\nfunction normFuel(s){ s=String(s).toLowerCase(); if(/gnc|glp|gas natural/.test(s)) return 'Gas'; if(/eléctric|electric/.test(s)) return 'Eléctrico'; if(/híbrid|hibrid/.test(s)) return 'Híbrido'; if(/diésel|diesel/.test(s)) return 'Diesel'; if(/gasolina/.test(s)) return 'Gasolina'; return ''; }\nfunction normGear(s){ s=String(s).toLowerCase(); if(/autom/.test(s)) return 'Automatica'; if(/manual/.test(s)) return 'Manual'; return ''; }\nconst marks = [...html.matchAll(/data-coche-id=\"(\\d+)\"/g)];\nconst seen = new Set(); const rows = [];\nfor (let i=0;i<marks.length;i++){\n  const startPos=Math.max(0,marks[i].index-400);\n  const endPos=(i+1<marks.length)?marks[i+1].index:marks[i].index+2200;\n  const chunk=html.slice(startPos,endPos);\n  const id=marks[i][1]; if(seen.has(id)) continue; seen.add(id);\n  const dataUrl=attr(chunk,'data-url'); if(!dataUrl) continue;\n  const parts=dataUrl.split('/').filter(Boolean);\n  const brand=cap(parts[1]||''); const model=cap(parts[2]||'');\n  const pf=parseFloat(attr(chunk,'data-precio')); const price=isNaN(pf)?null:Math.round(pf);\n  const url='https://www.canalcar.es'+dataUrl;\n  const img=(chunk.match(/<img[^>]+src=\"(https:\\/\\/content\\.canalcar[^\"]+)\"/i)||[])[1]||'';\n  const text=chunk.replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\\s+/g,' ').trim();\n  const year=(text.match(/\\b(20\\d{2}|19\\d{2})\\b/)||[])[1]||null;\n  const km=num((text.match(/([0-9.]+)\\s*kms?/i)||[])[1]);\n  const fuel=normFuel((text.match(/GNC|GLP|Di[eé]sel|Gasolina|El[eé]ctric[oa]|H[ií]brid[oa]/i)||[])[0]);\n  const trans=normGear((text.match(/Manual|Autom[aá]tic[oa]/i)||[])[0]);\n  const title=attr(chunk,'data-title');\n  let version='';\n  const vm=text.match(new RegExp((title||(brand+' '+model)).replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')+'\\\\s+([^|0-9][^|]*?)\\\\s*(20\\\\d{2}|19\\\\d{2})','i'));\n  if(vm) version=vm[1]; else version=cap(parts[3]||'');\n  version=version.replace(/\\bundefined\\b/gi,'').replace(/\\s+\\d+\\s*$/,'').replace(/\\s+/g,' ').trim().slice(0,80);\n  if(!price) continue;\n  const t=((title||(brand+' '+model))+' '+version).replace(/\\s+/g,' ').trim();\n  const imagesJson=(img?JSON.stringify([img]):'[]').replace(/'/g,\"''\");\n  const row='('+esc('cnc_'+id)+\", 'canalcar', \"+esc(url)+', '+esc(t)+', '+esc(brand)+', '+esc(model)+', '+esc(version)+', '+\n    (year!=null?String(year):'NULL')+', '+(km!=null?String(km):'NULL')+', '+(price!=null?String(price):'NULL')+', '+\n    esc(fuel)+', '+esc(trans)+', '+esc(img)+\", '\"+imagesJson+\"', 'profesional', 'compra', NOW(), NOW(), NOW())\";\n  rows.push(row);\n}\nif(!rows.length) return [{ json:{ sql:null, count:0 } }];\nconst cols='id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, image_url, images, seller_type, listing_type, first_seen_at, scraped_at, last_seen_at';\nconst onConflict=\"ON CONFLICT (id) DO UPDATE SET url=EXCLUDED.url, title=EXCLUDED.title, price=EXCLUDED.price, mileage=EXCLUDED.mileage, image_url=COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), last_seen_at=NOW(), updated_at=NOW()\";\nconst sql='INSERT INTO moveadvisor_market_offers ('+cols+') VALUES '+rows.join(', ')+' '+onConflict;\nreturn [{ json:{ sql:sql, count:rows.length } }];"
+        "jsCode": "// CanalCar – transform: HTML del listado → tarjetas <article> → UPSERT market_offers\n//\n// El id es «cnc_» + el data-coche-id de la tarjeta, que es como están las 644\n// filas que ya hay. Cualquier otra forma de construirlo las duplicaría todas.\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\n/*\n * Aplanar ANTES de partir.\n *\n * Las etiquetas de la tarjeta llevan saltos de línea y sangrados dentro, así\n * que buscar literales como 'class=\"vehicle__specs vehicle__features\">' sobre\n * el html crudo no encuentra nada.\n */\nconst plano = html.split(/\\s+/).join(' ');\nconst tarjetas = plano.split('<article class=\"vehicle').slice(1);\nif (!tarjetas.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction txt(v) {\n  return \"'\" + String(v === null || v === undefined ? '' : v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(v) {\n  if (v === null || v === undefined || v === '') return 'NULL';\n  const n = Number(v);\n  return isNaN(n) ? 'NULL' : String(n);\n}\n/** El valor de un atributo, sin expresiones regulares. */\nfunction atributo(trozo, nombre) {\n  const i = trozo.indexOf(nombre + '=\"');\n  if (i === -1) return null;\n  const desde = i + nombre.length + 2;\n  const fin = trozo.indexOf('\"', desde);\n  return fin === -1 ? null : trozo.slice(desde, fin);\n}\n/** Lo que hay entre dos marcas, que es como se saca el texto de un span. */\nfunction entre(trozo, desde, hasta) {\n  const i = trozo.indexOf(desde);\n  if (i === -1) return null;\n  const j = trozo.indexOf(hasta, i + desde.length);\n  return j === -1 ? null : trozo.slice(i + desde.length, j).trim();\n}\n/** Quita las etiquetas de un trozo de html y deja el texto. */\nfunction sinEtiquetas(s) {\n  let out = '';\n  let dentro = false;\n  const t = String(s || '');\n  for (let i = 0; i < t.length; i++) {\n    const ch = t.charAt(i);\n    if (ch === '<') dentro = true;\n    else if (ch === '>') dentro = false;\n    else if (!dentro) out += ch;\n  }\n  return out.split(/\\s+/).join(' ').trim();\n}\n/** Los dígitos de un texto: «50.400kms» -> 50400, «442 €» -> 442. */\nfunction digitos(t) {\n  if (t === null || t === undefined) return null;\n  let n = '';\n  const s = String(t);\n  for (let i = 0; i < s.length; i++) {\n    const ch = s.charAt(i);\n    if (ch >= '0' && ch <= '9') n += ch;\n  }\n  return n ? Number(n) : null;\n}\n/** 'land-rover' -> 'Land Rover'. Es como están guardadas las 644 filas. */\nfunction cap(s) {\n  return String(s || '').split('-')\n    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w)).join(' ');\n}\nfunction normFuel(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('gnc') !== -1 || s.indexOf('glp') !== -1 || s.indexOf('gas natural') !== -1) return 'Gas';\n  if (s.indexOf('ctric') !== -1) return 'Eléctrico';\n  if (s.indexOf('brid') !== -1) return 'Híbrido';\n  if (s.indexOf('sel') !== -1) return 'Diesel';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  return '';\n}\nfunction normGear(s) {\n  s = String(s || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\n\nconst vistos = new Set();\nconst rows = [];\nfor (const t of tarjetas) {\n  const idWeb = atributo(t, 'data-coche-id');\n  if (!idWeb || vistos.has(idWeb)) continue;\n  vistos.add(idWeb);\n  const id = 'cnc_' + idWeb;\n\n  const ruta = atributo(t, 'data-url') || atributo(t, 'href') || '';\n  if (ruta.indexOf('/coches-ocasion/') !== 0) continue;\n  const url = 'https://www.canalcar.es' + ruta.split('?')[0];\n\n  /*\n   * MARCA Y MODELO SALEN DE LA RUTA, no del título.\n   *\n   * No porque la ruta sea mejor dato -no lo es-, sino porque así están\n   * guardadas las 644 filas que ya hay: 'Citroen | Ds3', 'Volvo | Xc60'. La\n   * ficha dice 'DS | DS 3', que es lo correcto, pero cambiarlo aquí le\n   * cambiaría la marca a 356 coches vivos de golpe, y con ella su comparable.\n   *\n   * De las 454 tarjetas, 11 enlazan a una ruta cuyo último tramo es de otra\n   * versión. Lo que no casa en esas once es la VERSIÓN, no la marca ni el\n   * modelo: las tres que miré eran /nissan/townstar/, /renault/kadjar/ y\n   * /seat/tarraco/, correctas hasta el segundo tramo. Por eso la versión se\n   * toma del span de la tarjeta y no de la ruta, como hacía el scraper viejo.\n   */\n  const tramos = ruta.split('/').filter(Boolean);\n  const brand = cap(tramos[1] || '');\n  const model = cap(tramos[2] || '');\n  const version = sinEtiquetas(entre(t, '<span class=\"vehicle__version\">', '</span>') || '').slice(0, 80);\n\n  // El title del enlace es el nombre entero tal como lo escriben ellos.\n  const titulo = (atributo(t, 'title') || (brand + ' ' + model + ' ' + version))\n    .split(/\\s+/).join(' ').trim();\n\n  /*\n   * La línea de datos: <li>2023</li><li>50.400kms</li><li>Híbrido</li><li>Automático</li>\n   *\n   * Se lee de la primera lista, no de la segunda: la de la ubicación lleva\n   * también la clase 'vehicle__features', y buscar el literal entero\n   * 'vehicle__specs vehicle__features\"' distingue una de otra.\n   */\n  const specs = entre(t, 'class=\"vehicle__specs vehicle__features\">', '</ul>') || '';\n  let anio = null;\n  let km = null;\n  let fuel = '';\n  let cambio = '';\n  for (const li of specs.split('<li>')) {\n    const p = sinEtiquetas(li);\n    if (!p) continue;\n    const n = digitos(p);\n    if (p.indexOf('km') !== -1) km = n;\n    else if (n !== null && n > 1900 && n < 2100) anio = n;\n    else if (normFuel(p)) fuel = normFuel(p);\n    else if (normGear(p)) cambio = normGear(p);\n  }\n\n  /*\n   * LA PROVINCIA, que hasta hoy estaba al 0 %.\n   *\n   * La tarjeta la trae en su propia lista, detrás del icono de localización.\n   * Las 454 dicen «Madrid»: CanalCar es un concesionario solo, en la A-6. Aun\n   * así se lee de la tarjeta en vez de escribir 'Madrid' a mano, porque el día\n   * que abran en Sevilla nadie se va a acordar de esta línea.\n   */\n  const ubic = entre(t, 'vehicle__specs-location', '</ul>') || '';\n  const provincia = sinEtiquetas(entre(ubic, '</i>', '</li>') || '');\n\n  /*\n   * EL PRECIO.\n   *\n   * data-precio viene como '31990.0000', así que los dígitos a pelo darían\n   * 319.900.000 €. Hay que cortar por el punto, y eso lo hace parseFloat.\n   */\n  const crudo = atributo(t, 'data-precio');\n  const precio = crudo ? Math.round(parseFloat(crudo)) : null;\n  if (!(precio > 0)) continue;\n\n  // La cuota mensual, que tampoco teníamos: «442 €/mes».\n  const cuota = digitos(entre(t, 'class=\"vehicle__quota\">', '€'));\n\n  // La foto. El host cambió de content.canalcar.es a www.canalcar.es; los dos\n  // siguen sirviendo, así que no hay prisa por reescribir las viejas.\n  let imagen = '';\n  const iFoto = t.indexOf('vehicle-photo');\n  if (iFoto !== -1) imagen = atributo(t.slice(iFoto), 'src') || '';\n  if (imagen.indexOf('http') !== 0) imagen = '';\n  const imagenes = imagen ? JSON.stringify([imagen]) : '[]';\n\n  const row = '(' +\n    txt(id) + \", 'canalcar', \" + txt(url) + ', ' + txt(titulo) + ', ' +\n    txt(brand) + ', ' + txt(model) + ', ' + txt(version) + ', ' +\n    num(anio) + ', ' + num(km) + ', ' + precio + ', ' +\n    txt(fuel) + ', ' + txt(cambio) + ', ' +\n    txt(provincia) + ', ' + txt(provincia ? provincia + ', ' + provincia : '') + ', ' +\n    txt(imagen) + ', ' + txt(imagenes) + ', ' +\n    \"'profesional', 'compra', 'ES', \" + num(cuota) +\n    ', NOW(), NOW(), NOW()' +\n  ')';\n  rows.push(row);\n}\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, ' +\n  'transmission, province, location, image_url, images, seller_type, listing_type, country, ' +\n  'monthly_price, first_seen_at, scraped_at, last_seen_at';\n\n/*\n * Lo que el listado NO trae se queda como está: color, puertas, plazas,\n * carrocería, potencia y la etiqueta ambiental. De eso se encargan el\n * enriquecedor y el derivador universal, y machacarlo con vacío en cada pasada\n * sería borrar su trabajo dos veces al día.\n *\n * Marca y modelo tampoco se pisan: los de la ruta y los de la ficha no siempre\n * coinciden, y el que manda es el que ya está guardado.\n */\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +\n  'url = EXCLUDED.url, title = EXCLUDED.title, price = EXCLUDED.price, ' +\n  'mileage = COALESCE(EXCLUDED.mileage, moveadvisor_market_offers.mileage), ' +\n  'year = COALESCE(EXCLUDED.year, moveadvisor_market_offers.year), ' +\n  \"version = COALESCE(NULLIF(EXCLUDED.version, ''), moveadvisor_market_offers.version), \" +\n  \"fuel = COALESCE(NULLIF(EXCLUDED.fuel, ''), moveadvisor_market_offers.fuel), \" +\n  \"transmission = COALESCE(NULLIF(EXCLUDED.transmission, ''), moveadvisor_market_offers.transmission), \" +\n  \"province = COALESCE(NULLIF(EXCLUDED.province, ''), moveadvisor_market_offers.province), \" +\n  \"location = COALESCE(NULLIF(EXCLUDED.location, ''), moveadvisor_market_offers.location), \" +\n  \"image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), \" +\n  \"images = CASE WHEN EXCLUDED.images <> '[]' THEN EXCLUDED.images ELSE moveadvisor_market_offers.images END, \" +\n  // La cuota se pisa sin COALESCE: es dato vivo, y un NULL aquí también es la\n  // verdad -«este coche ya no tiene oferta de financiación»-.\n  'monthly_price = EXCLUDED.monthly_price, ' +\n  'last_seen_at = NOW(), updated_at = NOW(), ' +\n  // Verla en el listado ES la prueba de vida, así que resucita.\n  'is_active = TRUE';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];\n"
       },
-      "id": "cnc-transform",
+      "id": "cc-transf",
       "name": "Code: Transformar ofertas",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        860,
-        400
+        480,
+        420
       ]
     },
     {
@@ -164,67 +170,58 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "loose",
+            "version": 2
           },
           "conditions": [
             {
-              "id": "c1",
-              "leftValue": "={{ $json.count }}",
-              "rightValue": 0,
+              "id": "cc-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
               "operator": {
-                "type": "number",
-                "operation": "gt"
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
               }
             }
           ],
           "combinator": "and"
         },
+        "looseTypeValidation": true,
         "options": {}
       },
-      "id": "cnc-if",
+      "id": "cc-if",
       "name": "IF: ¿hay ofertas?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
-        1080,
-        400
+        720,
+        420
       ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
         "query": "={{ $json.sql }}",
-        "additionalFields": {}
+        "options": {}
       },
-      "id": "cnc-pg",
+      "id": "cc-pg",
       "name": "PG: Upsert ofertas",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2,
       "position": [
-        1320,
-        280
+        960,
+        340
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
-      }
-    },
-    {
-      "parameters": {
-        "amount": 1,
-        "unit": "seconds"
       },
-      "id": "cnc-wait",
-      "name": "Esperar 1s",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1,
-      "position": [
-        1560,
-        400
-      ],
-      "webhookId": "wait-canalcar"
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -232,25 +229,25 @@
       "main": [
         [
           {
-            "node": "HTTP: Contar (pág 1)",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Cada día a las 01:45": {
+    "2 veces/día (11:15 y 23:15)": {
       "main": [
         [
           {
-            "node": "HTTP: Contar (pág 1)",
+            "node": "HTTP: Contar el catálogo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Contar (pág 1)": {
+    "HTTP: Contar el catálogo": {
       "main": [
         [
           {
@@ -277,14 +274,14 @@
         [],
         [
           {
-            "node": "HTTP: Listado Canalcar",
+            "node": "HTTP: Página del listado",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP: Listado Canalcar": {
+    "HTTP: Página del listado": {
       "main": [
         [
           {
@@ -317,7 +314,7 @@
         ],
         [
           {
-            "node": "Esperar 1s",
+            "node": "Loop: página por página",
             "type": "main",
             "index": 0
           }
@@ -325,17 +322,6 @@
       ]
     },
     "PG: Upsert ofertas": {
-      "main": [
-        [
-          {
-            "node": "Esperar 1s",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Esperar 1s": {
       "main": [
         [
           {
@@ -350,12 +336,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveManualExecutions": true,
-    "saveDataSuccessExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
     "callerPolicy": "workflowsFromSameOwner",
-    "errorWorkflow": "",
-    "saveDataErrorExecution": "all"
+    "errorWorkflow": "9BwKOPMIzjj3owho"
   },
-  "staticData": null,
-  "triggerCount": 0,
-  "tags": []
+  "pinData": {}
 }

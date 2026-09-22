@@ -1,5 +1,26 @@
+/**
+ * El resumen de alertas por correo, y por qué ya no acepta nada de fuera.
+ *
+ * Esta dirección estaba abierta: sin sesión, sin secreto, sin nada. Y el cuerpo
+ * de la petición decidía el destinatario (`to`), el remitente (`from`) y el
+ * HTML entero. Es decir: cualquiera podía mandar el correo que quisiera, a
+ * quien quisiera, firmado con nuestro dominio —con su SPF y su DKIM buenos, que
+ * es justo lo que hace que un engaño pase el filtro—. Un relé de correo abierto
+ * no es solo un agujero nuestro: es lo que quema la reputación del dominio y
+ * acaba mandando a la carpeta de no deseado también las facturas.
+ *
+ * La regla ahora: **manda la sesión**. El correo va a la dirección de quien
+ * pide, el remitente lo pone `remitente()` y el cuerpo se arma aquí con lo
+ * único que se admite de fuera —la lista de alertas, escapada—. El `to`, el
+ * `from`, el `html` y el `text` que lleguen en el cuerpo se ignoran.
+ *
+ * El envío automático de verdad no pasa por aquí: lo hace
+ * `lib/api/cron-alert-check-handler.js`, con su `CRON_SECRET`. Esto es solo el
+ * botón «mándame mi resumen» del panel.
+ */
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
 const { plantilla, parrafo, datos, enlace } = require("../lib/correo");
+const { identidadDeLaPeticion } = require("../lib/api/identidad");
 function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -72,13 +93,13 @@ function formatMatchBudget(match = {}) {
   return formatCurrency(match?.price);
 }
 
-function buildDigestPayload(body = {}) {
+function buildDigestPayload(body = {}, correoDeQuienPide = "") {
   const notifications = normalizeNotifications(body.notifications);
-  const to = ensureArray(body.to || body.recipients || body.email)
+  // A quien pide, y a nadie más. Antes salía de `body.to`.
+  const to = ensureArray(correoDeQuienPide)
     .map((item) => normalizeText(item).toLowerCase())
     .filter(Boolean);
   const subject =
-    normalizeText(body.subject) ||
     `${MARCA.nombre} · ${notifications.length || to.length || 1} alerta${notifications.length === 1 ? "" : "s"} con novedades`;
 
   const textLines = [
@@ -131,12 +152,12 @@ function buildDigestPayload(body = {}) {
   return {
     to,
     subject,
-    text: normalizeText(body.text) || textLines,
-    html: normalizeText(body.html) || html,
+    // Ni el texto ni el HTML se cogen del cuerpo: se arman aquí con lo que ha
+    // pasado por `normalizeNotifications`, que escapa lo que escribe el usuario.
+    text: textLines,
+    html,
     notifications,
-    from:
-      normalizeText(body.from) ||
-      remitente(),
+    from: remitente(),
   };
 }
 
@@ -182,7 +203,14 @@ module.exports = async function sendAlertEmailHandler(req, res) {
         }
       })();
 
-  const payload = buildDigestPayload(body);
+  // El correo de la sesión, nunca el del cuerpo: `identidadDeLaPeticion` solo
+  // admite el de la petición fuera de producción, y para probar con curl.
+  const { email } = await identidadDeLaPeticion(req, { cuerpo: body });
+  if (!email) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const payload = buildDigestPayload(body, email);
 
   if (payload.to.length === 0) {
     return res.status(400).json({ error: "Debes indicar al menos un correo de destino." });

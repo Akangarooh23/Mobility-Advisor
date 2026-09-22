@@ -1,0 +1,674 @@
+{
+  "name": "Autohero – Verificar ofertas activas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "av-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1060,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 5 10,14,17,21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "av-cron",
+      "name": "4 veces/día (10:05, 14:05, 17:05 y 21:05)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1060,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Lo que damos por vivo de Autohero, para cruzarlo con su catálogo.\n--\n-- Solo el id: son 3.849 filas y el cruce va por el uuid que lleva dentro.\n-- Traer lo demás sería memoria tirada, y n8n guarda en memoria la salida de\n-- cada nodo, iteración a iteración.\nSELECT id FROM moveadvisor_market_offers\nWHERE portal = 'autohero' AND is_active",
+        "options": {}
+      },
+      "id": "av-activas",
+      "name": "PG: Las que damos por vivas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -860,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "url": "https://www.autohero.com/es/sitemap_search.xml",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/xml,text/xml,*/*;q=0.8"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 60000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "av-sitemap",
+      "name": "HTTP: Su sitemap (segunda opinión)",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// La segunda opinión: cuántos coches trae su sitemap.\n//\n// No se usa para decidir quién vive -para eso está la API, que es la lista\n// fresca-, sino para saber si la API se puede creer. Hoy: sitemap 2.444, API\n// 2.407. Si un día se separan de verdad, no se da ninguna baja.\nconst s = $getWorkflowStaticData('global');\nfor (const k of Object.keys(s)) { if (k.indexOf('av_') === 0) delete s[k]; }\ns.av_run = $execution.id;\ns.av_ids = [];\ns.av_fallos = 0;\ns.av_llamadas_ok = 0;\ns.av_motivo = '';\n\nconst res = $input.first().json;\nconst xml = String(res.data || res.body || '');\nconst codigo = Number(res.statusCode || 0);\n\nlet delSitemap = 0;\nif (codigo === 200 && xml && xml.trim().slice(-9) === '</urlset>') {\n  // Los uuid, sin expresión regular: este código viaja dentro de una cadena y\n  // dentro de un JSON, y por el camino las barras se pierden.\n  const vistos = {};\n  let i = 0;\n  for (;;) {\n    const j = xml.indexOf('/id/', i);\n    if (j === -1) break;\n    const desde = j + 4;\n    const fin = xml.indexOf('/', desde);\n    i = desde;\n    if (fin === -1) continue;\n    const u = xml.slice(desde, fin);\n    if (u.length === 36 && !vistos[u]) { vistos[u] = true; delSitemap++; }\n  }\n} else {\n  console.log('[ah-verify] el sitemap no se pudo leer (HTTP ' + codigo + '). Se sigue sin segunda opinión.');\n}\ns.av_sitemap = delSitemap;\nconsole.log('[ah-verify] el sitemap trae ' + delSitemap + ' coches');\n\nfunction cuerpo(offset, limite) {\n  return JSON.stringify({\n    operationName: 'searchAdV9AdsV2',\n    variables: {\n      search: {\n        offset: offset, limit: limite, sort: 'most_popular',\n        filter: { field: 'countryCode', op: 'eq', value: 'ES' },\n        aggs: [], postFilter: null, fields: ['registration'],\n        properties: {\n          abTestViewParams: null, firstPublishedDays: -30,\n          shuffleCategoryBResults: false, resultsCombiner: 'abbabbc',\n          filterByEligibleDate: true, includeProspective: true,\n        },\n      },\n      tradeInId: null,\n    },\n    query: 'query searchAdV9AdsV2($search: EsSearchRequestProjectionInput!, $tradeInId: UUID) { searchAdV9AdsV2(search: $search, tradeInId: $tradeInId) }',\n  });\n}\n// Con fullResponse n8n deja el cuerpo en 'body' si la respuesta es JSON y en\n// 'data' si se pidió como texto. Se miran los dos.\nfunction dentro(res) {\n  const raiz = (res && res.body) ? res.body : ((res && res.data && res.data.data) ? res.data : res);\n  return ((raiz || {}).data || {}).searchAdV9AdsV2 || {};\n}\nreturn [{ json: { cuerpo: cuerpo(0, 1) } }];"
+      },
+      "id": "av-contar-sitemap",
+      "name": "Code: Contar el sitemap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.autohero.com/v1/retail-customer-gateway/graphql/searchAdV9AdsV2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.cuerpo }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "*/*"
+            },
+            {
+              "name": "accept-language",
+              "value": "es,es-ES;q=0.9,en;q=0.8"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "origin",
+              "value": "https://www.autohero.com"
+            },
+            {
+              "name": "referer",
+              "value": "https://www.autohero.com/es/search/"
+            },
+            {
+              "name": "rq-sender",
+              "value": "search-0.0.768"
+            },
+            {
+              "name": "rq-sender-app",
+              "value": "web"
+            },
+            {
+              "name": "rq-sender-device-type",
+              "value": "desktop"
+            },
+            {
+              "name": "user-agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 60000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "av-contar",
+      "name": "HTTP: Contar el catálogo",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cuántas llamadas hacen falta hoy.\nfunction cuerpo(offset, limite) {\n  return JSON.stringify({\n    operationName: 'searchAdV9AdsV2',\n    variables: {\n      search: {\n        offset: offset, limit: limite, sort: 'most_popular',\n        filter: { field: 'countryCode', op: 'eq', value: 'ES' },\n        aggs: [], postFilter: null, fields: ['registration'],\n        properties: {\n          abTestViewParams: null, firstPublishedDays: -30,\n          shuffleCategoryBResults: false, resultsCombiner: 'abbabbc',\n          filterByEligibleDate: true, includeProspective: true,\n        },\n      },\n      tradeInId: null,\n    },\n    query: 'query searchAdV9AdsV2($search: EsSearchRequestProjectionInput!, $tradeInId: UUID) { searchAdV9AdsV2(search: $search, tradeInId: $tradeInId) }',\n  });\n}\n// Con fullResponse n8n deja el cuerpo en 'body' si la respuesta es JSON y en\n// 'data' si se pidió como texto. Se miran los dos.\nfunction dentro(res) {\n  const raiz = (res && res.body) ? res.body : ((res && res.data && res.data.data) ? res.data : res);\n  return ((raiz || {}).data || {}).searchAdV9AdsV2 || {};\n}\nconst s = $getWorkflowStaticData('global');\nconst res = $input.first().json;\nconst nodo = dentro(res);\nconst total = Number(nodo.total) || 0;\nconst codigo = Number((res || {}).statusCode || 0);\ns.av_total = total;\n\nif (codigo && codigo !== 200) {\n  s.av_motivo = 'su API contestó ' + codigo;\n  console.log('[ah-verify] NO SE DAN BAJAS: ' + s.av_motivo);\n  return [{ json: { hay: '', cuerpo: '' } }];\n}\nif (!(total > 0)) {\n  s.av_motivo = 'su API no dice cuántos coches tiene';\n  console.log('[ah-verify] NO SE DAN BAJAS: ' + s.av_motivo);\n  return [{ json: { hay: '', cuerpo: '' } }];\n}\n\n/*\n * FRENO 3: la segunda opinión.\n *\n * El sitemap y la API tienen que decir números parecidos. Hoy 2.444 y 2.407,\n * un 1,5 % de diferencia. Si se separan más de un 25 %, una de las dos\n * miente y no sabemos cuál: no se toca nada.\n *\n * Si el sitemap no se pudo leer se sigue igualmente. Perder la segunda opinión\n * no es motivo para no trabajar; los otros tres frenos siguen puestos.\n */\nif (s.av_sitemap > 0) {\n  const dif = Math.abs(s.av_sitemap - total) / Math.max(s.av_sitemap, total);\n  if (dif > 0.25) {\n    s.av_motivo = 'su API dice ' + total + ' coches y su sitemap ' + s.av_sitemap\n      + ': no concuerdan (' + Math.round(dif * 100) + '%)';\n    console.log('[ah-verify] NO SE DAN BAJAS: ' + s.av_motivo);\n    return [{ json: { hay: '', cuerpo: '' } }];\n  }\n}\n\nlet llamadas = Math.ceil(total / 100);\nif (llamadas > 120) llamadas = 120;\nconst out = [];\nfor (let i = 0; i < llamadas; i++) {\n  const offset = i * 100;\n  out.push({ json: { hay: 'si', offset: offset, cuerpo: cuerpo(offset, 100) } });\n}\nconsole.log('[ah-verify] su catálogo declara ' + total + ' coches; ' + llamadas + ' llamadas');\nreturn out;"
+      },
+      "id": "av-llamadas",
+      "name": "Code: Generar llamadas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "av-c-hay",
+              "leftValue": "={{ $json.hay }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "av-if-hay",
+      "name": "IF: ¿se pudo medir?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        140,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "av-loop",
+      "name": "Loop: cien en cien",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.autohero.com/v1/retail-customer-gateway/graphql/searchAdV9AdsV2",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.cuerpo }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "*/*"
+            },
+            {
+              "name": "accept-language",
+              "value": "es,es-ES;q=0.9,en;q=0.8"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "origin",
+              "value": "https://www.autohero.com"
+            },
+            {
+              "name": "referer",
+              "value": "https://www.autohero.com/es/search/"
+            },
+            {
+              "name": "rq-sender",
+              "value": "search-0.0.768"
+            },
+            {
+              "name": "rq-sender-app",
+              "value": "web"
+            },
+            {
+              "name": "rq-sender-device-type",
+              "value": "desktop"
+            },
+            {
+              "name": "user-agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 60000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "av-http",
+      "name": "HTTP: Cien coches de su API",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        580,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Los uuid de esta llamada, al montón.\nfunction cuerpo(offset, limite) {\n  return JSON.stringify({\n    operationName: 'searchAdV9AdsV2',\n    variables: {\n      search: {\n        offset: offset, limit: limite, sort: 'most_popular',\n        filter: { field: 'countryCode', op: 'eq', value: 'ES' },\n        aggs: [], postFilter: null, fields: ['registration'],\n        properties: {\n          abTestViewParams: null, firstPublishedDays: -30,\n          shuffleCategoryBResults: false, resultsCombiner: 'abbabbc',\n          filterByEligibleDate: true, includeProspective: true,\n        },\n      },\n      tradeInId: null,\n    },\n    query: 'query searchAdV9AdsV2($search: EsSearchRequestProjectionInput!, $tradeInId: UUID) { searchAdV9AdsV2(search: $search, tradeInId: $tradeInId) }',\n  });\n}\n// Con fullResponse n8n deja el cuerpo en 'body' si la respuesta es JSON y en\n// 'data' si se pidió como texto. Se miran los dos.\nfunction dentro(res) {\n  const raiz = (res && res.body) ? res.body : ((res && res.data && res.data.data) ? res.data : res);\n  return ((raiz || {}).data || {}).searchAdV9AdsV2 || {};\n}\nconst s = $getWorkflowStaticData('global');\nconst res = $input.first().json;\nconst nodo = dentro(res);\nconst cars = nodo.data || [];\nconst codigo = Number((res || {}).statusCode || 0);\nconst offset = $('Loop: cien en cien').first().json.offset;\n\nif ((codigo && codigo !== 200) || !cars.length) {\n  // FRENO 1: una llamada que falla son 100 coches que parecerían vendidos.\n  //\n  // La última llamada trae menos de cien -hoy siete- pero nunca cero: las\n  // llamadas se generan a partir del total que declara la propia API.\n  s.av_fallos = (s.av_fallos || 0) + 1;\n  console.log('[ah-verify] la llamada del offset ' + offset + ' falló (HTTP ' + codigo + ', ' + cars.length + ' coches)');\n  return [{ json: { offset: offset, ids: 0, fallo: true } }];\n}\n\nlet n = 0;\nfor (const car of cars) {\n  const u = String((car || {}).id || '');\n  if (u) { s.av_ids.push('ah_' + u); n++; }\n}\ns.av_llamadas_ok = (s.av_llamadas_ok || 0) + 1;\nreturn [{ json: { offset: offset, ids: n, fallo: false } }];"
+      },
+      "id": "av-apuntar",
+      "name": "Code: Apuntar los uuid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cruzar lo nuestro con lo suyo, por uuid.\nconst s = $getWorkflowStaticData('global');\nconst nuestras = $('PG: Las que damos por vivas').all().map(x => x.json);\ns.av_nuestras = nuestras.length;\n\nconst suyos = new Set(s.av_ids || []);\ns.av_suyos = suyos.size;\n\nif (!s.av_motivo) {\n  // FRENO 1: ninguna llamada puede haber fallado.\n  if (s.av_fallos > 0) {\n    s.av_motivo = s.av_fallos + ' llamada(s) no se pudieron leer: faltan coches de la lista';\n  // FRENO 2: hay que haber recogido el catálogo entero.\n  } else if (s.av_total > 0 && suyos.size < Math.floor(s.av_total * 0.97)) {\n    s.av_motivo = 'recogimos ' + suyos.size + ' de los ' + s.av_total + ' que declaran: la vuelta vino corta';\n  }\n}\n\nif (s.av_motivo) {\n  console.log('[ah-verify] NO SE DAN BAJAS: ' + s.av_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\n\nconsole.log('[ah-verify] su catálogo trae ' + suyos.size\n  + ' coches; nosotros damos por vivas ' + nuestras.length);\n\nconst muertas = [];\nfor (const o of nuestras) {\n  if (!suyos.has(String(o.id))) muertas.push(String(o.id));\n}\ns.av_muertas = muertas.length;\ns.av_vivas = nuestras.length - muertas.length;\n\n// FRENO 4: una mortandad imposible es la lista rota, no un buen mes de ventas.\nconst pct = nuestras.length ? (muertas.length / nuestras.length) : 0;\nif (pct > 0.75) {\n  s.av_motivo = 'faltan el ' + Math.round(pct * 100) + '% de las nuestras: la lista no es de fiar';\n  console.log('[ah-verify] NO SE DAN BAJAS: ' + s.av_motivo);\n  return [{ json: { seguir: '', sql: null } }];\n}\nif (!muertas.length) {\n  s.av_nada = true;\n  console.log('[ah-verify] nada que dar de baja: todas siguen en su catálogo.');\n  return [{ json: { seguir: '', sql: null } }];\n}\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst out = [];\nfor (let i = 0; i < muertas.length; i += 1500) {\n  const trozo = muertas.slice(i, i + 1500);\n  out.push({ json: {\n    seguir: 'si',\n    sql: 'UPDATE moveadvisor_market_offers SET is_active = FALSE, last_checked_at = NOW()'\n      + ' WHERE id IN (' + trozo.map(esc).join(', ') + ')',\n    cuantas: trozo.length,\n  } });\n}\nconsole.log('[ah-verify] ' + muertas.length + ' bajas en ' + out.length + ' trozos');\nreturn out;"
+      },
+      "id": "av-cruzar",
+      "name": "Code: Cruzar por uuid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "av-c-seguir",
+              "leftValue": "={{ $json.seguir }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "av-if",
+      "name": "IF: ¿se dan las bajas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        800,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "av-loop2",
+      "name": "Loop: trozo a trozo",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1020,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "av-pg-bajas",
+      "name": "PG: Dar de baja",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        200
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada.\nconst s = $getWorkflowStaticData('global');\n\nconsole.log('[ah-verify] ── resumen ──');\nconsole.log('  dábamos por vivas : ' + (s.av_nuestras || 0));\nconsole.log('  su API trae       : ' + (s.av_suyos || 0) + ' de ' + (s.av_total || 0) + ' declarados');\nconsole.log('  su sitemap dice   : ' + (s.av_sitemap || 0));\nconsole.log('  llamadas leídas   : ' + (s.av_llamadas_ok || 0) + '   fallidas: ' + (s.av_fallos || 0));\nconsole.log('  BAJAS             : ' + (s.av_muertas || 0));\nconsole.log('  siguen vivas      : ' + (s.av_vivas || 0));\nif (s.av_nada) console.log('  nada que dar de baja: todas siguen en su catálogo.');\nif (s.av_motivo) console.log('  NO SE DIERON BAJAS: ' + s.av_motivo);\n\n// Si un freno paró la pasada, no se ha dado ni una baja: el recuento de\n// muertas es lo que HABRÍA hecho, no lo que hizo.\nconst frenada = !!s.av_motivo;\nconst bajas = frenada ? 0 : (s.av_muertas || 0);\nconst vivas = frenada ? 0 : (s.av_vivas || 0);\n\nconst n = v => String(Number(v) || 0);\n// La tabla de los verificadores, con portal='autohero':\n//     checked  las que dábamos por vivas   alive  las que siguen\n//     deactivated  las bajas               unclassified  las que no se dieron\n//     transient  las llamadas que fallaron blocked  TRUE si frenó\nconst sql = 'INSERT INTO moveadvisor_verify_runs'\n  + ' (portal, run_at, checked, alive, deactivated, unclassified, transient, blocked, wait_seconds)'\n  + \" VALUES ('autohero', NOW(), \" + n(s.av_nuestras) + ', ' + n(vivas) + ', '\n  + n(bajas) + ', ' + n(frenada ? (s.av_muertas || 0) : 0) + ', ' + n(s.av_fallos) + ', '\n  + (frenada ? 'TRUE' : 'FALSE') + ', 0)';\n\nconst parte = { sql: sql, nuestras: s.av_nuestras || 0, suyos: s.av_suyos || 0,\n  sitemap: s.av_sitemap || 0, bajas: bajas, vivas: vivas, motivo: s.av_motivo || '' };\n// La memoria es del workflow, no de la pasada: sin limpiarla, el freno de hoy\n// seguiría puesto mañana.\nfor (const k of Object.keys(s)) { if (k.indexOf('av_') === 0) delete s[k]; }\nreturn [{ json: parte }];"
+      },
+      "id": "av-resumen",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1220,
+        -40
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "av-pg-parte",
+      "name": "PG: Apuntar el parte",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1420,
+        -40
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Las que damos por vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 veces/día (10:05, 14:05, 17:05 y 21:05)": {
+      "main": [
+        [
+          {
+            "node": "PG: Las que damos por vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Las que damos por vivas": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Su sitemap (segunda opinión)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Su sitemap (segunda opinión)": {
+      "main": [
+        [
+          {
+            "node": "Code: Contar el sitemap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Contar el sitemap": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Contar el catálogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Contar el catálogo": {
+      "main": [
+        [
+          {
+            "node": "Code: Generar llamadas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Generar llamadas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se pudo medir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se pudo medir?": {
+      "main": [
+        [
+          {
+            "node": "Loop: cien en cien",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Cruzar por uuid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: cien en cien": {
+      "main": [
+        [
+          {
+            "node": "Code: Cruzar por uuid",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Cien coches de su API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Cien coches de su API": {
+      "main": [
+        [
+          {
+            "node": "Code: Apuntar los uuid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Apuntar los uuid": {
+      "main": [
+        [
+          {
+            "node": "Loop: cien en cien",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Cruzar por uuid": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿se dan las bajas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿se dan las bajas?": {
+      "main": [
+        [
+          {
+            "node": "Loop: trozo a trozo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: trozo a trozo": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PG: Dar de baja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Dar de baja": {
+      "main": [
+        [
+          {
+            "node": "Loop: trozo a trozo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Resumen": {
+      "main": [
+        [
+          {
+            "node": "PG: Apuntar el parte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

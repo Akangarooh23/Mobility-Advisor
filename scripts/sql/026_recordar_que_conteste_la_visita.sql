@@ -15,4 +15,14 @@
 -- perseguir a alguien, y quien no contesta dos veces ya ha contestado.
 
 ALTER TABLE vehicle_visit_bookings
-  ADD COLUMN IF NOT EXISTS recordatorio_resultado_at TIMESTAMPTZ;
+  ADD COLUMN IF NOT EXISTS recordatorio_resultado_at TIMESTAMPTZ,
+  -- Y las dos de las visitas que se quedan colgadas sin confirmar: al vendedor
+  -- que no contesta a quien quiere ver su coche, y al comprador que no elige
+  -- entre las horas que le propusieron. Una cada una, y solo una.
+  ADD COLUMN IF NOT EXISTS recordatorio_vendedor_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS recordatorio_horas_at TIMESTAMPTZ;
+
+-- Las colgadas se buscan por estado y fecha de inicio.
+CREATE INDEX IF NOT EXISTS idx_visit_bookings_pendientes
+  ON vehicle_visit_bookings (starts_at)
+  WHERE status = 'pending';

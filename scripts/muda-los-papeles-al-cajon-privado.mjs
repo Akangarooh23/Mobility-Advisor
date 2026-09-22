@@ -130,11 +130,24 @@ async function esta(cubo, camino) {
 }
 
 async function borraDelPublico(camino) {
+  /*
+   * Sin `Content-Type`, y esto no es un detalle.
+   *
+   * Un DELETE no lleva cuerpo, y Storage contesta «Body cannot be empty when
+   * content-type is set to application/json»: un 400 por decir de qué tipo es
+   * algo que no se manda. Es el mismo golpe que se llevó la subida firmada de
+   * las fotos, que costó un «Failed to fetch» en la app.
+   *
+   * La primera pasada de esta mudanza copió los 51 ficheros y dejó los 51
+   * originales donde estaban, que es justo lo que había que quitar.
+   */
+  const { "Content-Type": _fuera, ...sinTipo } = cabeceras;
   const r = await fetch(`${SUPABASE_URL}/storage/v1/object/${PUBLICO}/${camino}`, {
     method: "DELETE",
-    headers: cabeceras,
+    headers: sinTipo,
   });
-  return r.ok ? "" : `borrar: ${r.status}`;
+  if (r.ok) return "";
+  return `borrar: ${r.status} ${(await r.text().catch(() => "")).slice(0, 120)}`;
 }
 
 // ── La base ─────────────────────────────────────────────────────────────────

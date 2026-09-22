@@ -354,7 +354,21 @@ const nodos = [
     id: "cn-pg", name: "PG: Actualizar oferta",
     type: "n8n-nodes-base.postgres", typeVersion: 2, position: [1100, 580],
     credentials: PG_CRED, ...REINTENTA },
-  { parameters: { amount: 1 }, id: "cn-esperar", name: "Esperar 1s",
+  /*
+   * LA UNIDAD HAY QUE ESCRIBIRLA, aunque parezca redundante.
+   *
+   * La primera versión de este nodo puso «amount: 1» y nada más. n8n borra los
+   * valores por defecto al importar, y 1 ES el valor por defecto de amount, así
+   * que el nodo se quedó en {} ... y la unidad por defecto del Wait son HORAS.
+   *
+   * Resultado: la pasada enriqueció UNA ficha, se puso en estado «waiting» con
+   * waitTill una hora más tarde, y se quedó ahí. Diez minutos mirándola sin
+   * que avanzara. En n8n un flujo parado así no da ningún error: se ve verde.
+   *
+   * Los quince nodos Wait que funcionan en esta instalación llevan todos
+   * «unit: seconds» escrito. Este también.
+   */
+  { parameters: { amount: 1, unit: "seconds" }, id: "cn-esperar", name: "Esperar 1s",
     type: "n8n-nodes-base.wait", typeVersion: 1, position: [1320, 580],
     webhookId: "cn-esperar-canalcar" },
   { parameters: { jsCode: CODE_RESUMEN }, id: "cn-resumen", name: "Code: Resumen",

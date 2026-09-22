@@ -237,7 +237,8 @@
     },
     {
       "parameters": {
-        "amount": 1
+        "amount": 1,
+        "unit": "seconds"
       },
       "id": "cn-esperar",
       "name": "Esperar 1s",

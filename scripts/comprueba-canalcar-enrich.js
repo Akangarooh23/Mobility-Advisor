@@ -107,6 +107,23 @@ const ficha = (numero, datos) => ({
   comprueba("las pasadas caen entre las 8:00 y las 00:00",
     horas.every((h) => h >= 8 && h < 24), horas.join("h, ") + "h");
 
+  /*
+   * LA ESPERA TIENE QUE DECIR SU UNIDAD.
+   *
+   * La primera versión puso «amount: 1» y nada más. n8n borra los valores por
+   * defecto al importar, 1 es el valor por defecto de amount, y la unidad por
+   * defecto del Wait son HORAS. La pasada enriqueció una ficha y se quedó
+   * esperando sesenta minutos a la siguiente, en verde y sin decir nada.
+   */
+  for (const w of wf.nodes.filter((n) => n.type.endsWith(".wait"))) {
+    comprueba("«" + w.name + "» dice su unidad",
+      w.parameters.unit === "seconds" || w.parameters.unit === "minutes",
+      JSON.stringify(w.parameters));
+    comprueba("y espera lo que su nombre promete",
+      w.parameters.unit === "seconds" && Number(w.parameters.amount) <= 5,
+      w.parameters.amount + " " + w.parameters.unit);
+  }
+
   console.log("\n  la cola");
   const cola = nodo("PG: Cola a enriquecer").parameters.query;
   // Quitar los comentarios antes de mirar: si no, se comprueba la prosa.

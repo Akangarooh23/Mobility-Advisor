@@ -2731,6 +2731,20 @@ export default function UserDashboardVehicles({
                           ) : null}
                           {identityLabel || normalizeText(vehicle?.title) || "Vehículo"}
                         </div>
+                        {/*
+                          * El número del IDCar, debajo del nombre.
+                          *
+                          * Pequeño y en gris porque no es para el cliente, es
+                          * para cuando el cliente llama: lo lee en voz alta y
+                          * quien coge el teléfono lo escribe en el buscador del
+                          * ERP y está en su coche. Sin esto hay que ir
+                          * preguntando por la matrícula y el correo.
+                          */}
+                        {normalizeText(vehicle?.numero) ? (
+                          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, color: isDark ? "var(--gris-400)" : "var(--gris-300)", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", marginTop: 2 }}>
+                            {normalizeText(vehicle.numero)}
+                          </div>
+                        ) : null}
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "4px 8px" }}>
                         {[

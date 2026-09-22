@@ -691,6 +691,28 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
             // "Confirmar cita" only when operator has set a date and status is Contactado/En proceso
             const canConfirm = hasAppt && ["Contactado", "En proceso"].includes(item.status);
 
+            /*
+             * La visita ya pasó y espera respuesta.
+             *
+             * El plazo es el mismo que el del correo y el de «quiero
+             * comprarlo»: catorce días. Pasados, la compra ya no se puede
+             * empezar desde el enlace y ofrecerlo sería mandar a alguien a un
+             * «ha pasado demasiado tiempo».
+             */
+            const DIAS_PARA_CONTESTAR = 14;
+            const empezo = meta.starts_at ? new Date(meta.starts_at).getTime() : 0;
+            const yaPaso = empezo > 0 && Date.now() >= empezo + 3600000;
+            const enPlazo = empezo > 0 && Date.now() - empezo < DIAS_PARA_CONTESTAR * 86400000;
+            const puedeContestarLaVisita =
+              item.type === "visita_marketplace" && !!meta.booking_id && !!meta.token_buyer
+              && !meta.resultado && yaPaso && enPlazo && item.status !== "Cancelado"
+              && item.status !== ESTADO_CITA.pending;
+            const loQueDijoDeLaVisita = {
+              compro: "Nos dijiste que te lo quedas. Seguimos con la compra.",
+              fue: "Nos dijiste que lo viste y no te lo quedas.",
+              no_fue: "Nos dijiste que no llegaste a ir.",
+            }[meta.resultado] || "";
+
             // Viewing seller card (P2P viewing request for seller's published IDCar)
             if (isViewingSeller) {
               const proposeUrl = meta.token_seller ? `/cita/proponer?token=${meta.token_seller}` : null;
@@ -953,6 +975,75 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         Elegir hora →
                       </a>
                     )}
+                    {/*
+                      Al acabar la visita, la pregunta que decide todo.
+
+                      El correo se la hace —«¿te lo quedas?»— y la app la
+                      enseña en la cita pasada, pero aquí no estaba: quien
+                      entraba al panel a decirnos que se lo queda no tenía
+                      dónde, y de esa respuesta sale la compra.
+
+                      «Quiero comprarlo» solo en el coche de un particular
+                      con encargo: en el de un concesionario esa página
+                      contesta que no puede ser.
+                    */}
+                    {puedeContestarLaVisita && (
+                      <div style={{
+                        background: isDark ? "rgba(255,196,0,0.08)" : "#fffbeb",
+                        border: "1px solid rgba(234,179,8,0.35)",
+                        borderRadius: 10, padding: "10px 12px", margin: "8px 0",
+                      }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 2 }}>
+                          {meta.se_puede_comprar ? "¿Te lo quedas?" : "¿Qué tal fue la visita?"}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--gris-600)", marginBottom: 8 }}>
+                          Dinos qué quieres hacer y seguimos nosotros.
+                        </div>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          {meta.se_puede_comprar && (
+                            <a
+                              href={`/quiero-comprarlo?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}`}
+                              style={{
+                                fontSize: 12, fontWeight: 800, color: "#fff", textDecoration: "none",
+                                background: "var(--marca)", borderRadius: 8, padding: "7px 12px",
+                              }}
+                            >
+                              Quiero comprarlo
+                            </a>
+                          )}
+                          {/*
+                            Las otras dos van igual de visibles que la primera:
+                            resaltar «me lo quedo» y apagar el resto empuja a la
+                            respuesta que nos conviene, y entonces el dato deja
+                            de servir para lo que se recoge.
+                          */}
+                          {[
+                            ["fue", meta.se_puede_comprar ? "Lo vi y no me lo quedo" : "Lo vi y no me lo quedé"],
+                            ["no_fue", "No fui"],
+                          ].map(([respuesta, texto]) => (
+                            <a
+                              key={respuesta}
+                              href={`/como-fue?id=${encodeURIComponent(meta.booking_id)}&token=${encodeURIComponent(meta.token_buyer)}&r=${respuesta}`}
+                              style={{
+                                fontSize: 12, fontWeight: 700, color: "var(--gris-900)", textDecoration: "none",
+                                background: isDark ? "rgba(255,255,255,0.06)" : "#fff",
+                                border: "1px solid var(--borde)", borderRadius: 8, padding: "7px 12px",
+                              }}
+                            >
+                              {texto}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Y si ya contestó, lo que dijo: para no preguntarle dos veces. */}
+                    {loQueDijoDeLaVisita && (
+                      <div style={{ fontSize: 12, color: "var(--gris-600)", marginBottom: 6 }}>
+                        {loQueDijoDeLaVisita}
+                      </div>
+                    )}
+
                     {item.type === "visita_marketplace" && item.vehicle_id && (
                       <a
                         href={`/marketplace-vo/${encodeURIComponent(item.vehicle_id)}`}

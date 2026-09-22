@@ -71,6 +71,7 @@ const handlers = {
   "/api/viewing-get": viewingHandler,
   "/api/marketplace-vo": marketHandler,
   "/api/attachment-file": userHandler,
+  "/api/papel-del-coche": userHandler,
   "/api/workshops-nearby": workshopsHandler,
   "/api/workshop-availability": workshopsHandler,
   "/api/market-price": marketHandler,

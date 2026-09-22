@@ -12,6 +12,7 @@ const cronConditionReportReadyHandler = require("../lib/api/cron-condition-repor
 const cronAlertCheckHandler = require("../lib/api/cron-alert-check-handler");
 const storagePresignHandler = require("../lib/api/storage-presign-handler");
 const pushDeviceHandler = require("../lib/api/push-device-handler");
+const papelDelCocheHandler = require("../lib/api/papel-del-coche-handler");
 const { aplicaCors } = require("../lib/cors");
 
 module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
@@ -39,6 +40,7 @@ function resolveRoute(req) {
   if (url.includes("cron-condition-report-ready")) return "cron-condition-report-ready";
   if (url.includes("cron-vigila-scrapers"))        return "cron-vigila-scrapers";
   if (url.includes("push-device"))                 return "push-device";
+  if (url.includes("papel-del-coche"))             return "papel-del-coche";
   return "";
 }
 
@@ -99,6 +101,8 @@ module.exports = async function userRouter(req, res) {
       return storagePresignHandler(req, res);
     case "push-device":
       return pushDeviceHandler(req, res);
+    case "papel-del-coche":
+      return papelDelCocheHandler(req, res);
     default:
       return res.status(404).json({ error: "User route not found" });
   }

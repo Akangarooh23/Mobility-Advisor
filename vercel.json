@@ -132,6 +132,10 @@
       "destination": "/api/user?route=attachment-file"
     },
     {
+      "source": "/api/papel-del-coche",
+      "destination": "/api/user?route=papel-del-coche"
+    },
+    {
       "source": "/api/leads",
       "destination": "/api/user?route=leads"
     },

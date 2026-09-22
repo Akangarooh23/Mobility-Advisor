@@ -276,6 +276,16 @@ function resolvePhotoPreviewSrc(photo = {}) {
 }
 
 function resolveAttachmentLink(file = {}) {
+  /*
+   * El enlace nuestro manda.
+   *
+   * Los papeles del coche viven en el cajón privado del almacén: su dirección
+   * —lo que viene en `url`— no abre nada sola. El servidor manda además
+   * `enlace`, que apunta a una ruta que comprueba la sesión y firma la bajada.
+   * Las fotos y los papeles de antes no lo llevan y siguen por su dirección.
+   */
+  const propio = normalizeText(file?.enlace);
+  if (propio) return propio;
   const pathLink = normalizeText(file?.path);
   if (pathLink) return pathLink;
   const urlLink = normalizeText(file?.url);

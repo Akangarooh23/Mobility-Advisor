@@ -245,18 +245,35 @@ for (;;) {
 let garantia = null;
 {
   const marca = 'Garantía Autohero';
-  const j = html.indexOf(marca);
-  if (j !== -1) {
-    const trozo = html.slice(j + marca.length, j + marca.length + 30);
+  let i = 0;
+  for (;;) {
+    const j = html.indexOf(marca, i);
+    if (j === -1) break;
+    i = j + marca.length;
+    /*
+     * SE MIRAN TODAS LAS APARICIONES, no la primera.
+     *
+     * La PRIMERA es un enlace del menú de cabecera, que está en las 2.400
+     * fichas y no lleva ningún número:
+     *
+     *     Garantía Autohero</a><a class="linkItem___OIuu_" ...
+     *
+     * El dato va más abajo, en su lista de titulares: «Garantía Autohero: 12
+     * Meses». Quedarse con la primera es lo que hizo que la primera pasada
+     * sacara la ITV de 42 fichas de 43 y la garantía de NINGUNA.
+     */
+    const trozo = html.slice(i, i + 30);
     let n = '';
     let k = 0;
     while (k < trozo.length && !esDigito(trozo.charAt(k))) k++;
     while (k < trozo.length && esDigito(trozo.charAt(k))) { n += trozo.charAt(k); k++; }
+    if (!n) continue;
     const meses = Number(n);
-    // El resto del trozo tiene que hablar de meses, y 12 o 24 son los plazos
-    // que dan; 0 o 600 serían otra cosa que se ha colado.
+    // Detrás del número tiene que poner «meses», y 12 o 24 son los plazos que
+    // dan; 0 o 600 serían otra cosa que se ha colado.
     if (meses >= 1 && meses <= 60 && trozo.slice(k, k + 12).toLowerCase().indexOf('mes') !== -1) {
       garantia = meses;
+      break;
     }
   }
 }

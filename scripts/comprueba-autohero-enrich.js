@@ -230,6 +230,35 @@ function pasa(oferta, respuesta, estatico, run) {
   comprueba("con etiqueta y dato, coge el dato", t2.json.itv === "2026-10-28", t2.json.itv);
   comprueba("y no coge la fecha de la última revisión", t2.json.itv !== "2026-02-17");
 
+  /*
+   * LA GARANTÍA NO PUEDE SALIR DEL MENÚ.
+   *
+   * En las 2.400 fichas, la PRIMERA aparición de «Garantía Autohero» es un
+   * enlace de la cabecera y no lleva número:
+   *
+   *     Garantía Autohero</a><a class="linkItem___OIuu_" ...
+   *
+   * Quedarse con la primera hizo que una pasada entera sacara la ITV de 42
+   * fichas de 43 y la garantía de NINGUNA. Aquí se pone el menú delante y el
+   * dato detrás, que es el orden real de la página.
+   */
+  const conMenu = { statusCode: 200, data: '<div>' + UUID + '</div>'
+    + '<a href="/es/garantia">Garantía Autohero</a><a class="linkItem___OIuu_">Comparar</a>'
+    + '{"topHighlights":["Garantía Autohero: 12 Meses","Única propietaria"],'
+    + '"inspectionExpiryDate":"2027-05-27"}' };
+  const e2b = {};
+  const t2b = pasa({ id: "ah_" + UUID, url: "" }, conMenu, e2b, "r2b");
+  comprueba("la garantía sale del dato, no del enlace del menú", t2b.json.garantia === 12,
+    t2b.json.garantia + " meses");
+  comprueba("y la ITV de la misma ficha también", t2b.json.itv === "2027-05-27", t2b.json.itv);
+
+  // Un número junto a «Garantía» que no son meses no se guarda.
+  const e2c = {};
+  const t2c = pasa({ id: "ah_" + UUID, url: "" },
+    { statusCode: 200, data: '<div>' + UUID + '</div>Garantía Autohero por 2.500 euros' }, e2c, "r2c");
+  comprueba("un «Garantía Autohero por 2.500 euros» no entra como meses",
+    t2c.json.garantia === null || t2c.json.garantia === undefined);
+
   // Una fecha imposible.
   const e3 = {};
   const t3 = pasa({ id: "ah_" + UUID, url: "" },

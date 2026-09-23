@@ -188,8 +188,31 @@ function parseCookies(cookieHeader = "") {
     }, {});
 }
 
+/**
+ * ¿La cookie de sesión lleva `Secure`?
+ *
+ * Decía `AUTH_COOKIE_SECURE || "false"`: **por omisión, sin `Secure`**. Y esa
+ * variable no está puesta en Vercel, así que la cookie de sesión de todos los
+ * clientes salía sin la marca que impide que viaje por una conexión sin cifrar.
+ * El dominio lleva HSTS y eso lo tapa casi siempre, pero «casi» no es una
+ * defensa: la marca existe para el rato en que el navegador aún no ha visto la
+ * cabecera, o para un subdominio que se despiste.
+ *
+ * Ahora al revés: en producción y en Vercel va con `Secure` salvo que alguien
+ * lo apague a mano; en local, donde no hay HTTPS, sigue sin él —si no, el login
+ * no funcionaría—. Es el mismo criterio que usa `lib/api/identidad.js` para
+ * decidir cuándo exigir sesión: lo seguro por omisión, y la puerta de atrás
+ * solo donde hace falta.
+ */
+function cookieSegura(entorno = process.env) {
+  const puesto = String(entorno.AUTH_COOKIE_SECURE || "").trim().toLowerCase();
+  if (puesto === "true") return true;
+  if (puesto === "false") return false;
+  return entorno.NODE_ENV === "production" || Boolean(entorno.VERCEL);
+}
+
 function buildSessionCookie(value, { maxAgeSeconds } = {}) {
-  const shouldUseSecure = String(process.env.AUTH_COOKIE_SECURE || "false").toLowerCase() === "true";
+  const shouldUseSecure = cookieSegura();
   const parts = [
     `${SESSION_COOKIE_NAME}=${encodeURIComponent(value || "")}`,
     "Path=/",
@@ -2542,3 +2565,14 @@ authHandler.getSessionUserFromRequest = async function getSessionUserFromRequest
 };
 
 module.exports = authHandler;
+
+/*
+ * Se asoman dos piezas para poder probarlas sueltas.
+ *
+ * `authHandler` habla con tres bases distintas y montarlas en una prueba diría
+ * más del andamio que del código. Estas dos son decisiones puras —de una
+ * variable de entorno a un sí o un no— y son justo las que no pueden torcerse
+ * sin que nadie se entere.
+ */
+module.exports.cookieSegura = cookieSegura;
+module.exports.buildSessionCookie = buildSessionCookie;

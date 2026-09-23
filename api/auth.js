@@ -6,6 +6,7 @@ const { MARCA, remitente, respuestaA } = require("../lib/marca");
 const { plantilla, parrafo, aviso, codigo } = require("../lib/correo");
 const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 const { aplicaCors } = require("../lib/cors");
+const FRENO = require("../lib/freno");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
 function getMssqlModule() {
@@ -2034,6 +2035,29 @@ async function _authHandlerInner(req, res) {
   }
 
   if (action === "request_password_reset") {
+    /*
+     * El freno de verdad va primero: el de abajo vive en memoria.
+     *
+     * Lo que sigue —`readBackoff`, `consumeRateLimit`— cuenta en un `Map` del
+     * proceso, y en Vercel cada petición puede caer en otra instancia: frena a
+     * quien insiste desde un sitio, no a quien reparte. Se queda porque no
+     * estorba y porque `/api/auth-status` lo enseña, pero el que decide es
+     * este, que cuenta en la base.
+     */
+    const frenoPool = usePostgres ? getPgPool() : null;
+    const resetCorreo = await FRENO.pide(frenoPool, "reset", email, FRENO.LIMITES.reset);
+    const resetIp     = await FRENO.pide(frenoPool, "reset-ip", clientIp, FRENO.LIMITES.resetPorIp);
+    if (!resetCorreo.paso || !resetIp.paso) {
+      const espera = Math.max(resetCorreo.enSegundos, resetIp.enSegundos);
+      logAuthSecurity("password_reset_request_rate_limited", {
+        email: maskEmail(email), ip: maskIp(clientIp), retryAfterSeconds: espera,
+      });
+      res.setHeader("Retry-After", String(espera));
+      return res.status(429).json({
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+      });
+    }
+
     const requestIpBackoff = readBackoff(resetRequestIpBackoff, clientIp);
     const requestEmailBackoff = readBackoff(resetRequestEmailBackoff, email);
 
@@ -2383,7 +2407,35 @@ async function _authHandlerInner(req, res) {
 
   if (action === "login") {
     if (!isValidEmail(email) || !password) {
-      return res.status(400).json({ error: "Introduce tu correo y tu contraseÃ±a." });
+      return res.status(400).json({ error: "Introduce tu correo y tu contraseña." });
+    }
+
+    /*
+     * El freno, antes de mirar la contraseña.
+     *
+     * Aquí no había ninguno: se podían probar contraseñas en bucle, todas las
+     * que se quisiera y tan rápido como aguantara la máquina. El de recuperar
+     * contraseña sí existía, pero vive en un `Map` del proceso y en Vercel eso
+     * no frena nada —cada petición puede caer en otra instancia—. Este cuenta
+     * en la base: una sola cuenta, la vean desde donde la vean.
+     *
+     * Por correo **y** por IP: por correo para que no le revienten la cuenta a
+     * alguien concreto, por IP para que no prueben mil correos desde el mismo
+     * sitio. Y se cuenta antes de comprobar nada, para que un intento fallido
+     * cueste igual que uno acertado y no se pueda medir la diferencia.
+     */
+    const frenoPool = usePostgres ? getPgPool() : null;
+    const porCorreo = await FRENO.pide(frenoPool, "login", email, FRENO.LIMITES.login);
+    const porIp     = await FRENO.pide(frenoPool, "login-ip", clientIp, FRENO.LIMITES.loginPorIp);
+    if (!porCorreo.paso || !porIp.paso) {
+      const espera = Math.max(porCorreo.enSegundos, porIp.enSegundos);
+      logAuthSecurity("login_rate_limited", {
+        email: maskEmail(email), ip: maskIp(clientIp), retryAfterSeconds: espera,
+      });
+      res.setHeader("Retry-After", String(espera));
+      return res.status(429).json({
+        error: "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+      });
     }
 
     const foundUser = useMssql
@@ -2394,16 +2446,33 @@ async function _authHandlerInner(req, res) {
       ? await findUserByEmailPostgres(email)
       : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
 
-    if (!foundUser) {
-      return res.status(404).json({ error: "No existe ninguna cuenta con ese correo." });
+    /*
+     * Un solo mensaje para las dos cosas, y por qué importa.
+     *
+     * Antes contestaba «No existe ninguna cuenta con ese correo» (404) o «La
+     * contraseña no es correcta» (401), y esa diferencia es una lista de
+     * clientes: con una lista de correos y una petición por cada uno se sabe
+     * quién tiene cuenta aquí sin acertar ni una contraseña. Para un sitio donde
+     * la gente sube su coche y sus papeles, eso ya es información que vender.
+     *
+     * A quien se equivoca de verdad no le sirve de menos: si no se acuerda del
+     * correo o de la contraseña, lo que hace es lo mismo —probar otra vez o
+     * recuperarla—.
+     */
+    const user = foundUser ? mapDbUser(foundUser) : null;
+    const acierta =
+      Boolean(user) && hashPassword(password, user.passwordSalt) === user.passwordHash;
+
+    if (!acierta) {
+      logAuthSecurity("login_failed", {
+        email: maskEmail(email), ip: maskIp(clientIp), existeLaCuenta: Boolean(user),
+      });
+      return res.status(401).json({ error: "El correo o la contraseña no son correctos." });
     }
 
-    const user = mapDbUser(foundUser);
-    const expectedHash = hashPassword(password, user.passwordSalt);
-
-    if (expectedHash !== user.passwordHash) {
-      return res.status(401).json({ error: "La contraseÃ±a no es correcta." });
-    }
+    // Acertó: la cuenta de intentos se suelta, para que un día torpe no deje a
+    // nadie frenado después de entrar bien.
+    await FRENO.suelta(frenoPool, "login", email);
 
     const now = useMssql
       ? await updateLastLoginMssql(user.id)

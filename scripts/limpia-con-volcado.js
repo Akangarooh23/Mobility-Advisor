@@ -62,7 +62,13 @@ const PORTALES = {
   "coches.net": { portal: "cochesnet", prefijo: "cn_" },
   "autoscout24.es": { portal: "autoscout24", prefijo: "as_" },
   "autoscout24": { portal: "autoscout24", prefijo: "as_" },
-  "milanuncios.com": { portal: "milanuncios", prefijo: "ml_" },
+  // OJO con los prefijos: aqui ponia "ml_" y en la base es "mil_". Comprobados
+  // los cuatro contra moveadvisor_market_offers el 23-sep-2026. Un prefijo
+  // equivocado no da error: da CERO coincidencias, o sea que parece que el
+  // volcado no trae ninguna de nuestras filas y saldrian todas de baja. Lo
+  // pararia el freno de mortandad, pero por el motivo correcto y por
+  // casualidad.
+  "milanuncios.com": { portal: "milanuncios", prefijo: "mil_" },
   "wallapop.com": { portal: "wallapop", prefijo: "wp_" },
 };
 

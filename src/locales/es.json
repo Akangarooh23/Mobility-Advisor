@@ -161,6 +161,8 @@
     "appointmentCalConfirming": "Enviando solicitud...",
     "appointmentCalConfirm": "Solicitar esta hora →",
     "appointmentCalLoadError": "No se pudo cargar el horario del taller.",
+    "appointmentCalLoadErrorHelp": "No te ensenamos horas porque no podemos comprobar cuales estan libres. Vuelve a intentarlo en un momento.",
+    "appointmentCalRetry": "Reintentar",
     "appointmentCalSlotUnavailable": "La franja horaria ya no esta disponible.",
     "appointmentCalReservationError": "No se pudo registrar la solicitud. Intentalo de nuevo.",
     "appointmentCalWorkshopFallback": "Taller",

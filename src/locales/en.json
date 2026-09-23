@@ -161,6 +161,8 @@
     "appointmentCalConfirming": "Sending request...",
     "appointmentCalConfirm": "Request this time →",
     "appointmentCalLoadError": "Unable to load workshop schedule.",
+    "appointmentCalLoadErrorHelp": "We are not showing any times because we cannot check which ones are free. Please try again in a moment.",
+    "appointmentCalRetry": "Try again",
     "appointmentCalSlotUnavailable": "The time slot is no longer available.",
     "appointmentCalReservationError": "Unable to register your request. Please try again.",
     "appointmentCalWorkshopFallback": "Workshop",

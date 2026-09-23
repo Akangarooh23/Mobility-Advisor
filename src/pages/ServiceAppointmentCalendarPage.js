@@ -78,6 +78,17 @@ export default function ServiceAppointmentCalendarPage({
   const [bookingError, setBookingError] = useState("");
   const [availabilityMap, setAvailabilityMap] = useState({});
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  /*
+   * Si la agenda no se ha podido leer, se dice; no se pintan horas.
+   *
+   * Cuando la consulta fallaba se caia en un horario inventado: todas las
+   * horas libres, en verde y elegibles. Y detras hay reservas de verdad, asi
+   * que el cliente elegia una hora que podia estar cogida y ademas se comia
+   * el error justo al confirmar, porque reservar pasa por la misma base que
+   * acaba de fallar. Decirlo antes cuesta lo mismo y no promete nada.
+   */
+  const [laAgendaNoSeHaPodidoLeer, setLaAgendaNoSeHaPodidoLeer] = useState(false);
+  const [intento, setIntento] = useState(0);
 
   const { t } = useTranslation();
 
@@ -130,7 +141,10 @@ export default function ServiceAppointmentCalendarPage({
     const loadAvailability = async () => {
       if (!workshopId) {
         if (!disposed) {
+          // Sin taller no hay agenda que leer, y el horario de siempre es lo
+          // unico que se puede ensenar. Eso no es fallar.
           setAvailabilityMap({});
+          setLaAgendaNoSeHaPodidoLeer(false);
           setIsLoadingAvailability(false);
         }
         return;
@@ -148,15 +162,16 @@ export default function ServiceAppointmentCalendarPage({
         if (!disposed) {
           if (response.ok && data?.availabilityByDate && typeof data.availabilityByDate === "object") {
             setAvailabilityMap(data.availabilityByDate);
+            setLaAgendaNoSeHaPodidoLeer(false);
           } else {
-            // Availability load failed — fall back to static slots silently
             setAvailabilityMap({});
+            setLaAgendaNoSeHaPodidoLeer(true);
           }
         }
       } catch {
         if (!disposed) {
-          // Network/parse error on availability — use static slots, do not block booking
           setAvailabilityMap({});
+          setLaAgendaNoSeHaPodidoLeer(true);
         }
       } finally {
         if (!disposed) {
@@ -169,10 +184,18 @@ export default function ServiceAppointmentCalendarPage({
     return () => {
       disposed = true;
     };
-  }, [workshopId, safeDraft?.provider, monthKey, t]);
+  }, [workshopId, safeDraft?.provider, monthKey, intento, t]);
 
   const dayAvailability = useMemo(() => {
     const map = new Map();
+
+    if (laAgendaNoSeHaPodidoLeer) {
+      // Ni un hueco: no es que no haya, es que no sabemos cuales hay.
+      monthCells.forEach((cell) => {
+        map.set(cell.key, { inPast: false, closed: false, fullyBooked: false, slots: [], availableSlots: [] });
+      });
+      return map;
+    }
 
     monthCells.forEach((cell) => {
       const remote = availabilityMap?.[cell.key];
@@ -194,7 +217,7 @@ export default function ServiceAppointmentCalendarPage({
     });
 
     return map;
-  }, [monthCells, availabilityMap, fallbackDayAvailability]);
+  }, [monthCells, availabilityMap, fallbackDayAvailability, laAgendaNoSeHaPodidoLeer]);
 
   const selectedDay = monthCells.find((cell) => cell.key === selectedDayKey) || null;
   const selectedDayData = selectedDay ? dayAvailability.get(selectedDay.key) : null;
@@ -367,7 +390,24 @@ export default function ServiceAppointmentCalendarPage({
             {t("service.appointmentCalLoadingAvailability")}
           </div>
         ) : null}
-        {/* API availability error suppressed — fallback slots are used instead */}
+        {laAgendaNoSeHaPodidoLeer ? (
+          <div style={{ border: "1px solid #fecaca", background: "#fef2f2", borderRadius: 12, padding: "12px 14px", marginBottom: 10, display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }} aria-hidden="true">⚠️</span>
+            <div style={{ fontSize: 13, color: "#991b1b", lineHeight: 1.55 }}>
+              <strong>{t("service.appointmentCalLoadError")}</strong>{" "}
+              {t("service.appointmentCalLoadErrorHelp")}
+              <div style={{ marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setIntento((n) => n + 1)}
+                  style={{ border: "1px solid #fecaca", background: "#fff", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 700, color: "#991b1b", cursor: "pointer" }}
+                >
+                  {t("service.appointmentCalRetry")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <button
             type="button"

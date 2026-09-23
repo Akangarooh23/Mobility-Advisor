@@ -25,6 +25,7 @@ import {
 } from "../../utils/apiClient";
 import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
+import ElLugar from "../../components/LugarDeLaVisita";
 import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditionReport";
 import ConditionReportError from "../../components/ConditionReportError";
 import ConditionReportAction from "../../components/ConditionReportAction";
@@ -360,6 +361,8 @@ export default function UserDashboardVehicles({
   currentUserEmail = "",
   onVehicleStatesUpdated = () => {},
   matriculasConEncargo = new Set(),
+  /* A qué coches todavía no les toca tasación: les falta la ficha técnica. */
+  sinTasarTodavia = new Set(),
   dashboardValuations = [],
 }) {
   const { t } = useTranslation();
@@ -374,6 +377,19 @@ export default function UserDashboardVehicles({
   const tieneEncargo = (vehicle) => {
     const suya = comoSeCompara(vehicle?.plate);
     return !!suya && matriculasConEncargo.has(suya);
+  };
+
+  /*
+   * Si a ese coche todavía no le toca tasarse.
+   *
+   * De la ficha técnica salen la versión, la cilindrada, el CO2 y la potencia.
+   * Un «1.5 TSI» tiene tres versiones que no valen lo mismo, asi que tasar
+   * antes es poner un numero sobre un coche que todavia no sabemos cual es — y
+   * de ese numero sale luego la conversacion del precio de salida.
+   */
+  const noTocaTasar = (vehicle) => {
+    const suya = comoSeCompara(vehicle?.plate);
+    return !!suya && sinTasarTodavia.has(suya);
   };
 
   const cardBg = isDark
@@ -2839,11 +2855,23 @@ export default function UserDashboardVehicles({
                           </button>
                           <button
                             type="button"
+                            disabled={noTocaTasar(vehicle)}
+                            title={noTocaTasar(vehicle) ? "Sube antes la ficha técnica" : undefined}
                             onClick={() => handleVehicleAction("valuation", vehicle)}
-                            style={{ background: "rgba(255,196,0,0.1)", border: "1px solid rgba(255,196,0,0.22)", color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%" }}
+                            style={{ background: "rgba(255,196,0,0.1)", border: "1px solid rgba(255,196,0,0.22)", color: isDark ? "var(--gris-300)" : "var(--marca-oscuro)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: noTocaTasar(vehicle) ? "default" : "pointer", opacity: noTocaTasar(vehicle) ? 0.5 : 1, textAlign: "center", width: "100%" }}
                           >
                             {t("dashboard.vehRequestValuation")}
                           </button>
+                          {/*
+                            * Y se dice por qué, que si no es un botón apagado
+                            * sin motivo: de la ficha técnica salen la versión y
+                            * las características con las que se tasa.
+                            */}
+                          {noTocaTasar(vehicle) && (
+                            <div style={{ fontSize: 10.5, lineHeight: 1.45, color: isDark ? "var(--gris-400)" : "var(--gris-500)", padding: "0 2px", marginTop: -2 }}>
+                              Sube antes la ficha técnica: de ahí sacamos la versión y las características con las que se tasa.
+                            </div>
+                          )}
                           <button
                             type="button"
                             onClick={() => handleVehicleAction("insurance", vehicle)}
@@ -2896,7 +2924,7 @@ export default function UserDashboardVehicles({
                               onClick={() => setSlotsDialog({ open: true, vehicleId: vehicle.id })}
                               style={{ background: "rgba(255,196,0,0.08)", border: "1px solid rgba(255,196,0,0.22)", color: isDark ? "var(--gris-300)" : "var(--gris-600)", borderRadius: 8, padding: "7px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", textAlign: "center", width: "100%", marginTop: 4 }}
                             >
-                              🗓 Gestionar franjas horarias
+                              🗓 Visitas: horarios y dirección
                             </button>
                           )}
                           {vehicle.marketplaceState === "active_sale" && vehicleBookings[vehicle.id] && vehicleBookings[vehicle.id].length > 0 && (
@@ -2969,7 +2997,7 @@ export default function UserDashboardVehicles({
                     style={{ background: isDark ? "var(--gris-900)" : "#fff", borderRadius: 14, padding: 24, width: "min(560px, 100%)", margin: "auto", boxShadow: "0 8px 40px rgba(0,0,0,.18)" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                      <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>🗓 Gestionar franjas horarias</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>🗓 Visitas a este coche</div>
                       <button
                         type="button"
                         onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
@@ -2977,12 +3005,35 @@ export default function UserDashboardVehicles({
                       >×</button>
                     </div>
                     <p style={{ fontSize: 13, color: isDark ? "var(--gris-400)" : "var(--gris-500)", marginBottom: 16, marginTop: 0 }}>
-                      Añade o elimina franjas horarias en las que los compradores pueden solicitar visitar tu vehículo.
+                      Cuándo puedes enseñar el coche y en qué dirección. Los compradores
+                      solo pueden pedir hora dentro de lo que marques.
                     </p>
+                    {/*
+                      * La dirección, también aquí.
+                      *
+                      * Vive en el apartado de Visitas del panel, y quien entraba
+                      * por este diálogo —que es el camino que ya conocía— veía
+                      * las horas y ninguna dirección, sin nada que le dijera
+                      * que existía. Es el mismo componente: se guarda en el
+                      * mismo sitio se entre por donde se entre.
+                      */}
+                    <ElLugar vehicleId={slotsDialog.vehicleId} isDark={isDark} etiqueta="" />
+                    <div style={{ fontSize: 13, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)", marginBottom: 10 }}>
+                      🗓 Cuándo puedes enseñarlo
+                    </div>
                     <AvailabilityEditor
                       offerId={`idcar-${slotsDialog.vehicleId}`}
                       source="marketplace"
                     />
+                    {/* Y desde aquí se llega al apartado, que es donde están todos
+                        sus coches juntos en vez de uno en un diálogo. */}
+                    <button
+                      type="button"
+                      onClick={() => { setSlotsDialog({ open: false, vehicleId: null }); onNavigate("franjas"); }}
+                      style={{ marginTop: 14, background: "none", border: "none", padding: 0, font: "inherit", fontSize: 12, fontWeight: 700, color: isDark ? "var(--gris-300)" : "var(--gris-700)", textDecoration: "underline", textUnderlineOffset: 3, cursor: "pointer" }}
+                    >
+                      Ver las visitas de todos mis coches →
+                    </button>
                   </div>
                 </div>,
                 document.body

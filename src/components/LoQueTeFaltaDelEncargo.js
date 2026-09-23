@@ -449,8 +449,17 @@ export default function LoQueTeFaltaDelEncargo({
     : conMandato;
 
   const hayPuertas = todas.length > 0;
-  const faltan = todas.filter((p) => !p.abierta).length;
-  const hechas = todas.length - faltan;
+  /*
+   * El contador cuenta lo que de verdad para el anuncio.
+   *
+   * Decía «te quedan 4 cosas para que podamos publicarlo» metiendo dentro el
+   * seguro y el historial de revisiones, que no paran nada: un coche se publica
+   * y se vende sin ellos. Le estábamos diciendo que su coche no salía por una
+   * factura de hace tres años.
+   */
+  const obligatorias = todas.filter((p) => !p.opcional);
+  const faltan = obligatorias.filter((p) => !p.abierta).length;
+  const hechas = obligatorias.length - faltan;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
   const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
@@ -477,7 +486,7 @@ export default function LoQueTeFaltaDelEncargo({
             : `Te quedan ${faltan} cosas para que podamos publicarlo`}
       </div>
       <div style={{ fontSize: 12, color: textoFlojo, marginBottom: 10 }}>
-        {hechas} de {todas.length} hechas
+        {hechas} de {obligatorias.length} hechas
       </div>
 
       {/*
@@ -487,7 +496,9 @@ export default function LoQueTeFaltaDelEncargo({
         * lo que dice que son un camino y que va por la mitad.
         */}
       <div style={{ display: "flex", gap: 4, marginBottom: 12 }}>
-        {todas.map((p) => (
+        {/* Solo las obligatorias: una barra que no llena nunca porque falta algo
+            que no hace falta no dice cuánto lleva andado, dice que va mal. */}
+        {obligatorias.map((p) => (
           <div key={p.clave} title={p.nombre} style={{
             flex: 1, height: 4, borderRadius: 2,
             background: p.abierta ? verde : "rgba(139,92,246,0.20)",
@@ -510,6 +521,31 @@ export default function LoQueTeFaltaDelEncargo({
                 }}>
                   {p.nombre}
                 </span>
+                {/*
+                  * Se dice cuáles no paran el anuncio.
+                  *
+                  * Sin esto, una fila pendiente con su aspa ámbar se lee igual
+                  * que las demás: no hay manera de saber que esa se puede dejar
+                  * para luego, y la lista entera parece un muro.
+                  */}
+                {p.opcional && !p.abierta && (
+                  <span style={{
+                    marginLeft: 6, fontSize: 10, fontWeight: 800, letterSpacing: ".3px",
+                    color: textoFlojo, border: `1px solid ${isDark ? "rgba(150,150,143,0.4)" : "#d1d5db"}`,
+                    borderRadius: 999, padding: "1px 6px", verticalAlign: "middle",
+                  }}>
+                    OPCIONAL
+                  </span>
+                )}
+                {p.bloqueada && !p.abierta && (
+                  <span style={{
+                    marginLeft: 6, fontSize: 10, fontWeight: 800, letterSpacing: ".3px",
+                    color: ambar, border: `1px solid ${ambar}`,
+                    borderRadius: 999, padding: "1px 6px", verticalAlign: "middle",
+                  }}>
+                    TODAVÍA NO
+                  </span>
+                )}
                 {!p.abierta && p.falta && (
                   <span style={{ display: "block", fontSize: 12, color: textoFlojo, lineHeight: 1.45 }}>
                     {p.falta}

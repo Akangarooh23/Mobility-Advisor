@@ -372,6 +372,31 @@ export default function UserDashboardPage({
       .filter(Boolean)
   );
 
+  /*
+   * Los coches a los que todavía no les toca tasación.
+   *
+   * La tasación se puede hacer la primera y salía mal: la versión, la
+   * cilindrada, el CO₂ y la potencia se sacan de la ficha técnica. Un «1.5 TSI»
+   * tiene tres versiones que no valen lo mismo, así que tasar antes es poner un
+   * número sobre un coche que todavía no sabemos cuál es — y de ese número sale
+   * la conversación del precio de salida.
+   *
+   * Lo decide el servidor, en las puertas del encargo: aquí solo se lee.
+   */
+  const sinTasarTodavia = new Set(
+    userSolicitudes
+      .filter((s) => s?.type === "venta_gestionada")
+      .map((s) => {
+        try {
+          const meta = JSON.parse(s?.meta || "{}");
+          const tasacion = (meta.puertas || []).find((x) => x?.clave === "tasacion");
+          return tasacion?.bloqueada ? meta.matricula_encargo || "" : "";
+        } catch { return ""; }
+      })
+      .map((m) => String(m).toUpperCase().replace(/[^A-Z0-9]/g, ""))
+      .filter(Boolean)
+  );
+
   const counts = {
     saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
     alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
@@ -744,6 +769,8 @@ export default function UserDashboardPage({
            * y él no tenía dónde ponerlas.
            */
           matriculasConEncargo={matriculasConEncargo}
+          /* Y a cuáles todavía no les toca tasación: falta su ficha técnica. */
+          sinTasarTodavia={sinTasarTodavia}
           /* Para poder enseñar la tasación en la ficha del propio coche: hasta
              ahora vivía solo en su lista aparte y en un PDF del correo. */
           dashboardValuations={dashboardValuations}

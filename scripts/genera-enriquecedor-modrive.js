@@ -51,7 +51,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 
 // 1.988 activas, la ficha pesa 137 KB. A 300 por pasada son 41 MB acumulados en
 // memoria -VIAN aguanta 200 fichas de 653 KB, o sea 130 MB- y unos 10 minutos.

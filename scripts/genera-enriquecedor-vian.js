@@ -38,7 +38,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 
 // 609 activas. Lo que saca este workflow -carrocería, puertas, plazas,
 // cilindrada, equipamiento- no cambia en la vida de un anuncio, así que no hace

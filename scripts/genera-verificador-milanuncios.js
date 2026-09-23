@@ -73,7 +73,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 
 // El lote lo manda la MEMORIA, no el ritmo, y eso se midio el 2026-09-07: una
 // ficha de Milanuncios pesa 978 KB. Con 620 por pasada n8n acumularia ~600 MB

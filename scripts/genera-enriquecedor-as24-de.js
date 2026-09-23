@@ -75,7 +75,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 
 // Los nodos de Postgres reintentan: esta base corta conexiones y un corte no
 // puede tirar una pasada de 400 fichas.

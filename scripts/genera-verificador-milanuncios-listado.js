@@ -34,7 +34,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 
 // Peticiones por ejecucion. Sale de lo medido: el scraper lleva 32 noches
 // haciendo 7 seguidas sin que le pase nada, y por encima de ~10 empiezan los

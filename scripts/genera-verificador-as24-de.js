@@ -54,7 +54,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 
 // Los nodos de Postgres reintentan. Un corte de conexion es pasajero por
 // definicion, y esta base los da: el 2026-09-09 tres verificadores dispararon a

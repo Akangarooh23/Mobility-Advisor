@@ -21,9 +21,14 @@
  * La primera versión de esto decía «42 por reimportar» de 43 workflows, y la
  * respuesta de verdad eran tres:
  *
- *   1. LA CREDENCIAL. El repositorio lleva el id «zoxD0jV8hxZqH0uY», que en
- *      esta máquina no existe; n8n le pone el bueno al importar. Comparar eso
- *      marcaba como distinto TODO lo que escribe en la base.
+ *   1. LA CREDENCIAL. El repositorio llevaba escrito el id «zoxD0jV8hxZqH0uY»,
+ *      que en esta máquina no existe. Se creía que n8n le ponía el bueno al
+ *      importar, y no: desde la versión 2 los nodos entran **sin credencial**,
+ *      corren y no escriben nada. El 23 de septiembre de 2026 se corrigió en
+ *      los 62 ficheros del repositorio, así que hoy llevan el id de verdad
+ *      —«uG6rcC7AqSKyEJOW»—. La comparación la sigue ignorando igual: no es lo
+ *      que hace el workflow, y compararla marcaba como distinto TODO lo que
+ *      escribe en la base.
  *   2. EL «=» DE LAS EXPRESIONES. En el JSON, una expresión se escribe
  *      «={{ $json.sql }}»; n8n la guarda sin el igual.
  *   3. additionalFields -> options, que n8n renombra solo.

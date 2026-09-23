@@ -1,5 +1,6 @@
 {
-  "name": "Mantenimiento – Marcar ofertas activas/inactivas",
+  "id": "J8QosOUwQjgjEiLM",
+  "name": "Mantenimiento – Borrar ofertas por debajo de 2.000 €",
   "nodes": [
     {
       "parameters": {},
@@ -48,7 +49,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
       }

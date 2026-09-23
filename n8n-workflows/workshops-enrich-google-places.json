@@ -1,4 +1,5 @@
 {
+  "id": "oFHMNakKo2Skgbm7",
   "name": "Talleres – Enriquecer con Google Places Details",
   "nodes": [
     {
@@ -48,7 +49,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
       }
@@ -140,7 +141,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
       },

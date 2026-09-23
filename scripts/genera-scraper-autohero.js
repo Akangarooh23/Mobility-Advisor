@@ -9,7 +9,7 @@
  * ── Por qué se rehace ──────────────────────────────────────────────────────
  *
  * Porque no estaba corriendo: en n8n no hay ni un flujo de Autohero. Los dos
- * JSON del repo llevan la credencial «zoxD0jV8hxZqH0uY», que no existe en esta
+ * JSON del repo llevan la credencial «uG6rcC7AqSKyEJOW», que no existe en esta
  * instalación, y nunca llegaron a importarse. El último coche suyo que vimos
  * fue el 2 de septiembre.
  *

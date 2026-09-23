@@ -10,7 +10,7 @@
  *
  * Porque el que había NO ESTABA CORRIENDO. En n8n no hay ni un flujo de
  * CanalCar: los dos JSON que hay en el repo llevan la credencial de Postgres
- * «zoxD0jV8hxZqH0uY», que no existe en esta instalación, y nunca llegaron a
+ * «uG6rcC7AqSKyEJOW», que no existe en esta instalación, y nunca llegaron a
  * importarse. La última vez que vimos un coche de este portal fue el 1 de
  * septiembre; hoy es el 22.
  *
@@ -59,7 +59,7 @@ const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
 // El id de la credencial que EXISTE en n8n. La que traían los JSON viejos de
-// CanalCar («zoxD0jV8hxZqH0uY») no existe, y por eso nunca se importaron.
+// CanalCar («uG6rcC7AqSKyEJOW») no existe, y por eso nunca se importaron.
 const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const ERROR_WF = "9BwKOPMIzjj3owho";

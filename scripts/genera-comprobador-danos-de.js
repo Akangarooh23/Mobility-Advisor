@@ -36,7 +36,7 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-const PG_CRED = { postgres: { id: "zoxD0jV8hxZqH0uY", name: "Postgres account" } };
+const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 // Escribir oferta a oferta aguanta más: el 2026-09-13 el verificador alemán
 // murió con «Connection terminated unexpectedly» teniendo 3 intentos de 5 s.

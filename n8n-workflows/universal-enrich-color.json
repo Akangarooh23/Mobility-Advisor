@@ -1,4 +1,5 @@
 {
+  "id": "rFCUEjnOkgv0YtbJ",
   "name": "Universal – Enriquecer Color (todos los portales)",
   "nodes": [
     {
@@ -48,7 +49,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
       }
@@ -169,7 +170,7 @@
       ],
       "credentials": {
         "postgres": {
-          "id": "zoxD0jV8hxZqH0uY",
+          "id": "uG6rcC7AqSKyEJOW",
           "name": "Postgres account"
         }
       }

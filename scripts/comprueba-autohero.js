@@ -192,6 +192,63 @@ function columna(sql, cols, fila, col) {
                    : "p.ej. " + columna(t.sql, cols, 0, col));
   }
 
+  /*
+   * ── 2b. NADA SE PASA DEL LARGO DE SU COLUMNA ────────────────────────────
+   *
+   * La primera versión se cayó en la sexta llamada: «value too long for type
+   * character varying(120)». Era la ciudad de un coche que está de camino, y
+   * que su API rellena con un aviso de 136 caracteres en inglés y alemán:
+   *
+   *     "Please call us to get further information about the location // ..."
+   *
+   * Un solo valor raro tiró las 100 ofertas del lote, porque el INSERT va
+   * entero o no va. Los límites se leen del esquema de verdad, no de una copia
+   * a mano: si alguien estrecha una columna, esta prueba lo dice antes que
+   * Postgres a las tres de la mañana.
+   */
+  console.log("\n  el largo de cada columna");
+  const cc = new Client({ connectionString: DB_URL, statement_timeout: 300000 });
+  await cc.connect();
+  const limites = {};
+  for (const x of (await cc.query(`SELECT column_name, character_maximum_length len
+    FROM information_schema.columns WHERE table_name='moveadvisor_market_offers'
+      AND character_maximum_length IS NOT NULL`)).rows) {
+    limites[x.column_name] = x.len;
+  }
+  await cc.end();
+  const pasados = [];
+  for (let i = 0; i < t.count; i++) {
+    for (const col of cols) {
+      if (!limites[col]) continue;
+      const v = columna(t.sql, cols, i, col);
+      if (v === "NULL") continue;
+      const limpio = v.replace(/^'|'$/g, "").split("''").join("'");
+      if (limpio.length > limites[col]) {
+        pasados.push(col + " (" + limites[col] + ") con " + limpio.length + ": " + limpio.slice(0, 50));
+      }
+    }
+  }
+  comprueba("ningún valor se pasa del largo de su columna", pasados.length === 0,
+    pasados.length ? pasados[0] : "comprobadas " + Object.keys(limites).length + " columnas");
+
+  // Y el caso concreto que lo rompió: una ciudad que no es una ciudad.
+  const conAviso = JSON.parse(JSON.stringify(res1));
+  conAviso.body.data.searchAdV9AdsV2.data = [Object.assign({}, cars[0], {
+    esBranch: { branchId: 2008, name: "Im Transport", zipcode: "-", street: "-",
+      city: "Please call us to get further information about the location // "
+        + "Bitte rufen Sie uns an, um nähere Informationen zum Standort zu erhalten" },
+  })];
+  const ta = transforma(conAviso);
+  const colsA = (() => {
+    const a = ta.sql.indexOf("(") + 1;
+    return ta.sql.slice(a, ta.sql.indexOf(")")).split(",").map((x) => x.trim());
+  })();
+  comprueba("un aviso de 136 caracteres no entra como ciudad",
+    columna(ta.sql, colsA, 0, "city") === "''", columna(ta.sql, colsA, 0, "city"));
+  comprueba("y de un código postal «-» no sale provincia",
+    columna(ta.sql, colsA, 0, "province") === "''");
+  comprueba("pero el coche NO se pierde: la fila sale igual", ta.count === 1);
+
   // ── 3. El código desconocido ─────────────────────────────────────────────
   console.log("\n  un código de combustible que no conocemos");
   const inventado = JSON.parse(JSON.stringify(res1));

@@ -11,8 +11,39 @@ const nodo = ((raiz || {}).data || {}).searchAdV9AdsV2 || {};
 const cars = nodo.data || [];
 if (!cars.length) return [{ json: { sql: null, count: 0, total: nodo.total || 0 } }];
 
-function txt(v) {
-  return "'" + String(v === null || v === undefined ? '' : v).replace(/'/g, "''") + "'";
+/*
+ * EL LARGO DE CADA COLUMNA, Y POR QUÉ ESTÁ AQUÍ.
+ *
+ * El primer intento de este scraper se cayó en la sexta llamada con «value too
+ * long for type character varying(120)». El culpable: un coche cuya ciudad,
+ * según su API, es
+ *
+ *     "Please call us to get further information about the location //
+ *      Bitte rufen Sie uns an, um nähere Informationen zum Standort zu erhalten"
+ *
+ * 136 caracteres en una columna de 120. Son los 52 coches que tienen como
+ * sede «Im Transport»: están de camino y ahí ponen ese aviso en vez de una
+ * ciudad.
+ *
+ * Lo grave no es el aviso, es que UN valor raro tiró las 100 ofertas del lote:
+ * el INSERT va entero o no va. Recortando cada texto a lo que su columna
+ * aguanta, el peor caso pasa a ser un dato feo en una fila, no cien filas
+ * perdidas.
+ *
+ * Los números salen del esquema (information_schema.columns), no de memoria.
+ */
+const LARGO = {
+  country: 2, id: 40, listing_type: 40, co2: 50, displacement: 50,
+  environmental_label: 50, fuel: 60, portal: 60, transmission: 60,
+  body_type: 80, color: 80, seller_type: 80, brand: 100, traction: 100,
+  city: 120, model: 120, province: 120, location: 160, version: 180,
+  dealer_name: 200, title: 500, url: 1024, image_url: 2000,
+};
+function txt(v, columna) {
+  let s = String(v === null || v === undefined ? '' : v);
+  const max = LARGO[columna];
+  if (max && s.length > max) s = s.slice(0, max);
+  return "'" + s.replace(/'/g, "''") + "'";
 }
 function num(v) {
   if (v === null || v === undefined || v === '') return 'NULL';
@@ -110,6 +141,25 @@ function provinciaDe(cp) {
   return (n >= 1 && n <= 52) ? CP[n] : '';
 }
 
+/*
+ * NO TODO LO QUE VIENE EN 'city' ES UNA CIUDAD.
+ *
+ * 52 coches están «Im Transport» -de camino- y ahí ponen un aviso de 136
+ * caracteres en inglés y alemán. Otros 2 ponen un guion. Guardar eso como
+ * ciudad es peor que no guardar nada: sale en pantalla y no se puede filtrar
+ * por ello.
+ *
+ * El criterio es tonto a propósito: una ciudad española no tiene 60
+ * caracteres ni lleva «//» dentro. Si no parece una ciudad, se deja vacío y el
+ * UPSERT conserva lo que hubiera.
+ */
+function pareceCiudad(v) {
+  const s = String(v || '').trim();
+  if (s.length < 2 || s.length > 60) return '';
+  if (s.indexOf('//') !== -1) return '';
+  return s;
+}
+
 const vistos = new Set();
 const rows = [];
 for (const car of cars) {
@@ -137,7 +187,7 @@ for (const car of cars) {
   const model = String(car.model || '').trim();
   const version = [car.subType, car.subTypeExtra]
     .map((x) => String(x === null || x === undefined ? '' : x).trim())
-    .filter((x) => x && x !== 'null').join(' ').trim().slice(0, 120);
+    .filter((x) => x && x !== 'null').join(' ').trim();
   if (!brand) continue;
   const titulo = (brand + ' ' + model + ' ' + version).split(/\s+/).join(' ').trim();
 
@@ -171,7 +221,9 @@ for (const car of cars) {
   const plazas = Number(car.seatCount) > 0 ? Math.round(Number(car.seatCount)) : null;
 
   const sede = car.esBranch || {};
-  const ciudad = String(sede.city || '').trim();
+  const ciudad = pareceCiudad(sede.city);
+  // El código postal de los que van de camino es «-» o «00000», y de ahí no
+  // sale ninguna provincia.
   const provincia = provinciaDe(sede.zipcode);
   const concesionario = String(sede.name || '').trim();
 
@@ -183,17 +235,20 @@ for (const car of cars) {
   const imagenes = imagen ? JSON.stringify([imagen]) : '[]';
 
   const row = '(' +
-    txt(id) + ", 'autohero', " + txt(url) + ', ' + txt(titulo) + ', ' +
-    txt(brand) + ', ' + txt(model) + ', ' + txt(version) + ', ' +
+    txt(id, 'id') + ", 'autohero', " + txt(url, 'url') + ', ' + txt(titulo, 'title') + ', ' +
+    txt(brand, 'brand') + ', ' + txt(model, 'model') + ', ' + txt(version, 'version') + ', ' +
     num(anio) + ', ' + num(km) + ', ' + precio + ', ' +
-    txt(fuel) + ', ' + txt(cambio) + ', ' +
+    txt(fuel, 'fuel') + ', ' + txt(cambio, 'transmission') + ', ' +
     num(cv) + ', ' + num(kw) + ', ' +
-    txt(cc === null ? '' : cc) + ', ' + txt(co2 === null ? '' : co2) + ', ' + num(consumo) + ', ' +
-    txt(trac) + ', ' + txt(etiqueta) + ', ' +
-    txt(color) + ', ' + txt(carroceria) + ', ' + num(puertas) + ', ' + num(plazas) + ', ' +
-    txt(provincia) + ', ' + txt(ciudad) + ', ' + txt(concesionario) + ', ' +
-    txt([ciudad, provincia].filter(Boolean).join(', ')) + ', ' +
-    txt(imagen) + ', ' + txt(imagenes) + ', ' +
+    txt(cc === null ? '' : cc, 'displacement') + ', ' +
+    txt(co2 === null ? '' : co2, 'co2') + ', ' + num(consumo) + ', ' +
+    txt(trac, 'traction') + ', ' + txt(etiqueta, 'environmental_label') + ', ' +
+    txt(color, 'color') + ', ' + txt(carroceria, 'body_type') + ', ' +
+    num(puertas) + ', ' + num(plazas) + ', ' +
+    txt(provincia, 'province') + ', ' + txt(ciudad, 'city') + ', ' +
+    txt(concesionario, 'dealer_name') + ', ' +
+    txt([ciudad, provincia].filter(Boolean).join(', '), 'location') + ', ' +
+    txt(imagen, 'image_url') + ', ' + txt(imagenes) + ', ' +
     "'profesional', 'compra', 'ES', " + num(financiado) + ', ' + num(cuota) +
     ', NOW(), NOW(), NOW()' +
   ')';

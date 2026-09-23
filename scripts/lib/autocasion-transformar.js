@@ -30,7 +30,32 @@ for (const it of items) {
   const idf = car.identifier || (off.url ? (String(off.url).match(/ref(\d+)/) || [])[1] : null);
   if (!idf) continue;
   const id = 'ac_' + String(idf);
-  const url = off.url || '';
+  /*
+   * Si `off.url` no trae la ficha del coche, se construye a partir del id.
+   *
+   * Guardar lo que venga dejaba dentro la url del LISTADO
+   * -.../peugeot-2008-ocasion/madrid, 300 filas con la misma-, y el
+   * verificador solo mira las urls que acaban en refNNNNNN. Hace bien: pedir
+   * una pagina de busqueda devuelve 200 siempre y las daria por vivas
+   * eternamente. Pero eso las dejaba fuera de la cola PARA SIEMPRE: el
+   * 23-sep-2026 habia 35.324 asi, vivas el 100 % y con 58 dias de mediana sin
+   * que nadie las mirara.
+   *
+   * Se puede reconstruir porque el id ES el ref -comprobado en las 156.583
+   * filas con url buena, sin una excepcion- y porque Autocasion resuelve por
+   * el ref e ignora el resto de la ruta:
+   *
+   *     .../x-ocasion/x-ref20387515   301 -> la ficha de verdad
+   *     .../coches-segunda-mano/ref20387515   404   (hace falta la forma de dos tramos)
+   *
+   * El slug de relleno no se queda: el verificador ve el 301 con el ref, lo
+   * trata como cambio de slug y guarda la url canonica.
+   */
+  const urlCruda = String(off.url || '');
+  const url = /ref[0-9]{6,}$/.test(urlCruda) ? urlCruda
+    : (/^[0-9]{6,}$/.test(String(idf))
+        ? 'https://www.autocasion.com/coches-segunda-mano/x-ocasion/x-ref' + String(idf)
+        : urlCruda);
   const brand = (it.brand && it.brand.name) || car.manufacturer || '';
   const model = car.model || '';
   const title = it.name || car.name || (brand + ' ' + model).trim();

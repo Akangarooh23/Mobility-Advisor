@@ -111,6 +111,7 @@
     "test:canalcar": "node scripts/comprueba-canalcar.js",
     "test:canalcar-enrich": "node scripts/comprueba-canalcar-enrich.js",
     "test:canalcar-verify": "node scripts/comprueba-canalcar-verify.js",
+    "limpia-con-volcado": "node scripts/limpia-con-volcado.js",
     "carga-volcado-cochesnet": "node scripts/carga-volcado-cochesnet.js",
     "arregla-cuota-flexicar": "node scripts/arregla-cuota-flexicar.js",
     "arregla-toda-espania": "node scripts/arregla-toda-espania.js",

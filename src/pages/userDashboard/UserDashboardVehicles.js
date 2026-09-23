@@ -26,6 +26,7 @@ import {
 import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
 import ElLugar from "../../components/LugarDeLaVisita";
+import { loQueDiceLaVersion } from "../../utils/loQueDiceLaVersion";
 import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditionReport";
 import ConditionReportError from "../../components/ConditionReportError";
 import ConditionReportAction from "../../components/ConditionReportAction";
@@ -1840,6 +1841,26 @@ export default function UserDashboardVehicles({
                   onChange={(event) => {
                     const codversion = event.target.value;
                     updateVehicleForm("version", codversion);
+
+                    /*
+                     * Lo que la etiqueta de la versión ya dice, antes de pedir nada.
+                     *
+                     * Esta pantalla pedía los datos de la versión al catálogo para
+                     * rellenarlos sola, y el catálogo **no los tiene**: de sus 16.809
+                     * versiones, cero traen escritas la potencia, el CO2 o el cambio.
+                     * Así que no se rellenaba nada y el cliente lo escribía a mano —
+                     * en el T-Roc puso «110 CV» leyendo «110kW», que son 150, y
+                     * «Manual» en un DSG.
+                     *
+                     * La etiqueta lo lleva dentro: «R-Line 1.5 TSI 110kW (150CV) DSG».
+                     * Solo se pone lo que dice; lo que calla se queda como estaba, que
+                     * pisar con un vacío es el mismo fallo al revés.
+                     */
+                    const etiqueta = (erpVersions.find((v) => v.codversion === codversion) || {}).label || "";
+                    for (const [campo, valor] of Object.entries(loQueDiceLaVersion(etiqueta))) {
+                      updateVehicleForm(campo, valor);
+                    }
+
                     if (codversion) {
                       getErpVersionDetailJson(codversion)
                         .then((r) => r.json())

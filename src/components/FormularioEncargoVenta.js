@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { PLAZOS, faltaParaMandarlo, loQueSeManda, loQueLeQueda, GUIA, elAlta, elCocheQueDijo } from "../utils/encargoDeVentaWeb";
 import { getGarageVehiclesJson, rutaApi } from "../utils/apiClient";
+import { laDeEsteCoche, laMasRecienteViva, cuandoLaPidio, porDondeVa } from "../utils/yaLoPidio";
 
 /**
  * El formulario de «Nosotros lo vendemos por ti».
@@ -37,7 +38,7 @@ import { getGarageVehiclesJson, rutaApi } from "../utils/apiClient";
  * ERP, son seis, y no se han tocado: sin ellas el servidor no deja sacar el
  * anuncio, ni aquí ni en coches.net.
  */
-export default function FormularioEncargoVenta({ userEmail = "" }) {
+export default function FormularioEncargoVenta({ userEmail = "", solicitudes = [], onVerSolicitudes = null }) {
   const [datos, setDatos] = useState({
     coche: "", matricula: "", plazo: "", nombre: "", telefono: "", email: "",
     vehicleId: "",
@@ -79,6 +80,10 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
   };
 
   async function manda() {
+    // Si este coche ya está pedido, no se manda aunque se llegue aquí: el
+    // botón está apagado, pero esto no depende de que nadie lo mire.
+    if (laDeEsteCoche(solicitudes, { vehicleId: datos.vehicleId, matricula: datos.matricula })) return;
+
     const falta = faltaParaMandarlo(datos);
     if (falta) { setFallo(falta); return; }
 
@@ -166,8 +171,45 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
    */
   const tieneCoches = haySesion && Array.isArray(misCoches) && misCoches.length > 0;
 
+  /*
+   * Lo que ya nos pidió.
+   *
+   * Sin esto la página no se acordaba de nada: quien volvía la encontraba vacía
+   * igual que la primera vez y lo pedía otra vez, que es exactamente lo que
+   * pasó. El servidor ya no lo apunta dos veces, pero llegar hasta ahí significa
+   * que él creyó que no había pasado nada.
+   *
+   * Solo se sabe de quien ha entrado: las solicitudes vienen de su panel. A
+   * quien pide desde fuera no se le puede decir nada sin preguntar por un
+   * correo que no es suyo, así que ahí la red del servidor es lo único que hay
+   * —y basta, porque también a él se le contesta que está recibida.
+   */
+  const yaPedida = laDeEsteCoche(solicitudes, {
+    vehicleId: datos.vehicleId,
+    matricula: datos.matricula,
+  });
+  // La de otro coche solo se nombra; no bloquea nada.
+  const otraViva = yaPedida ? null : laMasRecienteViva(solicitudes);
+
+  const verSolicitudes = typeof onVerSolicitudes === "function"
+    ? (
+      <button type="button" className="fev-ya-enlace" onClick={onVerSolicitudes}>
+        Ver mis solicitudes
+      </button>
+    )
+    : null;
+
   return (
     <div className="fev-caja">
+      {otraViva && (
+        <div className="fev-ya fev-ya-suave">
+          <p className="fev-ya-texto">
+            Ya nos pediste vender tu <strong>{otraViva.title || "coche"}</strong>
+            {cuandoLaPidio(otraViva) && <> el {cuandoLaPidio(otraViva)}</>}. Si es
+            ese mismo coche no hace falta que lo pidas otra vez. {verSolicitudes}
+          </p>
+        </div>
+      )}
       <div className="fev-campo">
         {/*
           * La etiqueta apunta al control que de verdad se pinta.
@@ -252,7 +294,26 @@ export default function FormularioEncargoVenta({ userEmail = "" }) {
 
         {fallo && <div className="fev-fallo">{fallo}</div>}
 
-        <button className="fev-boton" type="button" onClick={manda} disabled={enviando}>
+        {/*
+          * Este coche ya nos lo pidió.
+          *
+          * Se le dice aquí, pegado al botón, y no solo arriba: para cuando
+          * llega abajo ya ha rellenado el teléfono y el correo, y un aviso que
+          * vio hace dos campos no le para. Se le cuenta por dónde va, que es lo
+          * que venía a saber cuando volvió a la página.
+          */}
+        {yaPedida && (
+          <div className="fev-ya">
+            <div className="fev-ya-titulo">Esto ya nos lo has pedido</div>
+            <p className="fev-ya-texto">
+              Nos pediste vender este coche
+              {cuandoLaPidio(yaPedida) && <> el {cuandoLaPidio(yaPedida)}</>}.{" "}
+              {porDondeVa(yaPedida)} Pedirlo otra vez no lo adelanta. {verSolicitudes}
+            </p>
+          </div>
+        )}
+
+        <button className="fev-boton" type="button" onClick={manda} disabled={enviando || Boolean(yaPedida)}>
           {enviando ? "Enviando…" : "Quiero vender mi coche"}
           <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
         </button>

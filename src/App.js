@@ -7308,6 +7308,12 @@ export default function App() {
           sellMarketSnapshotLoading={sellMarketSnapshotLoading}
           sellMarketSnapshotError={sellMarketSnapshotError}
           formatCurrency={formatCurrency}
+          /*
+           * Lo que ya nos ha pedido, para que el formulario de «lo vendemos por
+           * ti» no le deje pedir dos veces lo mismo sin enterarse.
+           */
+          solicitudes={userSolicitudes}
+          onVerSolicitudes={() => navigateToUserDashboardPage("solicitudes")}
           onRestart={restart}
           onOpenContact={() => {
             // Viene de «Nosotros lo vendemos por ti»: a qué viene ya lo ha

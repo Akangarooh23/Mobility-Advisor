@@ -32,6 +32,8 @@ export default function SellPage({
   onSwitchToCertificate,
   onGoToBuyKnownModel,
   currentUserEmail,
+  solicitudes,
+  onVerSolicitudes,
 }) {
   const { t } = useTranslation();
   const text = {
@@ -139,6 +141,8 @@ export default function SellPage({
     return (
       <SellProfessionalAssistPage
         userEmail={currentUserEmail}
+        solicitudes={solicitudes}
+        onVerSolicitudes={onVerSolicitudes}
         onGoBack={onGoBack}
         onGoHome={onRestart}
         onStartRequest={onOpenContact}

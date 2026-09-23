@@ -154,7 +154,7 @@ const TRATO = [
   },
 ];
 
-export default function SellProfessionalAssistPage({ onGoBack, onGoHome, userEmail = "" }) {
+export default function SellProfessionalAssistPage({ onGoBack, onGoHome, userEmail = "", solicitudes = [], onVerSolicitudes = null }) {
   const formulario = useRef(null);
 
   const alFormulario = () => {
@@ -272,7 +272,7 @@ export default function SellProfessionalAssistPage({ onGoBack, onGoHome, userEma
             decirte a qué precio se está vendiendo y cómo lo haríamos.
           </p>
 
-          <FormularioEncargoVenta userEmail={userEmail} />
+          <FormularioEncargoVenta userEmail={userEmail} solicitudes={solicitudes} onVerSolicitudes={onVerSolicitudes} />
 
           <button className="vpt-volver-inicio" type="button" onClick={onGoHome}>
             Volver al inicio

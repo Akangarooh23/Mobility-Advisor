@@ -503,3 +503,42 @@
   text-underline-offset: 3px;
 }
 .vpt-root .fev-hecho-guia:hover { opacity: 0.7; }
+
+/* ── «Esto ya nos lo has pedido» ───────────────────────────────────────── */
+/*
+ * Avisa, no alarma. El fallo de validación es rojo porque algo está mal; esto
+ * no lo está: su solicitud existe y va por donde tiene que ir. Por eso el
+ * amarillo de la marca en el borde y el texto en negro sobre claro, que es
+ * donde se lee — el amarillo de fondo con letra oscura encima ya nos dejó una
+ * barra ilegible en otra pantalla.
+ */
+.vpt-root .fev-ya {
+  background: var(--gris-100);
+  border-left: 3px solid var(--acento);
+  border-radius: 10px;
+  padding: 11px 13px;
+}
+.vpt-root .fev-ya-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gris-900);
+  margin-bottom: 3px;
+}
+.vpt-root .fev-ya-texto {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--gris-700);
+  margin: 0;
+}
+.vpt-root .fev-ya-suave { background: transparent; border-left-color: var(--gris-200); }
+.vpt-root .fev-ya-enlace {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--gris-900);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

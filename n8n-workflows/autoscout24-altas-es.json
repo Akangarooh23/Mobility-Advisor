@@ -1,0 +1,591 @@
+{
+  "id": "AltasAS24ES0001x",
+  "name": "AutoScout24 ES – Altas nuevas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "aa-manual",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -820,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 11,12,19 * * *"
+            }
+          ]
+        }
+      },
+      "id": "aa-cron",
+      "name": "3 veces/día (11:30, 12:30 y 19:30)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -820,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Por dónde iba la última pasada de altas, sembrando la fila si no existe.\n--\n-- En Postgres y no en $getWorkflowStaticData: la memoria del workflow se\n-- reinicia al reimportar, y entonces tres reimportaciones seguidas repiten las\n-- mismas quince marcas y las otras treinta no se miran.\n--\n-- La clave es distinta de la del barrido gradual a propósito: son dos rondas\n-- independientes y compartir cursor haría que una arrastrara a la otra.\n--\n-- Va como INSERT y no como SELECT porque la fila 'as24_es_altas' no existe\n-- todavía, y un SELECT sin resultados devuelve CERO items: en n8n un nodo sin\n-- items de entrada no se ejecuta, así que el flujo se pararía aquí mismo, en\n-- verde y sin un solo error.\n--\n-- El DO UPDATE es un no-op -reescribe la clave consigo misma- y está solo para\n-- que el RETURNING dispare también cuando la fila YA existe; con DO NOTHING no\n-- devolvería nada y tendríamos el mismo problema a partir de la segunda\n-- pasada. El valor no se toca.\nINSERT INTO moveadvisor_cursores (clave, valor) VALUES ('as24_es_altas', 0)\nON CONFLICT (clave) DO UPDATE SET clave = EXCLUDED.clave\nRETURNING valor::int AS cursor",
+        "options": {}
+      },
+      "id": "aa-cursor",
+      "name": "PG: Por dónde íbamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Las marcas de esta pasada, y la petición de conteo de cada una.\n//\n// Los ids son los mismos que usa el barrido gradual: son los de AutoScout24,\n// no los nuestros.\nconst makes = [9,13,47,74,64,60,55,21,54,29,70,39,33,52,28,16360,65,73,46,31,16338,51802,38,15641,43,68,50,6,16415,37,57,51520,15525,67,66,48,19,20,16396,45,27,42,16355,35,14882];\nconst MARCAS_POR_PASADA = 15;\n\nconst fila = $('PG: Por dónde íbamos').first().json || {};\nlet cursor = Number(fila.cursor);\nif (!Number.isFinite(cursor) || cursor < 0 || cursor >= makes.length) cursor = 0;\n\nconst siguiente = (cursor + MARCAS_POR_PASADA) % makes.length;\n// Se apunta ANTES de pedir nada: si la pasada se cae a la mitad, la siguiente\n// avanza en vez de repetir lo mismo.\nconst sqlCursor = \"UPDATE moveadvisor_cursores SET valor = \" + siguiente\n  + \", actualizado = NOW() WHERE clave = 'as24_es_altas'\";\n\nconst out = [];\nfor (let m = 0; m < MARCAS_POR_PASADA; m++) {\n  const mk = makes[(cursor + m) % makes.length];\n  // page 1 sirve de conteo Y de primera página de datos: no se desperdicia.\n  out.push({ json: { mk: mk, page: 1, sqlCursor: sqlCursor } });\n}\nconsole.log('[as24-altas] marcas ' + cursor + '..' + (cursor + MARCAS_POR_PASADA - 1)\n  + ' de ' + makes.length + '. La próxima empieza en la ' + siguiente + '.');\nreturn out;"
+      },
+      "id": "aa-marcas",
+      "name": "Code: Marcas de esta pasada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sqlCursor }}",
+        "options": {}
+      },
+      "id": "aa-apunta",
+      "name": "PG: Apuntar dónde nos quedamos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        140
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "aa-loop-marca",
+      "name": "Loop: marca por marca",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -20,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.autoscout24.es/lst?atype=C&ustate=N,U&sort=age&desc=1&cy=E&powertype=kw&mmvmk0={{ $json.mk }}&page={{ $json.page }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 45000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "aa-http1",
+      "name": "HTTP: Página 1 de la marca",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        220,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AutoScout24 España: del HTML del listado a un UPSERT.\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet listings = [];\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) { listings = JSON.parse(m[1]).props.pageProps.listings || []; }\n} catch (e) { listings = []; }\n\nif (!listings.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('electro/gasolina') !== -1 || s.indexOf('electro/di') !== -1 || (s.indexOf('electro') !== -1 && s.indexOf('/') !== -1)) return 'Híbrido';\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('eléctrico') !== -1 || s.indexOf('electrico') !== -1 || s === 'electro') return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas ') !== -1 || s.indexOf('gas licuado') !== -1 || s.indexOf('gas natural') !== -1) return 'Gas';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return 'Híbrido';\n  return raw || '';\n}\nfunction normalizeGear(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(s) { const n = parseInt(String(s).replace(/[^\\d]/g, ''), 10); return isNaN(n) ? null : n; }\n\nconst rows = [];\nfor (const it of listings) {\n  const v = it.vehicle || {};\n  const id = 'as_' + String(it.id || it.identifier || '');\n  if (id === 'as_') continue;\n  const url = it.url ? ('https://www.autoscout24.es' + it.url) : '';\n  const brand = v.make || '';\n  const model = v.model || '';\n  const version = v.modelVersionInput || v.variant || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const price = (it.price && it.price.priceRaw != null) ? String(it.price.priceRaw) : 'NULL';\n  const mileage = (num(v.mileageInKm) != null) ? String(num(v.mileageInKm)) : 'NULL';\n  const fuel = normalizeFuel(v.fuel);\n  const transmission = normalizeGear(v.transmission);\n\n  // año y potencia salen de vehicleDetails, que es una lista de etiquetas.\n  let year = 'NULL', powerCv = null, powerKw = null;\n  const det = Array.isArray(it.vehicleDetails) ? it.vehicleDetails : [];\n  for (const d of det) {\n    const lab = String(d.ariaLabel || '').toLowerCase();\n    const val = String(d.data || '');\n    if (lab.indexOf('año') !== -1 || lab.indexOf('ano') !== -1) { const y = (val.match(/(\\d{4})/) || [])[1]; if (y) year = y; }\n    if (lab.indexOf('potencia') !== -1) {\n      const kw = (val.match(/(\\d+)\\s*kW/i) || [])[1];\n      const cv = (val.match(/(\\d+)\\s*CV/i) || [])[1];\n      if (kw) powerKw = parseInt(kw, 10);\n      if (cv) powerCv = parseInt(cv, 10);\n    }\n  }\n  if (powerCv == null && powerKw != null) powerCv = Math.round(powerKw * 1.35962);\n  if (powerKw == null && powerCv != null) powerKw = Math.round(powerCv / 1.35962);\n\n  let displacement = null;\n  { const cc = parseInt(String(v.engineDisplacementInCCM || '').replace(/[^\\d]/g, ''), 10);\n    if (!isNaN(cc) && cc > 0) displacement = cc; }\n\n  const imgsArr = Array.isArray(it.images) ? it.images.filter(Boolean).slice(0, 15) : [];\n  const imageUrl = imgsArr[0] || '';\n  const imagesJson = JSON.stringify(imgsArr).replace(/'/g, \"''\");\n  const loc = it.location || {};\n  const city = loc.city || '';\n  const seller = it.seller || {};\n  const dealerName = seller.companyName || '';\n  const sellerType = (seller.type === 'Dealer' || (seller.dealer)) ? 'profesional' : 'particular';\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n\n  // El color sale del slug de la URL: ~98% fiable y sin una petición extra.\n  let color = '';\n  { const CMAP = {blanco:'Blanco',negro:'Negro',gris:'Gris',antracita:'Gris',plata:'Plata',plateado:'Plata',azul:'Azul',rojo:'Rojo',verde:'Verde',amarillo:'Amarillo',naranja:'Naranja',marron:'Marrón',beige:'Beige',dorado:'Dorado',granate:'Granate',burdeos:'Granate',morado:'Morado',violeta:'Morado',rosa:'Rosa',cobre:'Cobre',bronce:'Bronce'};\n    const slug = String(it.url || '').replace(/-cat_.*$/, '').split('/').pop();\n    const toks = slug.split('-');\n    for (let i = toks.length - 1; i >= 0; i--) { if (CMAP[toks[i]]) { color = CMAP[toks[i]]; break; } } }\n\n  const row = '(' +\n    esc(id) + \", 'autoscout24', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    year + ', ' + mileage + ', ' + price + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(city) + ', ' + esc(city) + ', ' + esc(city) + ', ' +\n    esc(dealerName) + \", '\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') + ', ' +\n    (displacement !== null ? String(displacement) : 'NULL') + ', ' + esc(color) + \", '\" + rawPayload + \"', \" +\n    \"'ES', NOW(), NOW(), NOW(), \" + price +\n  ')';\n  rows.push(row);\n}\n\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, '\n  + 'image_url, images, city, province, location, dealer_name, seller_type, listing_type, '\n  + 'power_cv, power_kw, displacement, color, raw_payload, country, first_seen_at, scraped_at, last_seen_at, finance_price';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET '\n  + 'url = EXCLUDED.url, title = EXCLUDED.title, '\n  // El precio NO se pisa si la fila ya tiene un precio al contado corregido.\n  // Se reconoce porque finance_price está puesto y es distinto de price.\n  + 'price = CASE WHEN moveadvisor_market_offers.finance_price IS NOT NULL '\n  + 'AND moveadvisor_market_offers.finance_price IS DISTINCT FROM moveadvisor_market_offers.price '\n  + 'AND moveadvisor_market_offers.finance_price = EXCLUDED.finance_price '\n  + 'THEN moveadvisor_market_offers.price ELSE EXCLUDED.price END, '\n  + 'finance_price = EXCLUDED.finance_price, '\n  + 'mileage = EXCLUDED.mileage, '\n  + \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \"\n  + \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \"\n  + 'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), '\n  + 'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), '\n  + 'displacement = COALESCE(EXCLUDED.displacement, moveadvisor_market_offers.displacement), '\n  // Dos comillas, no cuatro: con '''' se comparaba contra la cadena «''», de\n  // dos caracteres, y un color vacío no se rellenaba jamás.\n  + \"color = COALESCE(NULLIF(moveadvisor_market_offers.color,''), EXCLUDED.color), \"\n  + 'country = EXCLUDED.country, '\n  // Volver a verla es señal de que sigue viva: sin esto el verificador la daría\n  // por muerta aunque el listado la acabe de enseñar.\n  + 'is_active = TRUE, last_checked_at = NOW(), '\n  + 'raw_payload = EXCLUDED.raw_payload, last_seen_at = NOW(), updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];"
+      },
+      "id": "aa-transf1",
+      "name": "Code: Transformar la página 1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aa-c-sql1",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "aa-if1",
+      "name": "IF: ¿hay ofertas? (1)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "aa-pg1",
+      "name": "PG: Upsert de la página 1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        840,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cuántas páginas pedirle a ESTA marca, a partir de lo grande que sea.\nconst seg = $('Loop: marca por marca').first().json;\nconst res = $input.first().json;\n// Con responseFormat 'text' + fullResponse, n8n deja el cuerpo en 'data', no\n// en 'body'. Mirar solo 'body' dejó 4.484 ofertas de Wallapop sin clasificar.\nconst html = String(res.data || res.body || '');\n\nlet resultados = 0;\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) {\n    const pp = JSON.parse(m[1]).props.pageProps;\n    resultados = Number(pp.numberOfResults || 0);\n  }\n} catch (e) { resultados = 0; }\n\n/*\n * Ojo con devolver [] cuando no hay resultados: el bucle de páginas no se\n * ejecutaría, su salida «terminado» no dispararía, y el bucle de MARCAS no\n * volvería a arrancar nunca. Una marca que fallara se llevaría por delante a\n * las catorce siguientes, y la ejecución acabaría en verde habiendo hecho una\n * de quince.\n *\n * Así que si no hay resultados legibles -página caída, bloqueo, HTML\n * cambiado- se sigue con el mínimo de páginas. Cuesta una petición de más y\n * mantiene viva la cadena.\n */\nif (!resultados) console.log('[as24-altas] marca ' + seg.mk + ': sin resultados legibles');\n\n/*\n * Una página por cada 800 ofertas de la marca.\n *\n * El portal recibe unas 5.700 altas al día repartidas más o menos en\n * proporción a lo grande que es cada marca, así que pedir en proporción al\n * tamaño es pedir en proporción a las altas.\n *\n * El techo de 30 está para que una marca enorme no se lleve la pasada entera,\n * y el suelo de 2 para que una pequeña no se quede sin su segunda página el día\n * que le entren veinticinco coches de golpe.\n */\nlet paginas = Math.ceil(resultados / 800);\nif (paginas < 2) paginas = 2;\nif (paginas > 30) paginas = 30;\n\nconst out = [];\n// Desde la 2: la 1 ya la tenemos y se transforma aparte.\nfor (let p = 2; p <= paginas; p++) out.push({ json: { mk: seg.mk, page: p } });\nconsole.log('[as24-altas] marca ' + seg.mk + ': ' + resultados + ' ofertas -> '\n  + paginas + ' páginas');\nreturn out;"
+      },
+      "id": "aa-paginas",
+      "name": "Code: Cuántas páginas más",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "aa-loop-pag",
+      "name": "Loop: página por página",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://www.autoscout24.es/lst?atype=C&ustate=N,U&sort=age&desc=1&cy=E&powertype=kw&mmvmk0={{ $json.mk }}&page={{ $json.page }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "es-ES,es;q=0.9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 45000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true
+            }
+          }
+        }
+      },
+      "id": "aa-http",
+      "name": "HTTP: Resto de páginas",
+      "onError": "continueRegularOutput",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        880,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// AutoScout24 España: del HTML del listado a un UPSERT.\nconst httpOut = $input.item.json;\nconst html = typeof httpOut === 'string' ? httpOut : String(httpOut.data || httpOut.body || '');\n\nlet listings = [];\ntry {\n  const m = html.match(/<script id=\"__NEXT_DATA__\" type=\"application\\/json\">([\\s\\S]*?)<\\/script>/);\n  if (m) { listings = JSON.parse(m[1]).props.pageProps.listings || []; }\n} catch (e) { listings = []; }\n\nif (!listings.length) return [{ json: { sql: null, count: 0 } }];\n\nfunction normalizeFuel(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('electro/gasolina') !== -1 || s.indexOf('electro/di') !== -1 || (s.indexOf('electro') !== -1 && s.indexOf('/') !== -1)) return 'Híbrido';\n  if (s.indexOf('diesel') !== -1 || s.indexOf('diésel') !== -1) return 'Diesel';\n  if (s.indexOf('eléctrico') !== -1 || s.indexOf('electrico') !== -1 || s === 'electro') return 'Eléctrico';\n  if (s.indexOf('gasolina') !== -1) return 'Gasolina';\n  if (s.indexOf('glp') !== -1 || s.indexOf('gnc') !== -1 || s.indexOf('gas ') !== -1 || s.indexOf('gas licuado') !== -1 || s.indexOf('gas natural') !== -1) return 'Gas';\n  if (s.indexOf('híbrido') !== -1 || s.indexOf('hibrido') !== -1) return 'Híbrido';\n  return raw || '';\n}\nfunction normalizeGear(raw) {\n  const s = String(raw || '').toLowerCase();\n  if (s.indexOf('autom') !== -1) return 'Automatica';\n  if (s.indexOf('manual') !== -1) return 'Manual';\n  return '';\n}\nfunction esc(v) {\n  if (v === null || v === undefined) return 'NULL';\n  if (typeof v === 'number') return isNaN(v) ? 'NULL' : String(v);\n  return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n}\nfunction num(s) { const n = parseInt(String(s).replace(/[^\\d]/g, ''), 10); return isNaN(n) ? null : n; }\n\nconst rows = [];\nfor (const it of listings) {\n  const v = it.vehicle || {};\n  const id = 'as_' + String(it.id || it.identifier || '');\n  if (id === 'as_') continue;\n  const url = it.url ? ('https://www.autoscout24.es' + it.url) : '';\n  const brand = v.make || '';\n  const model = v.model || '';\n  const version = v.modelVersionInput || v.variant || '';\n  const title = (brand + ' ' + model + ' ' + version).replace(/\\s+/g, ' ').trim();\n  const price = (it.price && it.price.priceRaw != null) ? String(it.price.priceRaw) : 'NULL';\n  const mileage = (num(v.mileageInKm) != null) ? String(num(v.mileageInKm)) : 'NULL';\n  const fuel = normalizeFuel(v.fuel);\n  const transmission = normalizeGear(v.transmission);\n\n  // año y potencia salen de vehicleDetails, que es una lista de etiquetas.\n  let year = 'NULL', powerCv = null, powerKw = null;\n  const det = Array.isArray(it.vehicleDetails) ? it.vehicleDetails : [];\n  for (const d of det) {\n    const lab = String(d.ariaLabel || '').toLowerCase();\n    const val = String(d.data || '');\n    if (lab.indexOf('año') !== -1 || lab.indexOf('ano') !== -1) { const y = (val.match(/(\\d{4})/) || [])[1]; if (y) year = y; }\n    if (lab.indexOf('potencia') !== -1) {\n      const kw = (val.match(/(\\d+)\\s*kW/i) || [])[1];\n      const cv = (val.match(/(\\d+)\\s*CV/i) || [])[1];\n      if (kw) powerKw = parseInt(kw, 10);\n      if (cv) powerCv = parseInt(cv, 10);\n    }\n  }\n  if (powerCv == null && powerKw != null) powerCv = Math.round(powerKw * 1.35962);\n  if (powerKw == null && powerCv != null) powerKw = Math.round(powerCv / 1.35962);\n\n  let displacement = null;\n  { const cc = parseInt(String(v.engineDisplacementInCCM || '').replace(/[^\\d]/g, ''), 10);\n    if (!isNaN(cc) && cc > 0) displacement = cc; }\n\n  const imgsArr = Array.isArray(it.images) ? it.images.filter(Boolean).slice(0, 15) : [];\n  const imageUrl = imgsArr[0] || '';\n  const imagesJson = JSON.stringify(imgsArr).replace(/'/g, \"''\");\n  const loc = it.location || {};\n  const city = loc.city || '';\n  const seller = it.seller || {};\n  const dealerName = seller.companyName || '';\n  const sellerType = (seller.type === 'Dealer' || (seller.dealer)) ? 'profesional' : 'particular';\n  const rawPayload = JSON.stringify(it).replace(/'/g, \"''\");\n\n  // El color sale del slug de la URL: ~98% fiable y sin una petición extra.\n  let color = '';\n  { const CMAP = {blanco:'Blanco',negro:'Negro',gris:'Gris',antracita:'Gris',plata:'Plata',plateado:'Plata',azul:'Azul',rojo:'Rojo',verde:'Verde',amarillo:'Amarillo',naranja:'Naranja',marron:'Marrón',beige:'Beige',dorado:'Dorado',granate:'Granate',burdeos:'Granate',morado:'Morado',violeta:'Morado',rosa:'Rosa',cobre:'Cobre',bronce:'Bronce'};\n    const slug = String(it.url || '').replace(/-cat_.*$/, '').split('/').pop();\n    const toks = slug.split('-');\n    for (let i = toks.length - 1; i >= 0; i--) { if (CMAP[toks[i]]) { color = CMAP[toks[i]]; break; } } }\n\n  const row = '(' +\n    esc(id) + \", 'autoscout24', \" + esc(url) + ', ' + esc(title) + ', ' + esc(brand) + ', ' + esc(model) + ', ' + esc(version) + ', ' +\n    year + ', ' + mileage + ', ' + price + ', ' +\n    esc(fuel) + ', ' + esc(transmission) + ', ' +\n    esc(imageUrl) + \", '\" + imagesJson + \"', \" +\n    esc(city) + ', ' + esc(city) + ', ' + esc(city) + ', ' +\n    esc(dealerName) + \", '\" + sellerType + \"', 'compra', \" +\n    (powerCv !== null ? String(powerCv) : 'NULL') + ', ' + (powerKw !== null ? String(powerKw) : 'NULL') + ', ' +\n    (displacement !== null ? String(displacement) : 'NULL') + ', ' + esc(color) + \", '\" + rawPayload + \"', \" +\n    \"'ES', NOW(), NOW(), NOW(), \" + price +\n  ')';\n  rows.push(row);\n}\n\nif (!rows.length) return [{ json: { sql: null, count: 0 } }];\n\nconst cols = 'id, portal, url, title, brand, model, version, year, mileage, price, fuel, transmission, '\n  + 'image_url, images, city, province, location, dealer_name, seller_type, listing_type, '\n  + 'power_cv, power_kw, displacement, color, raw_payload, country, first_seen_at, scraped_at, last_seen_at, finance_price';\n\nconst onConflict = 'ON CONFLICT (id) DO UPDATE SET '\n  + 'url = EXCLUDED.url, title = EXCLUDED.title, '\n  // El precio NO se pisa si la fila ya tiene un precio al contado corregido.\n  // Se reconoce porque finance_price está puesto y es distinto de price.\n  + 'price = CASE WHEN moveadvisor_market_offers.finance_price IS NOT NULL '\n  + 'AND moveadvisor_market_offers.finance_price IS DISTINCT FROM moveadvisor_market_offers.price '\n  + 'AND moveadvisor_market_offers.finance_price = EXCLUDED.finance_price '\n  + 'THEN moveadvisor_market_offers.price ELSE EXCLUDED.price END, '\n  + 'finance_price = EXCLUDED.finance_price, '\n  + 'mileage = EXCLUDED.mileage, '\n  + \"image_url = COALESCE(NULLIF(moveadvisor_market_offers.image_url,''), EXCLUDED.image_url), \"\n  + \"images = COALESCE(NULLIF(moveadvisor_market_offers.images,''), EXCLUDED.images), \"\n  + 'power_cv = COALESCE(EXCLUDED.power_cv, moveadvisor_market_offers.power_cv), '\n  + 'power_kw = COALESCE(EXCLUDED.power_kw, moveadvisor_market_offers.power_kw), '\n  + 'displacement = COALESCE(EXCLUDED.displacement, moveadvisor_market_offers.displacement), '\n  // Dos comillas, no cuatro: con '''' se comparaba contra la cadena «''», de\n  // dos caracteres, y un color vacío no se rellenaba jamás.\n  + \"color = COALESCE(NULLIF(moveadvisor_market_offers.color,''), EXCLUDED.color), \"\n  + 'country = EXCLUDED.country, '\n  // Volver a verla es señal de que sigue viva: sin esto el verificador la daría\n  // por muerta aunque el listado la acabe de enseñar.\n  + 'is_active = TRUE, last_checked_at = NOW(), '\n  + 'raw_payload = EXCLUDED.raw_payload, last_seen_at = NOW(), updated_at = NOW()';\n\nconst sql = 'INSERT INTO moveadvisor_market_offers (' + cols + ') VALUES ' + rows.join(', ') + ' ' + onConflict;\nreturn [{ json: { sql: sql, count: rows.length } }];"
+      },
+      "id": "aa-transf",
+      "name": "Code: Transformar ofertas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aa-c-sql",
+              "leftValue": "={{ $json.sql }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "aa-if",
+      "name": "IF: ¿hay ofertas?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "aa-pg",
+      "name": "PG: Upsert ofertas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1500,
+        580
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "seconds"
+      },
+      "id": "aa-esperar",
+      "name": "Esperar 1s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1700,
+        580
+      ],
+      "webhookId": "aa-esperar-as24-altas"
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Por dónde íbamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 veces/día (11:30, 12:30 y 19:30)": {
+      "main": [
+        [
+          {
+            "node": "PG: Por dónde íbamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Por dónde íbamos": {
+      "main": [
+        [
+          {
+            "node": "Code: Marcas de esta pasada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Marcas de esta pasada": {
+      "main": [
+        [
+          {
+            "node": "Loop: marca por marca",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "PG: Apuntar dónde nos quedamos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: marca por marca": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP: Página 1 de la marca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Página 1 de la marca": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar la página 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code: Cuántas páginas más",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar la página 1": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas? (1)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas? (1)": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert de la página 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Code: Cuántas páginas más": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: página por página": {
+      "main": [
+        [
+          {
+            "node": "Loop: marca por marca",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Resto de páginas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Resto de páginas": {
+      "main": [
+        [
+          {
+            "node": "Code: Transformar ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Transformar ofertas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay ofertas?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay ofertas?": {
+      "main": [
+        [
+          {
+            "node": "PG: Upsert ofertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Upsert ofertas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1s": {
+      "main": [
+        [
+          {
+            "node": "Loop: página por página",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

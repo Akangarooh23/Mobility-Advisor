@@ -624,3 +624,20 @@ export function puedeTasarseJson(email, vehicleId, options = {}) {
     ...options,
   });
 }
+
+/**
+ * El motor que dice la ficha técnica de un coche suyo.
+ *
+ * Sirve para poner delante, en la lista de versiones, las que ese motor puede
+ * tener. Nunca falla con error: sin ficha leída devuelve el motor vacío.
+ */
+export function motorDeLaFichaJson(email, vehicleId, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "motor_de_la_ficha",
+    email,
+    vehicleId,
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}

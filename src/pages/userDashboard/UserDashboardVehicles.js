@@ -21,12 +21,13 @@ import {
   getErpModelsJson,
   getErpVersionsJson,
   getErpVersionDetailJson,
+  motorDeLaFichaJson,
   rutaApi,
 } from "../../utils/apiClient";
 import { uploadFileDirect } from "../../utils/supabaseUpload";
 import AvailabilityEditor from "../../components/AvailabilityEditor";
 import ElLugar from "../../components/LugarDeLaVisita";
-import { loQueDiceLaVersion } from "../../utils/loQueDiceLaVersion";
+import { loQueDiceLaVersion, encajaConElMotor } from "../../utils/loQueDiceLaVersion";
 import { useConditionReport, INFORME_OBLIGATORIO } from "../../hooks/useConditionReport";
 import ConditionReportError from "../../components/ConditionReportError";
 import ConditionReportAction from "../../components/ConditionReportAction";
@@ -529,6 +530,15 @@ export default function UserDashboardVehicles({
   const [marketplacePublishDialog, setMarketplacePublishDialog] = useState({ open: false, vehicle: null, modalPrice: "", dialogSlots: null });
   const [vehicleBookings, setVehicleBookings] = useState({});
   const [slotsDialog, setSlotsDialog] = useState({ open: false, vehicleId: null });
+
+  /*
+   * El motor que dice su ficha técnica, para ordenarle la lista de versiones.
+   *
+   * Solo sirve al **volver a editar** el coche: la ficha se sube en este mismo
+   * formulario, así que al darlo de alta todavía no hay nada leído. Sin motor,
+   * la lista sale como salía.
+   */
+  const [motorDeLaFicha, setMotorDeLaFicha] = useState({ cc: null, kw: null });
 
   // Informe de estado (PopCar Check). Mismo hook que el IDCar: publicar tiene
   // que exigir lo mismo se entre por donde se entre.
@@ -1221,6 +1231,21 @@ export default function UserDashboardVehicles({
 
     setEditingVehicleId(vehicleId);
     setShowNewVehicleForm(true);
+    /*
+     * El motor que dice su ficha tecnica, para ordenarle las versiones.
+     *
+     * Solo al editar: al dar de alta el coche la ficha se sube en este mismo
+     * formulario y todavia no hay nada leido. Con su catch, porque sin motor
+     * la lista sale como salia y eso es mucho mejor que no poder editar.
+     */
+    setMotorDeLaFicha({ cc: null, kw: null });
+    if (currentUserEmail) {
+      motorDeLaFichaJson(currentUserEmail, vehicleId)
+        .then(({ response, data }) => {
+          if (response.ok && data?.motor) setMotorDeLaFicha(data.motor);
+        })
+        .catch(() => {});
+    }
     setVehicleWorkspaceMode("editor");
     setManagementVehicleId("");
     setVehicleCatalogMode("manual");
@@ -1887,9 +1912,26 @@ export default function UserDashboardVehicles({
                   style={{ background: inputBg, border: cardBorder, borderRadius: 10, padding: "9px 10px", color: vehicleForm.version ? titleColor : bodyColor, width: "100%", minWidth: 0, boxSizing: "border-box" }}
                 >
                   <option value="">{erpVersionsLoading ? t("dashboard.vehVersionLoading") : !erpSelectedModelId ? t("dashboard.vehSelectModelFirst") : erpVersions.length === 0 ? t("dashboard.vehNoVersions") : t("dashboard.vehSelectVersion")}</option>
-                  {erpVersions.map((v) => (
-                    <option key={v.codversion} value={v.codversion}>{v.label}</option>
-                  ))}
+                  {/*
+                    * Las de su motor, delante. Y las demás detrás, no fuera.
+                    *
+                    * Ordenar es una sugerencia; filtrar es una afirmación. El papel
+                    * puede venir mal leído, y esconder las demás dejaría al cliente
+                    * sin su versión y sin saber por qué.
+                    */}
+                  {(() => {
+                    const suyas = erpVersions.filter((v) => encajaConElMotor(v.label, motorDeLaFicha));
+                    const otras = erpVersions.filter((v) => !suyas.includes(v));
+                    const opcion = (v) => <option key={v.codversion} value={v.codversion}>{v.label}</option>;
+                    // Sin motor leído, o si encajan todas, no hay nada que separar.
+                    if (!otras.length) return erpVersions.map(opcion);
+                    return (
+                      <>
+                        <optgroup label="Las de tu motor, según tu ficha técnica">{suyas.map(opcion)}</optgroup>
+                        <optgroup label="Las demás de este modelo">{otras.map(opcion)}</optgroup>
+                      </>
+                    );
+                  })()}
                 </select>
               </label>
                 </>

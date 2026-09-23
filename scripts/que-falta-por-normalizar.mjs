@@ -122,7 +122,18 @@ async function main() {
       JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = k.att
      WHERE con.contype = 'p' AND format_type(a.atttypid, a.atttypmod) ~ 'char|text'
      ORDER BY c.relname`);
+  /**
+   * Lo que parece una clave prestada y no lo es.
+   *
+   * `migraciones_aplicadas` se identifica por el nombre del fichero, y eso es
+   * correcto: el fichero **es** la migración. Darle un número propio no añadiría
+   * nada y haría más difícil de leer la única tabla que se mira a mano cuando
+   * algo va mal con el esquema.
+   */
+  const ESTA_BIEN_ASI = new Set(["migraciones_aplicadas.nombre"]);
+
   for (const c of clavesTexto) {
+    if (ESTA_BIEN_ASI.has(`${c.tabla}.${c.columna}`)) continue;
     let motivo = "";
     if (/email|correo/.test(c.columna)) motivo = "la clave es un correo: cambiarlo pierde la fila";
     else if (/nombre|name/.test(c.columna)) motivo = "la clave es un nombre: corregir una tilde crea una fila nueva";

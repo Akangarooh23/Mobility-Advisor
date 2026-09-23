@@ -45,7 +45,20 @@ function losEncargos(solicitudes = []) {
         }, ...(puertas || [])]
         : puertas;
 
-      return { id: s.id, titulo: s.title || "tu coche", puertas: todas };
+      /*
+       * Las opcionales no entran en los avisos.
+       *
+       * El seguro y el historial de revisiones se le piden, pero no paran el
+       * anuncio. Contándolos aquí, la campana decía «te faltan 4 cosas» donde
+       * el panel dice 2 — dos números distintos para lo mismo, y el grande es
+       * el que le persigue por la pantalla reclamándole una factura de hace
+       * tres años que no impide nada.
+       *
+       * Se los sigue pidiendo en la lista del encargo, que es donde se leen
+       * con su etiqueta de opcional al lado.
+       */
+      const queParan = (todas || []).filter((p) => !p.opcional);
+      return { id: s.id, titulo: s.title || "tu coche", puertas: queParan };
     })
     .filter(Boolean);
 }

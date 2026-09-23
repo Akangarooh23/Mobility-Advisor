@@ -27,9 +27,31 @@ const CINCO = [
   { clave: "franjas", nombre: "Las franjas de visita", abierta: true, falta: "" },
 ];
 
+/** El seguro y el mantenimiento: se le piden, pero no paran el anuncio. */
+const LAS_OPCIONALES = [
+  { clave: "seguro", nombre: "El seguro", abierta: false, opcional: true, falta: "Sube la póliza" },
+  { clave: "mantenimiento", nombre: "El mantenimiento", abierta: false, opcional: true, falta: "Sube una factura" },
+];
+
 describe("qué le falta", () => {
   test("cuenta solo las cerradas", () => {
     expect(cuantasLeFaltanDelEncargo([conPuertas(CINCO)])).toBe(2);
+  });
+
+  test("y las opcionales no cuentan: la campana diría un número y el panel otro", () => {
+    /*
+     * El panel cuenta lo que para el anuncio. Si la campana cuenta además el
+     * seguro y el historial de revisiones, son dos números distintos para lo
+     * mismo — y el grande es el que le persigue por la pantalla reclamándole
+     * una factura de hace tres años que no impide nada.
+     */
+    expect(cuantasLeFaltanDelEncargo([conPuertas([...CINCO, ...LAS_OPCIONALES])])).toBe(2);
+  });
+
+  test("con todo lo que para hecho, la campana calla aunque falten las opcionales", () => {
+    const hechas = CINCO.map((p) => ({ ...p, abierta: true, falta: "" }));
+    expect(loQueLeFaltaDelEncargo([conPuertas([...hechas, ...LAS_OPCIONALES])])).toBeNull();
+    expect(cuantasLeFaltanDelEncargo([conPuertas([...hechas, ...LAS_OPCIONALES])])).toBe(0);
   });
 
   test("y con todo hecho no hay nada que decir", () => {

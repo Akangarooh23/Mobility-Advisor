@@ -585,3 +585,24 @@ export function getWorkshopPhotoUrl(photoRef) {
   return `${WORKSHOPS_PHOTO_API_ENDPOINT}?ref=${encodeURIComponent(photoRef)}`;
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dónde enseña el vendedor su coche  /api/visit-availability?route=lugar
+//
+// Las dos piden sesión y el servidor comprueba que el coche es suyo: esa
+// dirección es el portal de su casa, y no sale por ninguna ruta pública.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function getLugarDeVisitaJson(offerId, options = {}) {
+  return getJson(`${rutaApi("/api/visit-availability")}?route=lugar&offerId=${encodeURIComponent(offerId)}`, {
+    endpointLabel: "visit-availability",
+    ...options,
+  });
+}
+
+export function postLugarDeVisitaJson(payload, options = {}) {
+  return postJson(rutaApi("/api/visit-availability"), { route: "guarda_lugar", ...payload }, {
+    endpointLabel: "visit-availability",
+    ...options,
+  });
+}

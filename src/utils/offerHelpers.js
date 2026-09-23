@@ -11,6 +11,7 @@ export const USER_DASHBOARD_ROUTE_MAP = {
   preferences: "/panel/preferencias",
   vehicles: "/panel/vehiculos",
   solicitudes: "/panel/solicitudes",
+  franjas: "/panel/visitas",
   services: "/panel/servicios",
 };
 

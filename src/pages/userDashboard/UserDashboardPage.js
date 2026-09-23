@@ -12,6 +12,7 @@ import UserDashboardVehicles from "./UserDashboardVehicles";
 import UserDashboardServices from "./UserDashboardServices";
 import { cuantasCitas } from "../../utils/userDashboardHelpers";
 import UserDashboardSolicitudes from "./UserDashboardSolicitudes";
+import UserDashboardFranjas from "./UserDashboardFranjas";
 import { getGarageVehiclesJson, rutaApi } from "../../utils/apiClient";
 import { readUserBillingState, readCachedGarageVehicleCount } from "../../utils/storage";
 
@@ -121,6 +122,22 @@ function buildSections(counts, t, newAlertMatchesCount = 0) {
       count: counts.solicitudes,
       title: "Mis solicitudes",
       description: "Información, visitas y consultas enviadas sobre vehículos.",
+    },
+    /*
+     * Cuándo y dónde enseña sus coches.
+     *
+     * Vivía dentro de un botón de la tarjeta del coche, y ese botón solo salía
+     * al ir a publicar en el marketplace: quien leía «pendiente: indicar
+     * franjas horarias» pinchaba y aterrizaba en la lista de sus coches, sin
+     * nada abierto y sin saber qué hacer allí.
+     */
+    {
+      key: "franjas",
+      label: "Visitas",
+      icon: "🗓",
+      count: counts.franjas,
+      title: "Visitas a tus coches",
+      description: "Cuándo puedes enseñar cada coche y en qué dirección.",
     },
   ];
 }
@@ -335,16 +352,6 @@ export default function UserDashboardPage({
       : "0 16px 34px rgba(17,17,17,0.10)",
     backdropFilter: "blur(8px)",
   };
-  const counts = {
-    saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
-    alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
-    // Solo las citas de verdad. Con los recordatorios dentro, el lateral
-    // decia 9 con una cita y ocho avisos.
-    appointments: cuantasCitas(dashboardAppointments),
-    valuations: dashboardValuations.length,
-    vehicles: garageVehicleCount || userVehicleSections.reduce((acc, s) => acc + s.items.length, 0),
-    solicitudes: userSolicitudes.length,
-  };
   /*
    * Las matrículas de los coches que nos ha encargado vender.
    *
@@ -365,8 +372,28 @@ export default function UserDashboardPage({
       .filter(Boolean)
   );
 
+  const counts = {
+    saved: savedComparisons.length + (Array.isArray(marketAlerts) ? marketAlerts.length : 0),
+    alerts: Array.isArray(marketAlerts) ? marketAlerts.length : 0,
+    // Solo las citas de verdad. Con los recordatorios dentro, el lateral
+    // decia 9 con una cita y ocho avisos.
+    appointments: cuantasCitas(dashboardAppointments),
+    valuations: dashboardValuations.length,
+    vehicles: garageVehicleCount || userVehicleSections.reduce((acc, s) => acc + s.items.length, 0),
+    solicitudes: userSolicitudes.length,
+    /*
+     * Cuántos coches suyos pueden recibir una visita: los del encargo y los
+     * que ya están anunciados. Uno que solo tiene en el garaje no cuenta —
+     * nadie puede pedirle hora para verlo.
+     */
+    franjas: userVehicleSections
+      .flatMap((s) => (Array.isArray(s?.items) ? s.items : []))
+      .filter((v) => matriculasConEncargo.has(String(v?.plate || "").toUpperCase().replace(/[^A-Z0-9]/g, ""))
+        || v?.marketplaceState === "active_sale").length,
+  };
+
   const sections = buildSections(counts, t, newAlertMatchesCount);
-  const navMain = ["home", "saved", "alerts", "vehicles", "valuations", "appointments", "servicios", "solicitudes"];
+  const navMain = ["home", "saved", "alerts", "vehicles", "franjas", "valuations", "appointments", "servicios", "solicitudes"];
   const navAccount = ["billing", "preferences"];
   const navSectionsMain = sections.filter((section) => navMain.includes(section.key));
   const navSectionsAccount = sections.filter((section) => navAccount.includes(section.key));
@@ -730,6 +757,16 @@ export default function UserDashboardPage({
                 themeMode={themeMode}
                 panelStyle={panelStyle}
                 currentUser={currentUser}
+              />
+            )}
+
+            {userDashboardPage === "franjas" && (
+              <UserDashboardFranjas
+                themeMode={themeMode}
+                panelStyle={sectionShell}
+                userVehicleSections={userVehicleSections}
+                matriculasConEncargo={matriculasConEncargo}
+                onNavigate={onNavigate}
               />
             )}
 

@@ -110,6 +110,7 @@
     "test:canalcar": "node scripts/comprueba-canalcar.js",
     "test:canalcar-enrich": "node scripts/comprueba-canalcar-enrich.js",
     "test:canalcar-verify": "node scripts/comprueba-canalcar-verify.js",
+    "arregla-toda-espania": "node scripts/arregla-toda-espania.js",
     "test:autohero": "node scripts/comprueba-autohero.js",
     "test:autohero-enrich": "node scripts/comprueba-autohero-enrich.js",
     "test:autohero-verify": "node scripts/comprueba-autohero-verify.js",

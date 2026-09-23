@@ -292,12 +292,24 @@ const onConflict = 'ON CONFLICT (id) DO UPDATE SET ' +
   "body_type = COALESCE(NULLIF(EXCLUDED.body_type, ''), moveadvisor_market_offers.body_type), " +
   'doors = COALESCE(EXCLUDED.doors, moveadvisor_market_offers.doors), ' +
   'seats = COALESCE(EXCLUDED.seats, moveadvisor_market_offers.seats), ' +
-  // La sede se pisa: las 2.998 filas que tienen algo dicen «Toda España», que
-  // no es una provincia ni una ciudad.
-  "province = COALESCE(NULLIF(EXCLUDED.province, ''), moveadvisor_market_offers.province), " +
-  "city = COALESCE(NULLIF(EXCLUDED.city, ''), moveadvisor_market_offers.city), " +
+  /*
+   * LA SEDE, Y EL CARTEL QUE NO SE CONSERVA.
+   *
+   * Vale la regla de siempre -si lo nuevo viene vacío, se queda lo viejo-, con
+   * una excepción: «Toda España». El scraper viejo lo escribía en province,
+   * city y location, y está en 3.720 filas. No es una provincia ni una ciudad;
+   * en esa columna el resto de la tabla tiene Madrid, Barcelona, Sevilla.
+   *
+   * Sin este NULLIF, los 52 coches que están «Im Transport» -a los que su API
+   * no da ni código postal ni ciudad- se quedarían con el cartel puesto para
+   * siempre, porque lo nuevo viene vacío y el COALESCE conserva lo viejo.
+   *
+   * Las 3.720 que ya lo tenían se limpian con scripts/arregla-toda-espania.js.
+   */
+  "province = COALESCE(NULLIF(EXCLUDED.province, ''), NULLIF(moveadvisor_market_offers.province, 'Toda España'), ''), " +
+  "city = COALESCE(NULLIF(EXCLUDED.city, ''), NULLIF(moveadvisor_market_offers.city, 'Toda España'), ''), " +
   "dealer_name = COALESCE(NULLIF(EXCLUDED.dealer_name, ''), moveadvisor_market_offers.dealer_name), " +
-  "location = COALESCE(NULLIF(EXCLUDED.location, ''), moveadvisor_market_offers.location), " +
+  "location = COALESCE(NULLIF(EXCLUDED.location, ''), NULLIF(moveadvisor_market_offers.location, 'Toda España'), ''), " +
   "image_url = COALESCE(NULLIF(EXCLUDED.image_url, ''), moveadvisor_market_offers.image_url), " +
   "images = CASE WHEN EXCLUDED.images <> '[]' THEN EXCLUDED.images ELSE moveadvisor_market_offers.images END, " +
   // Los precios se pisan sin COALESCE: son datos vivos, y un NULL aquí también

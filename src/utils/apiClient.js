@@ -606,3 +606,21 @@ export function postLugarDeVisitaJson(payload, options = {}) {
     ...options,
   });
 }
+
+/**
+ * Si ese coche suyo se puede tasar ya.
+ *
+ * Se pregunta **antes** de tasar. La tasación compara su coche con los que son
+ * como él, y la versión dice cuáles son: sin la ficha técnica no se puede
+ * comprobar que la versión que eligió sea la suya.
+ */
+export function puedeTasarseJson(email, vehicleId, options = {}) {
+  return postJson(BILLING_ACCOUNT_API_ENDPOINT, {
+    action: "puede_tasarse",
+    email,
+    valuation: { vehicleId },
+  }, {
+    endpointLabel: "billing-account",
+    ...options,
+  });
+}

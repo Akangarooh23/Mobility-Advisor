@@ -71,6 +71,7 @@ import {
   postUserAlertJson,
   postUserAlertStatusJson,
   postValuationAddJson,
+  puedeTasarseJson,
   rutaApi,
 } from "./utils/apiClient";
 import {
@@ -4141,6 +4142,31 @@ export default function App() {
           : "Completa marca, modelo, año y kilometraje antes de analizar."
       );
       return;
+    }
+
+    /*
+     * Si es un coche suyo, primero su ficha técnica.
+     *
+     * De ahí sale la versión real. Una gama tiene tres «1.5» que no valen lo
+     * mismo, y la versión la elige él de una lista: si elige la que no es, el
+     * número no sale mal por poco, sale comparado con **otros coches**. Y de
+     * ese número sale luego el precio de salida que se habla con él.
+     *
+     * Se pregunta antes de tasar y no al guardar: bloquear al guardar dejaba la
+     * tasación hecha y en pantalla, y lo único que se perdía era apuntarla.
+     */
+    const suCoche = normalizeText(selectedValuationVehicleSummary?.id);
+    if (suCoche && currentUserEmail) {
+      try {
+        const { response, data } = await puedeTasarseJson(currentUserEmail, suCoche);
+        if (response.ok && data?.puede === false) {
+          setSellError(data.message || "Para tasar este coche falta su ficha técnica.");
+          return;
+        }
+      } catch {
+        // Si la comprobación no contesta, se sigue: dejar sin tasar a todo el
+        // mundo porque una consulta falle es peor que tasar sin comprobarlo.
+      }
     }
 
     setSellLoading(true);

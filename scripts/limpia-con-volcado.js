@@ -119,6 +119,28 @@ const POR_TROZO = 2000;
   console.log("\n  LO NUESTRO: " + rows.length.toLocaleString("es") + " filas vivas de " + cfg.portal);
 
   /*
+   * ── Y LO CONTRARIO: las que enterramos vivas ─────────────────────────────
+   *
+   * Si el volcado trae un coche que nosotros damos por muerto, es que nos
+   * equivocamos al matarlo. En AutoScout24 son 6.360 el 23-sep.
+   *
+   * LA SALVEDAD IMPORTANTE: solo revive lo que NO hayamos comprobado después
+   * de la fecha del volcado. Si nuestro verificador lo miró el 22 y lo dio por
+   * muerto, nuestra comprobación es más nueva que la foto y manda la nuestra.
+   * Sin esta condición, cada carga de volcado resucitaría lo que el
+   * verificador acaba de enterrar con razón, y se pelearían para siempre.
+   */
+  const enterradas = (await c.query(`SELECT id FROM moveadvisor_market_offers
+    WHERE portal = $1 AND NOT is_active AND COALESCE(country,'ES') = 'ES'
+      AND (last_checked_at IS NULL OR last_checked_at < $2::date)`, [cfg.portal, refDay])).rows;
+  const revivir = [];
+  for (const r of enterradas) {
+    if (suyos.has(String(r.id).slice(cfg.prefijo.length))) revivir.push(r.id);
+  }
+  console.log("      dadas de baja que el volcado trae vivas: " + revivir.length.toLocaleString("es")
+    + "   (de " + enterradas.length.toLocaleString("es") + " sin comprobar desde entonces)");
+
+  /*
    * FRENO 1: ¿es creíble el volcado?
    *
    * Un fichero cortado a la mitad parece un catálogo pequeño y daría de baja
@@ -159,13 +181,27 @@ const POR_TROZO = 2000;
     await c.end();
     return;
   }
-  if (!bajas.length) { console.log("\n  Nada que dar de baja.\n"); await c.end(); return; }
+  if (!bajas.length && !revivir.length) { console.log("\n  Nada que cambiar.\n"); await c.end(); return; }
 
   if (!APLICA) {
     console.log("\n  NO SE HA ESCRITO NADA. Para aplicarlo:");
     console.log("      npm run limpia-con-volcado -- " + path.basename(FICHERO) + " --aplica\n");
     await c.end();
     return;
+  }
+
+  if (revivir.length) {
+    console.log("\n  RESUCITANDO " + revivir.length.toLocaleString("es"));
+    let vueltas = 0;
+    for (let i = 0; i < revivir.length; i += POR_TROZO) {
+      // last_seen_at se pone a la fecha del VOLCADO, no a NOW(): ese día es
+      // cuando consta que estaba a la venta, y así envejece como debe.
+      const r = await c.query(`UPDATE moveadvisor_market_offers
+        SET is_active = TRUE, last_seen_at = GREATEST(last_seen_at, $2::date)
+        WHERE id = ANY($1)`, [revivir.slice(i, i + POR_TROZO), refDay]);
+      vueltas += r.rowCount;
+    }
+    console.log("      resucitadas: " + vueltas.toLocaleString("es"));
   }
 
   console.log("\n  APLICANDO, en trozos de " + POR_TROZO.toLocaleString("es"));

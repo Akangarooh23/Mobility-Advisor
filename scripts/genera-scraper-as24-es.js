@@ -58,8 +58,46 @@ const ID_SEGMENTO = "43PLVCbPvTFnZPRt";
 // pasadas están a tres horas de distancia, la de las 16:30 arrancaba encima de
 // la de las 13:30: dos workflows pidiéndole a autoscout24.es a la vez.
 //
-// Con dos marcas la pasada son unas 2h50 y cabe. Cuatro marcas al día: las 45
-// dan la vuelta en once días.
+// Con dos marcas la pasada son unas 2h50 y cabe.
+//
+// SE QUEDA EN DOS, Y EL RITMO SE SUBE POR OTRO LADO (23-sep-2026).
+//
+// Cruzando nuestras filas con un volcado del portal salió que de los anuncios
+// con menos de una semana solo teníamos el 15 %:
+//
+//     0-7 días    faltan 34.086 de 40.218    85 %
+//     7-30        faltan 11.764 de 72.463    16 %
+//     30-90       faltan  4.462 de 92.700     5 %
+//     más de 90   faltan  2.965 de 62.329     5 %
+//
+// No es que no lleguemos: es que llegamos tarde. Con cuatro marcas al día, a
+// cada marca le tocaba el turno cada once días, y para entonces sus anuncios
+// nuevos ya no están en las primeras páginas.
+//
+// DOS SALIDAS QUE NO SIRVEN, Y POR QUÉ:
+//
+//   - Subir esta constante. NO: son las mismas cuatro horas de pasada que
+//     hacían que la de las 16:30 arrancara encima de la de las 13:30.
+//
+//   - Añadir pasadas. TAMPOCO: el día ya está lleno. Ocho flujos nuestros le
+//     piden cosas a autoscout24.es -dos scrapers de tres horas, dos
+//     verificadores y dos enriquecedores, entre españoles y alemanes- y el
+//     hueco libre más grande son las 2h25 de 11:05 a 13:30, menos que una
+//     pasada. Meter una quinta es pedir que nos corten.
+//
+// LA SALIDA QUE SÍ: la url ya pide sort=age&desc=1, o sea que los anuncios
+// nuevos de cada segmento están en su PÁGINA 1. No hace falta recorrer los
+// 5.950 coches de una marca para encontrar sus 130 altas: basta con la
+// primera página de cada marca x tramo.
+//
+//     45 marcas x 14 tramos = 630 páginas ~= una hora
+//     altas reales del portal: unas 5.700 al día
+//     lo que cabe en 630 páginas: 12.600
+//
+// O sea que una pasada corta diaria cubriría TODAS las marcas y cogería las
+// altas del día, mientras este barrido gradual sigue ocupándose del fondo y de
+// los cambios de precio. Está sin hacer: hace falta un flujo nuevo, y este
+// portal está lo bastante cargado como para no improvisarlo.
 const MARCAS_POR_PASADA = 2;
 
 const CABECERAS = {

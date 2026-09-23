@@ -27,16 +27,27 @@
  *
  *     \"inspectionExpiryDate\":\"2026-10-28\"
  *
- * Eso es todo lo que hace este flujo. next_itv está hoy en 2.386 de 3.849
- * filas, así que hay un hueco real que llenar, pero conviene decir lo que es:
- * un dato, no seis.
+ * Y en su lista de titulares están los meses de garantía: «Garantía
+ * Autohero: 12 Meses». Eso es todo lo que hace este flujo. Después de la
+ * primera limpieza del verificador, de 2.419 coches vivos 833 tienen la ITV y
+ * 160 la garantía, así que hay hueco real que llenar; pero conviene decir lo
+ * que es: dos datos, no seis.
  *
  * ── Cuidado con el peso ────────────────────────────────────────────────────
  *
- * Cada ficha son 724 KB, y n8n guarda en memoria la salida de cada vuelta del
- * bucle. 150 fichas por pasada son 108 MB retenidos; 400 serían 290 MB y
- * tumbarían el proceso. Por eso la cola es de 150 y no de 300 como en los
- * demás portales: aquí las páginas pesan el triple.
+ * Cada ficha son unos 690 KB, y n8n guarda en memoria la salida de cada vuelta
+ * del bucle. Eso hace que la pasada se vaya frenando sola. Medido el 23-sep
+ * con lotes de 150, minuto a minuto:
+ *
+ *     29  ->  25  ->  18 fichas/min
+ *
+ * Un 38 % menos en tres minutos. La pasada entera tardó 10 min 9 s para 150
+ * fichas: 15,9/min de media, cuando las dos primeras vueltas iban a 30.
+ *
+ * Por eso el lote es de 100 y no de 300 como en los demás portales. Con 100 la
+ * pasada se queda en la parte rápida de la curva -unos 5 min y medio- y el
+ * total para vaciar la cola baja de 90 a unos 70 minutos. Además retiene 67 MB
+ * en vez de 106, y 400 fichas serían 270 MB y tumbarían el proceso.
  *
  * ── Que la ficha sea del coche que pedimos ─────────────────────────────────
  *
@@ -60,8 +71,8 @@ const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" }
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const ERROR_WF = "9BwKOPMIzjj3owho";
 
-// 150 x 724 KB = 108 MB retenidos por el bucle. Ver la nota de arriba.
-const POR_PASADA = 150;
+// 100 x ~690 KB = 67 MB retenidos por el bucle. Ver la nota de arriba.
+const POR_PASADA = 100;
 const FALLOS_SEGUIDOS = 15;
 
 const CABECERAS = {
@@ -340,7 +351,7 @@ const condicion = (id, campo) => ({
 });
 
 const L = (n) => ({ node: n, type: "main", index: 0 });
-// 4 veces al día, en huecos libres. 150 fichas por pasada = 600 al día.
+// 4 veces al día, en huecos libres. 100 fichas por pasada = 400 al día.
 const CRON = "4 veces/día (11:30, 15:30, 18:30 y 22:30)";
 const nodos = [
   { parameters: {}, id: "ae-manual", name: "Ejecutar manualmente",

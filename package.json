@@ -86,6 +86,7 @@
     "build:android": "powershell -NoProfile -Command \"$env:REACT_APP_API_BASE_URL='https://www.carswiseai.com'; npm run build; npx cap sync android\"",
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
+    "test:cabeceras": "node scripts/comprueba-cabeceras.js",
     "test:migraciones": "node scripts/comprueba-migraciones.js",
     "migra": "node scripts/migra.mjs",
     "esquema": "node scripts/saca-el-esquema.mjs",

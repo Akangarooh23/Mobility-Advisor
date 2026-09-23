@@ -105,20 +105,40 @@ Las ofertas son datos de fuera: los scrapers las borran y las reescriben a
 diario. Una visita, un lead o una corrección a mano tienen que sobrevivir a que
 la oferta desaparezca del portal.
 
-## 4 · Lo que queda por hacer
+## 4 · Los datos copiados: cuáles son deuda y cuáles no
 
-Por orden de lo que más duele:
+No todo dato repetido es un error, y tratarlos igual lleva a romper cosas que
+estaban bien.
 
-- **Cuatro claves prestadas.** `moveadvisor_user_invoices.id` es el
-  identificador de la sesión de Stripe; `erp_staff_passwords` y
-  `moveadvisor_user_preferences` van por correo —cambiarlo pierde la fila— y
-  `erp_vendedores_marketplace` va por **nombre**: corregir una tilde crea un
-  vendedor nuevo.
-- **Datos copiados.** 16 tablas guardan `user_email` al lado de `user_id`, y
-  alguna el nombre del taller o del proveedor al lado de su identificador. Dos
-  sitios donde mirar y uno que se queda viejo.
+**Una foto es correcta.** Una factura guarda `provider_name` porque eso es lo
+que decía el documento el día que se emitió; si mañana el proveedor cambia de
+razón social, la factura de antes **no** puede cambiar. Lo mismo con
+`vehicle_title` en un lead: el anuncio del portal desaparece y el lead tiene que
+seguir diciendo de qué coche hablaba. Esas se quedan, y por eso.
+
+**Una copia que se espera que esté al día es deuda.** Doce tablas guardan
+`user_email` al lado de `user_id`. Medido contra la base el 23 de septiembre de
+2026: **0** filas con un correo que no es de nadie, **0** con la copia
+diciendo un correo distinto al del usuario, y —antes de la migración 0006— 604
+registros de embudo atados **solo** por el correo. Esos ya están atados por
+identificador.
+
+Lo que hace que esas doce copias sigan siendo inofensivas es una sola cosa:
+**nada en el código cambia el correo de un usuario**. La prueba
+`lib/cambiar-el-correo-toca-doce-tablas.test.js` existe para que eso no deje de
+ser verdad en silencio: el día que se escriba la pantalla de «cambiar mi
+correo», falla y enseña la lista de tablas que hay que actualizar en la misma
+transacción.
+
+Para volver a medirlo: `node scripts/que-falta-por-normalizar.mjs`.
+
+## 5 · Lo que queda por hacer
+
 - **Los 47 ficheros que tocan el esquema a mano**, que es lo que el trinquete
-  vigila.
+  vigila. Se quitan de uno en uno, bajando el tope.
 - **Dos tablas sin clave primaria**: `moveadvisor_vehicle_brands_copia_20260822`
   y `moveadvisor_vehicle_models_copia_20260822`, copias de seguridad de agosto.
   Si ya no hacen falta, se tiran.
+- **`workshop_name_resolved`**: la pantalla de citas del ERP lo pinta como
+  respaldo de `workshop_name`, y no lo manda nadie. O se calcula por la relación
+  —que es lo suyo— o se quita de la pantalla.

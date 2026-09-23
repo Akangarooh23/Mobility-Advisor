@@ -99,7 +99,17 @@ function pasa(oferta, respuesta, estatico, run) {
   const cola = nodo("PG: Cola a enriquecer").parameters.query;
   const sinComentarios = cola.split("\n").filter((l) => l.trim().indexOf("--") !== 0).join("\n");
   comprueba("solo pide lo que damos por vivo", /is_active/.test(sinComentarios));
-  comprueba("pide las que no tienen ITV o no tienen garantía", /next_itv/.test(sinComentarios) && /warranty_months/.test(sinComentarios));
+  comprueba("la cola la manda la ITV", /next_itv, ''\) = ''/.test(sinComentarios));
+  /*
+   * Y NO la garantía. De 2.698 fichas leídas, las 2.698 dicen 12 meses: no es
+   * un dato por coche, es una constante de la casa. Metiéndola en la condición
+   * había 672 coches que ya tenían la ITV y entraban solo por ella: 672
+   * páginas de 690 KB para volver a leer el mismo número.
+   */
+  comprueba("y la garantía no mete a nadie en la cola",
+    !/warranty_months/.test(sinComentarios));
+  comprueba("pero sí se escribe cuando se lee una ficha",
+    /warranty_months = /.test(codigo(EXTRAER)));
   comprueba("respeta enrich_tried_at", /enrich_tried_at IS NULL/.test(sinComentarios));
   const lim = Number((cola.match(/LIMIT (\d+)/) || [])[1]);
   // Cada ficha son 724 KB y n8n retiene la salida de cada vuelta del bucle.

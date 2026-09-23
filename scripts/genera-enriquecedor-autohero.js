@@ -89,7 +89,7 @@ const OPCIONES_HTTP = {
   redirect: { redirect: { followRedirects: true } },
 };
 
-const COLA = `-- Las de Autohero a las que les falta la ITV o la garantía.
+const COLA = `-- Las de Autohero a las que les falta la fecha de la ITV.
 --
 -- Solo lo que damos por vivo: gastar 724 KB en un coche vendido es tirarlos.
 -- Lo aprendimos en AutoScout24 España, donde la primera versión de la cola
@@ -104,7 +104,21 @@ FROM moveadvisor_market_offers
 WHERE portal = 'autohero'
   AND is_active
   AND COALESCE(url, '') <> ''
-  AND (COALESCE(next_itv, '') = '' OR COALESCE(warranty_months, 0) = 0)
+  -- LA COLA LA MANDA LA ITV, NO LA GARANTÍA.
+  --
+  -- La garantía se sigue escribiendo cuando se lee una ficha, pero no mete a
+  -- nadie en la cola. La razón: de 2.698 fichas leídas, las 2.698 dicen 12
+  -- meses. No es un dato por coche, es una constante de la casa.
+  --
+  -- Con la garantía en la condición había 672 coches que ya tenían la ITV y
+  -- entraban solo por ella: 672 páginas de 690 KB, siete pasadas y cuarenta
+  -- minutos, para volver a leer el mismo número. Sin ella la cola pasa de
+  -- 2.243 a 1.553.
+  --
+  -- Si algún día dan 24 meses en algunos coches, se verá igual: cada ficha que
+  -- se pida por la ITV trae su garantía. Lo que se pierde es enterarse en los
+  -- que ya no hay que volver a pedir.
+  AND COALESCE(next_itv, '') = ''
   AND (enrich_tried_at IS NULL OR enrich_tried_at < NOW() - INTERVAL '30 days')
 ORDER BY (enrich_tried_at IS NULL) DESC, last_seen_at DESC
 LIMIT ${POR_PASADA}`;

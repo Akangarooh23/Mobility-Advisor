@@ -135,6 +135,7 @@
     "carga-dealers": "node scripts/carga-dealers-cochesnet.js",
     "analiza-volcado": "node scripts/analiza-volcado.js",
     "carga-volcado": "node --max-old-space-size=4096 scripts/carga-volcado.js",
+    "carga-dealers-todos": "node --max-old-space-size=4096 scripts/carga-dealers.js",
     "arregla-urls-autocasion": "node scripts/arregla-urls-autocasion.js",
     "arregla-cilindrada": "node scripts/arregla-cilindrada.js",
     "enlaza-segmento-autocasion": "node scripts/enlaza-segmento-autocasion.js",

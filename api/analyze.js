@@ -750,9 +750,25 @@ function normalizeAdvisorResult(value, answers = {}) {
     : Object.keys(answers || {}).length > 0
       ? buildWhyWins(answers, mainType, propulsionesViables, normalizeText(main.etiqueta_dgt))
       : normalizeStringArray(main.ventajas).slice(0, 3);
-  const normalizedAlternatives = Array.isArray(value?.alternativas)
+  /*
+   * Las alternativas se puntuan aqui tambien, no solo en el camino de reserva.
+   *
+   * El consejero va por Gemini, y el modelo devuelve sus alternativas con el
+   * numero que le parece. Comparar ese numero con el de la principal -que sale
+   * de la suma del desglose- es comparar dos cosas distintas, y de ahi salen
+   * las pantallas donde la alternativa puntua mas que la recomendada.
+   *
+   * Con las respuestas delante se recalculan con la cuenta de la casa. Sin
+   * ellas -una respuesta vieja, guardada- se deja lo que venga: inventar un
+   * numero seria peor.
+   */
+  const hayRespuestas = Object.keys(answers || {}).length > 0;
+  const normalizedAlternatives = (Array.isArray(value?.alternativas)
     ? value.alternativas.map(normalizeAlternative).filter((item) => item.titulo || item.razon)
-    : [];
+    : []
+  ).map((item) => (hayRespuestas && item.tipo
+    ? { ...item, score: loQuePuntua(item.tipo, answers, propulsionesViables) }
+    : item));
   const fallbackTco = Object.keys(answers || {}).length > 0
     ? buildTcoEstimate(answers, mainType, propulsionesViables)
     : {
@@ -1337,90 +1353,168 @@ function getTensionPrincipal(answers, primaryType) {
   return "Tu caso exige equilibrar coste mensual, uso real y riesgo futuro sin sobredimensionar coche ni motorizacion.";
 }
 
+/**
+ * Las otras opciones que podrían encajar.
+ *
+ * ## El número venía escrito a mano
+ *
+ * Cada alternativa traía su score puesto en el código —76, 68, 79, 74— y no
+ * se calculaba nada. Mientras la principal tuvo suelo de 68 y techo de 92 la
+ * cosa colaba, porque todos los números jugaban en la misma liga. En cuanto
+ * la principal pasó a ser la suma real del desglose, un perfil que saca 55
+ * vería «recomendación principal 55 %» y debajo una alternativa con 76: la
+ * pantalla diciendo que la mejor es la peor.
+ *
+ * Ahora cada alternativa se puntúa con `buildScoreBreakdown`, **el mismo
+ * cálculo que la principal**. Comparar dos números solo significa algo si
+ * salen de la misma cuenta.
+ *
+ * ## Y ya no sale la misma opción dos veces
+ *
+ * Las tablas traían dos entradas con el mismo `tipo` y distinta explicación
+ * —«compra financiada» dos veces, con 76 y con 68—. Con el score calculado
+ * las dos sacarían la misma cifra, que es la prueba de que siempre fueron
+ * la misma opción contada de dos maneras.
+ */
 function buildAlternatives(primaryType, answers, advisorContext = null, uiLanguage = "es") {
   const isEn = uiLanguage === "en";
   const profile = getVehicleProfile(answers);
   
   const alternativesByType = isEn ? {
     compra_contado: [
-      { tipo: "compra_financiada", score: 76, titulo: `Financed purchase of ${profile}`, razon: "Makes sense if you prefer to preserve liquidity and maintain a payment below your comfortable limit." },
-      { tipo: "compra_financiada", score: 68, titulo: `Financed purchase of ${profile}`, razon: "Good alternative if you want to preserve initial liquidity and spread monthly effort." },
+      { tipo: "compra_financiada", titulo: `Financed purchase of ${profile}`, razon: "Makes sense if you prefer to preserve liquidity and maintain a payment below your comfortable limit." },
+      { tipo: "compra_financiada", titulo: `Financed purchase of ${profile}`, razon: "Good alternative if you want to preserve initial liquidity and spread monthly effort." },
     ],
     compra_financiada: [
-      { tipo: "compra_contado", score: 79, titulo: `Cash purchase of ${profile}`, razon: "Reduces financial cost if you can increase down payment and prioritize total final cost." },
-      { tipo: "compra_contado", score: 66, titulo: `Cash purchase of ${profile}`, razon: "Worthwhile if you can increase down payment and avoid financial cost on a reliable unit." },
+      { tipo: "compra_contado", titulo: `Cash purchase of ${profile}`, razon: "Reduces financial cost if you can increase down payment and prioritize total final cost." },
+      { tipo: "compra_contado", titulo: `Cash purchase of ${profile}`, razon: "Worthwhile if you can increase down payment and avoid financial cost on a reliable unit." },
     ],
     renting_largo: [
-      { tipo: "renting_corto", score: 74, titulo: "Flexible leasing", razon: "May fit better if you foresee upcoming changes and don't want long-term commitment." },
-      { tipo: "renting_corto", score: 64, titulo: "Flexible leasing", razon: "Only makes sense if you foresee upcoming life changes and want to postpone final decision." },
+      { tipo: "renting_corto", titulo: "Flexible leasing", razon: "May fit better if you foresee upcoming changes and don't want long-term commitment." },
+      { tipo: "renting_corto", titulo: "Flexible leasing", razon: "Only makes sense if you foresee upcoming life changes and want to postpone final decision." },
     ],
     renting_corto: [
-      { tipo: "carsharing", score: 72, titulo: "Carsharing + public transport", razon: "Very competitive if you drive few kilometers and most usage is urban and occasional." },
-      { tipo: "rent_a_car", score: 68, titulo: "Car rental by day or week", razon: "May be better than short-term leasing if you really only need temporary coverage and occasional usage." },
+      { tipo: "carsharing", titulo: "Carsharing + public transport", razon: "Very competitive if you drive few kilometers and most usage is urban and occasional." },
+      { tipo: "rent_a_car", titulo: "Car rental by day or week", razon: "May be better than short-term leasing if you really only need temporary coverage and occasional usage." },
     ],
     carsharing: [
-      { tipo: "transporte_publico", score: 77, titulo: "Public transport as base", razon: "Further reduces fixed cost if you can cover daily commute without own car." },
-      { tipo: "rent_a_car", score: 69, titulo: "Car rental by day or week", razon: "Makes sense when usage is occasional but you need full car access at specific moments." },
+      { tipo: "transporte_publico", titulo: "Public transport as base", razon: "Further reduces fixed cost if you can cover daily commute without own car." },
+      { tipo: "rent_a_car", titulo: "Car rental by day or week", razon: "Makes sense when usage is occasional but you need full car access at specific moments." },
     ],
     rent_a_car: [
-      { tipo: "carsharing", score: 78, titulo: "Carsharing for urban trips", razon: "Usually more efficient if usage is occasional, urban and you don't need car reserved multiple days." },
-      { tipo: "renting_corto", score: 66, titulo: `Short-term leasing of ${profile}`, razon: "Only worthwhile if you already know you'll need car continuously for several months." },
+      { tipo: "carsharing", titulo: "Carsharing for urban trips", razon: "Usually more efficient if usage is occasional, urban and you don't need car reserved multiple days." },
+      { tipo: "renting_corto", titulo: `Short-term leasing of ${profile}`, razon: "Only worthwhile if you already know you'll need car continuously for several months." },
     ],
     transporte_publico: [
-      { tipo: "carsharing", score: 73, titulo: "Carsharing for weekends", razon: "Complements occasional trips well without assuming high fixed monthly fee." },
-      { tipo: "micromovilidad", score: 61, titulo: "Urban micro-mobility", razon: "Fits if most of your trips are short and within the city." },
+      { tipo: "carsharing", titulo: "Carsharing for weekends", razon: "Complements occasional trips well without assuming high fixed monthly fee." },
+      { tipo: "micromovilidad", titulo: "Urban micro-mobility", razon: "Fits if most of your trips are short and within the city." },
     ],
   } : {
     compra_contado: [
-      { tipo: "compra_financiada", score: 76, titulo: `Compra financiada de ${profile}`, razon: "Tiene sentido si prefieres preservar liquidez y mantienes una cuota por debajo de tu limite comodo." },
-      { tipo: "compra_financiada", score: 68, titulo: `Compra financiada de ${profile}`, razon: "Buena alternativa si quieres preservar liquidez inicial y repartir esfuerzo mensual." },
+      { tipo: "compra_financiada", titulo: `Compra financiada de ${profile}`, razon: "Tiene sentido si prefieres preservar liquidez y mantienes una cuota por debajo de tu limite comodo." },
+      { tipo: "compra_financiada", titulo: `Compra financiada de ${profile}`, razon: "Buena alternativa si quieres preservar liquidez inicial y repartir esfuerzo mensual." },
     ],
     compra_financiada: [
-      { tipo: "compra_contado", score: 79, titulo: `Compra al contado de ${profile}`, razon: "Reduce coste financiero si puedes aumentar entrada y priorizas coste total final." },
-      { tipo: "compra_contado", score: 66, titulo: `Compra al contado de ${profile}`, razon: "Interesa si puedes aumentar entrada y evitar coste financiero en una unidad fiable." },
+      { tipo: "compra_contado", titulo: `Compra al contado de ${profile}`, razon: "Reduce coste financiero si puedes aumentar entrada y priorizas coste total final." },
+      { tipo: "compra_contado", titulo: `Compra al contado de ${profile}`, razon: "Interesa si puedes aumentar entrada y evitar coste financiero en una unidad fiable." },
     ],
     renting_largo: [
-      { tipo: "renting_corto", score: 74, titulo: "Renting flexible", razon: "Puede encajar mejor si prevés cambios cercanos y no quieres permanencia larga." },
-      { tipo: "renting_corto", score: 64, titulo: "Renting flexible", razon: "Solo compensa si preves cambios de vida cercanos y quieres posponer la decision final." },
+      { tipo: "renting_corto", titulo: "Renting flexible", razon: "Puede encajar mejor si prevés cambios cercanos y no quieres permanencia larga." },
+      { tipo: "renting_corto", titulo: "Renting flexible", razon: "Solo compensa si preves cambios de vida cercanos y quieres posponer la decision final." },
     ],
     renting_corto: [
-      { tipo: "carsharing", score: 72, titulo: "Carsharing + transporte publico", razon: "Muy competitivo si haces pocos kilometros y la mayor parte del uso es urbano y puntual." },
-      { tipo: "rent_a_car", score: 68, titulo: "Alquiler por dias o semanas", razon: "Puede ser mejor que un renting corto si realmente solo necesitas cobertura temporal y uso esporadico." },
+      { tipo: "carsharing", titulo: "Carsharing + transporte publico", razon: "Muy competitivo si haces pocos kilometros y la mayor parte del uso es urbano y puntual." },
+      { tipo: "rent_a_car", titulo: "Alquiler por dias o semanas", razon: "Puede ser mejor que un renting corto si realmente solo necesitas cobertura temporal y uso esporadico." },
     ],
     carsharing: [
-      { tipo: "transporte_publico", score: 77, titulo: "Transporte publico como base", razon: "Reduce aun mas el coste fijo si puedes cubrir el dia a dia sin coche propio." },
-      { tipo: "rent_a_car", score: 69, titulo: "Alquiler por dias o semanas", razon: "Conviene cuando el uso es puntual pero necesitas coche completo en momentos concretos." },
+      { tipo: "transporte_publico", titulo: "Transporte publico como base", razon: "Reduce aun mas el coste fijo si puedes cubrir el dia a dia sin coche propio." },
+      { tipo: "rent_a_car", titulo: "Alquiler por dias o semanas", razon: "Conviene cuando el uso es puntual pero necesitas coche completo en momentos concretos." },
     ],
     rent_a_car: [
-      { tipo: "carsharing", score: 78, titulo: "Carsharing para trayectos urbanos", razon: "Suele ser mas eficiente si el uso es esporadico, urbano y no necesitas reservar coche varios dias seguidos." },
-      { tipo: "renting_corto", score: 66, titulo: `Renting corto de ${profile}`, razon: "Solo compensa si ya sabes que necesitaras coche de forma continua durante varios meses." },
+      { tipo: "carsharing", titulo: "Carsharing para trayectos urbanos", razon: "Suele ser mas eficiente si el uso es esporadico, urbano y no necesitas reservar coche varios dias seguidos." },
+      { tipo: "renting_corto", titulo: `Renting corto de ${profile}`, razon: "Solo compensa si ya sabes que necesitaras coche de forma continua durante varios meses." },
     ],
     transporte_publico: [
-      { tipo: "carsharing", score: 73, titulo: "Carsharing para fines de semana", razon: "Complementa bien desplazamientos ocasionales sin asumir cuota mensual fija alta." },
-      { tipo: "micromovilidad", score: 61, titulo: "Micromovilidad urbana", razon: "Encaja si la mayoria de trayectos son cortos y dentro de ciudad." },
+      { tipo: "carsharing", titulo: "Carsharing para fines de semana", razon: "Complementa bien desplazamientos ocasionales sin asumir cuota mensual fija alta." },
+      { tipo: "micromovilidad", titulo: "Micromovilidad urbana", razon: "Encaja si la mayoria de trayectos son cortos y dentro de ciudad." },
     ],
   };
 
   const alternatives = alternativesByType[primaryType] || (isEn ? [
-    { tipo: "compra_financiada", score: 70, titulo: `Financed purchase of ${profile}`, razon: "Maintains balance between monthly control, full availability and residual value." },
-    { tipo: "renting_largo", score: 65, titulo: "Leasing with included services", razon: "Worthwhile if you prioritize simplifying management and fixing total cost." },
+    { tipo: "compra_financiada", titulo: `Financed purchase of ${profile}`, razon: "Maintains balance between monthly control, full availability and residual value." },
+    { tipo: "renting_largo", titulo: "Leasing with included services", razon: "Worthwhile if you prioritize simplifying management and fixing total cost." },
   ] : [
-    { tipo: "compra_financiada", score: 70, titulo: `Compra financiada de ${profile}`, razon: "Mantiene equilibrio entre control mensual, disponibilidad total y valor residual." },
-    { tipo: "renting_largo", score: 65, titulo: "Renting con servicios incluidos", razon: "Interesa si priorizas simplificar gestion y fijar coste total." },
+    { tipo: "compra_financiada", titulo: `Compra financiada de ${profile}`, razon: "Mantiene equilibrio entre control mensual, disponibilidad total y valor residual." },
+    { tipo: "renting_largo", titulo: "Renting con servicios incluidos", razon: "Interesa si priorizas simplificar gestion y fijar coste total." },
   ]);
 
+  const propulsions = getViablePropulsions(answers);
+  const conSuScore = alternatives.map((item) => ({
+    ...item,
+    score: clamp(
+      Object.values(buildScoreBreakdown(answers, item.tipo, propulsions))
+        .reduce((acc, x) => acc + Number(x || 0), 0),
+      0,
+      100
+    ),
+  }));
+
+  // La misma opción no se ofrece dos veces con dos explicaciones.
+  const vistas = new Set();
+  const sinRepetir = conSuScore.filter((item) => {
+    if (vistas.has(item.tipo)) return false;
+    vistas.add(item.tipo);
+    return true;
+  });
+
+  const ordenadas = sinRepetir.sort((a, b) => b.score - a.score);
+
   if (!advisorContext) {
-    return alternatives;
+    return ordenadas.slice(0, 2);
   }
 
   const allowedTypes = getAllowedTypesForAdvisorContext(advisorContext);
-  return alternatives.filter((item) => allowedTypes.includes(item.tipo)).slice(0, 2);
+  return ordenadas.filter((item) => allowedTypes.includes(item.tipo)).slice(0, 2);
+}
+
+/**
+ * Cuánto puntúa una opción, con la cuenta de siempre.
+ *
+ * La misma para la principal y para las alternativas: comparar dos números
+ * solo significa algo si salen de la misma cuenta.
+ */
+function loQuePuntua(tipo, answers, propulsions) {
+  return clamp(
+    Object.values(buildScoreBreakdown(answers, tipo, propulsions))
+      .reduce((acc, x) => acc + Number(x || 0), 0),
+    0,
+    100
+  );
 }
 
 function buildFallbackAdvisorResult(answers = {}, advisorContext = null, uiLanguage = "es") {
   const isEn = uiLanguage === "en";
-  const primaryType = getPrimaryType(answers, advisorContext);
   const propulsions = getViablePropulsions(answers);
+
+  /*
+   * La recomendada es la que más puntúa, no la que dicta la regla.
+   *
+   * `getPrimaryType` elige por reglas y el score se calculaba después, así
+   * que podían discrepar. Mientras las alternativas llevaban el número
+   * escrito a mano no se veía; ahora que se calculan igual, la pantalla
+   * enseñaría «principal 55 %» con una alternativa de 76 debajo.
+   *
+   * Las reglas siguen mandando en lo suyo: `buildAlternatives` solo propone
+   * opciones compatibles con el contexto, así que aquí no puede colarse un
+   * renting a quien entró por la puerta de comprar.
+   */
+  const laDeLaRegla = getPrimaryType(answers, advisorContext);
+  const candidatas = buildAlternatives(laDeLaRegla, answers, advisorContext, uiLanguage);
+  const mejorAlternativa = candidatas[0];
+  const primaryType = mejorAlternativa
+    && mejorAlternativa.score > loQuePuntua(laDeLaRegla, answers, propulsions)
+    ? mejorAlternativa.tipo
+    : laDeLaRegla;
   const dgtLabel = getDgtLabel(propulsions);
   const vehicleProfile = getVehicleProfile(answers);
   const highRiskControl = answers.gestion_riesgo === "alto";
@@ -1449,7 +1543,13 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null, uiLangu
   const tension = getTensionPrincipal(answers, primaryType);
   const whyWins = buildWhyWins(answers, primaryType, propulsions, dgtLabel);
   const tcoDetail = buildTcoEstimate(answers, primaryType, propulsions);
-  const alternatives = buildAlternatives(primaryType, answers, advisorContext, uiLanguage);
+  /*
+   * Desde la que ha ganado: si la principal ha cambiado, las alternativas
+   * son las suyas. Si no, son las mismas que ya se calcularon arriba.
+   */
+  const alternatives = primaryType === laDeLaRegla
+    ? candidatas
+    : buildAlternatives(primaryType, answers, advisorContext, uiLanguage);
   const comparadorFinal = buildComparatorRows(primaryType, answers, scoreBreakdown, tcoDetail, alternatives);
   const transparencia = buildTransparencyReport(answers, primaryType, propulsions, tcoDetail, scoreBreakdown, score);
   const planAccion = buildActionPlan(answers, primaryType, transparencia, tcoDetail, companies);

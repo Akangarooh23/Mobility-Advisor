@@ -127,6 +127,7 @@
     "programa-publicacion": "powershell -ExecutionPolicy Bypass -File scripts/programa-publicacion.ps1",
     "limpia-fantasmas": "node scripts/limpia-fantasmas-n8n.js",
     "que-reimporto": "node scripts/que-reimporto.js",
+    "mide-colas": "node scripts/mide-colas-n8n.js",
     "test:as24-es": "node scripts/comprueba-as24-es.js",
     "enlaza-segmento-es": "node scripts/enlaza-segmento-as24-es.js",
     "test:as24-es-verificar": "node scripts/comprueba-as24-es-verificar.js",

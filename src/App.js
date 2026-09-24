@@ -225,6 +225,15 @@ function normalizeRangeValue(value) {
   return value ? [value] : [];
 }
 
+/**
+ * El paso que ya no es una pregunta.
+ *
+ *  recorre las preguntas del 0 en adelante y salta a esto cuando el
+ * cuestionario termina: es lo que enciende la pantalla de «pensando» y, si
+ * algo falla, la del error. No es un indice de la lista.
+ */
+const FUERA_DEL_CUESTIONARIO = 99;
+
 function hasCompleteScoreWeights(value, metrics = []) {
   if (!value || typeof value !== "object" || Array.isArray(value) || metrics.length === 0) {
     return false;
@@ -2412,9 +2421,19 @@ export default function App() {
    * Cambiar de opinion -«sí entrego coche» por «no»- hace desaparecer tres
    * preguntas de golpe. Sin esto, el indice podria apuntar a una que ya no
    * esta y la pantalla se quedaria en blanco a mitad del test.
+   *
+   * PERO SOLO DENTRO DEL CUESTIONARIO. El paso 99 no es una pregunta: es la
+   * senal de que ya se ha salido de el y toca la pantalla de «pensando». La
+   * primera version de esto no lo distinguia, y como 99 es mayor que el numero
+   * de preguntas, en cuanto se pulsaba «Continuar» en la ultima el indice
+   * volvia de un salto a esa misma pregunta: el analisis se lanzaba, la
+   * pantalla de «pensando» no llegaba a verse nunca, y el resultado acababa
+   * apareciendo DEBAJO del cuestionario un minuto despues. Parecia que el
+   * boton no hacia nada.
    */
   useEffect(() => {
-    if (step >= 0 && activeSteps.length > 0 && step > activeSteps.length - 1) {
+    const dentroDelCuestionario = step >= 0 && step < FUERA_DEL_CUESTIONARIO;
+    if (dentroDelCuestionario && activeSteps.length > 0 && step > activeSteps.length - 1) {
       setStep(activeSteps.length - 1);
     }
   }, [step, activeSteps.length]);

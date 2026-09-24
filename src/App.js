@@ -3971,14 +3971,18 @@ export default function App() {
 
     const controller = new AbortController();
     /*
-     * Treinta segundos, no dieciseis.
+     * Cuatro minutos, y la pantalla de «pensando» mientras tanto.
      *
-     * La busqueda de ofertas tardaba entre 25 y 103 segundos, asi que el
-     * corte a los 16 saltaba casi siempre. Ahora tarda mucho menos, pero el
-     * margen se deja ancho: cortar antes de tiempo se ve igual que no tener
-     * ofertas, y no es lo mismo.
+     * El corte estaba en 16 s y lo subi a 30, pero la busqueda tarda entre 25
+     * y 145 segundos contra el pool de 2,36 millones de ofertas: cortarla era
+     * garantizar el aviso de que habia tardado demasiado.
+     *
+     * Que tarde. Mientras tarda, el cerebro sigue pensando, que es una espera
+     * honesta; un aviso de error cuando lo que pasa es que aun no ha terminado
+     * no lo es. Los cuatro minutos son el tope de la funcion en Vercel -cinco-
+     * con un margen para que conteste ella y no se corte el navegador antes.
      */
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), 240000);
 
     try {
       const { response, data } = await postListingJson({

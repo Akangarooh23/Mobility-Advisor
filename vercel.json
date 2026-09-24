@@ -1,5 +1,8 @@
 {
   "buildCommand": "npm run build",
+  "functions": {
+    "api/find-listing.js": { "maxDuration": 300 }
+  },
   "crons": [
     {
       "path": "/api/cron-appointment-reminders",

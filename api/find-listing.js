@@ -1239,13 +1239,29 @@ function resolveStrictFuelMode(rawValue = "") {
   if (/(electrico_puro|electrico|electric|ev\b|bev)/.test(normalized)) {
     return "electrico";
   }
-  if (/(hibrido_enchufable|phev|enchufable|plug\s?-?in)/.test(normalized)) {
-    return "phev";
+  /*
+   * El híbrido NO enchufable, antes que el enchufable.
+   *
+   * Porque «hibrido_no_enchufable» CONTIENE la palabra «enchufable», y la
+   * comprobación del enchufable iba primero: a quien marcaba «Híbrido
+   * (HEV/MHEV)» se le buscaba un PHEV.
+   *
+   * Se vio contestando el test entero. Pidiendo gasolina e híbrido no
+   * enchufable, un compacto de menos de 20.000 € en Valencia, la búsqueda se
+   * fue a por «gasolina o PHEV» y trajo un Peugeot 3008, un 508 y un 2008
+   * —dos SUV y una berlina grande— que el colador tiró por carrocería. Cero
+   * ofertas, teniendo el pool 75 que cumplían.
+   */
+  if (/(hibrido_no_enchufable|no[\s_-]?enchufable)/.test(normalized)) {
+    return "hibrido";
   }
   if (/(microhibrido|mhev)/.test(normalized)) {
     return "microhibrido";
   }
-  if (/(hibrido_no_enchufable|hibrido|hybrid|hev)/.test(normalized)) {
+  if (/(hibrido_enchufable|phev|enchufable|plug\s?-?in)/.test(normalized)) {
+    return "phev";
+  }
+  if (/(hibrido|hybrid|hev)/.test(normalized)) {
     return "hibrido";
   }
   if (/(diesel|di[eé]sel)/.test(normalized)) {
@@ -3672,6 +3688,30 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
   };
   const desiredType = getDesiredListingType(result);
 
+  const companies = getSearchCompanies({ result, filters, desiredType });
+  const queries = buildQueries({ result, answers, filters, companies, desiredType });
+  const coverage = getSearchCoverageConfig(result, desiredType);
+  const strictObjectiveMode = desiredType === "compra" && modelObjectiveTokens.length > 0;
+  const effectiveFuelFilter = normalizeText(filters?.fuel || inferFuelFilterFromAnswers(answers));
+  const strictBrandKeywords = getStrictBrandKeywords(answers, filters);
+  const strictFuelMode = resolveStrictFuelMode(effectiveFuelFilter);
+  const requestedFuelModes = (() => {
+    const explicitMode = resolveStrictFuelMode(filters?.fuel || "");
+    if (explicitMode) {
+      return new Set([explicitMode]);
+    }
+
+    const preferred = Array.isArray(answers?.propulsion_preferida)
+      ? answers.propulsion_preferida
+      : answers?.propulsion_preferida
+        ? [answers.propulsion_preferida]
+        : [];
+    const modes = preferred
+      .map((item) => resolveStrictFuelMode(item))
+      .filter(Boolean);
+
+    return new Set(modes);
+  })();
   /**
    * Lo que no se negocia en ninguna busqueda.
    *
@@ -3716,6 +3756,15 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     minPowerCv: filters?.minPowerCv || delTest.minPowerCv || null,
     country: normalizeText(filters?.country || '') || delTest.country || '',
     /*
+     * Los combustibles que ha marcado, TODOS, y no solo cuando marca uno.
+     *
+     * Con dos marcados el combustible no llegaba a la base -habia una regla
+     * que decia «no sobre-constrinas» y devolvia vacio- y el filtro de
+     * JavaScript los tiraba despues sobre una ventana pequena. Contestando el
+     * test entero salian CERO ofertas teniendo el pool 75 que cumplian.
+     */
+    fuels: requestedFuelModes.size ? Array.from(requestedFuelModes) : null,
+    /*
      * Y la carroceria, que tambien la eligio el.
      *
      * Salio un Audi TT Coupe de tercera opcion a quien habia pedido un
@@ -3731,30 +3780,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || "")
       || delTest.environmentalLabel || "",
   };
-  const companies = getSearchCompanies({ result, filters, desiredType });
-  const queries = buildQueries({ result, answers, filters, companies, desiredType });
-  const coverage = getSearchCoverageConfig(result, desiredType);
-  const strictObjectiveMode = desiredType === "compra" && modelObjectiveTokens.length > 0;
-  const effectiveFuelFilter = normalizeText(filters?.fuel || inferFuelFilterFromAnswers(answers));
-  const strictBrandKeywords = getStrictBrandKeywords(answers, filters);
-  const strictFuelMode = resolveStrictFuelMode(effectiveFuelFilter);
-  const requestedFuelModes = (() => {
-    const explicitMode = resolveStrictFuelMode(filters?.fuel || "");
-    if (explicitMode) {
-      return new Set([explicitMode]);
-    }
 
-    const preferred = Array.isArray(answers?.propulsion_preferida)
-      ? answers.propulsion_preferida
-      : answers?.propulsion_preferida
-        ? [answers.propulsion_preferida]
-        : [];
-    const modes = preferred
-      .map((item) => resolveStrictFuelMode(item))
-      .filter(Boolean);
-
-    return new Set(modes);
-  })();
   const matchesStrictBrand = (listing) => {
     if (!strictBrandKeywords.length) {
       return true;
@@ -3882,6 +3908,8 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       modelCandidates: models,
       version: normalizeText(filters?.version || ""),
       fuel: effectiveFuelFilter,
+      // Todos los que ha marcado, no solo cuando marca uno.
+      fuels: requestedFuelModes.size ? Array.from(requestedFuelModes) : null,
       transmission: normalizeText(filters?.transmission || "") || delTest.transmission || "",
       /*
        * La carroceria que ha elegido quien contesta.
@@ -4227,6 +4255,12 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
        *
        * Ver lib/lo-que-de-verdad-cumple.js.
        */
+      if (process.env.RASTRO_COLADOR) {
+        console.log("[rastro] limites: " + JSON.stringify(loQueNoSeNegocia));
+        for (const l of rankedInventory) {
+          console.log("[rastro] " + (l.brand||"") + " " + (l.model||"") + " | carroceria=" + JSON.stringify(l.bodyType) + " | fuel=" + JSON.stringify(l.fuel) + " | " + l.province + " | " + l.price + " | " + l.mileage + " km | cambio=" + JSON.stringify(l.transmission) + " | vende=" + JSON.stringify(l.sellerType) + " | pais=" + JSON.stringify(l.country));
+        }
+      }
       const colado = loQueDeVerdadCumple(rankedInventory, loQueNoSeNegocia);
       rankedInventory = colado.cumplen;
 
@@ -4503,3 +4537,6 @@ module.exports = async function handler(req, res) {
 };
 
 module.exports.buildRankedListingResponse = buildRankedListingResponse;
+/* Para poder comprobarlo desde las pruebas: ver el hibrido no enchufable. */
+module.exports.resolveStrictFuelMode = resolveStrictFuelMode;
+module.exports.inferFuelFilterFromAnswers = inferFuelFilterFromAnswers;

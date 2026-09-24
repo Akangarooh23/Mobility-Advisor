@@ -715,10 +715,35 @@ function buildActionPlan(answers = {}, primaryType = "", transparency = {}, tcoD
   });
 }
 
+/** Si el tipo es una compra, que es cuando el cliente ha dicho como la paga. */
+/** Por que ha parado de escribir el modelo: STOP, MAX_TOKENS, SAFETY... */
+const finishReasonDe = (generation) =>
+  generation && generation.data && generation.data.candidates && generation.data.candidates[0]
+    ? generation.data.candidates[0].finishReason
+    : null;
+
+const esCompra = (tipo) => tipo === "compra_contado" || tipo === "compra_financiada";
+
 function normalizeAdvisorResult(value, answers = {}) {
   const main = value?.solucion_principal || {};
   const score = Number.isFinite(Number(main.score)) ? Number(main.score) : Number(value?.alineacion_pct) || 0;
-  const mainType = normalizeText(main.tipo);
+  /*
+   * Cómo lo va a pagar lo ha dicho él, no lo decide el modelo.
+   *
+   * Contestando «pagando al contado» y «tengo el capital completo», el
+   * análisis devolvía «Compra FINANCIADA de un compacto equilibrado». Eso
+   * contradice dos respuestas seguidas, y no es un matiz de redacción: el
+   * resto del informe —el coste mensual, el comparador, el plan de acción— se
+   * construye sobre ese tipo.
+   *
+   * `getPrimaryType` ya sabía deducirlo de las respuestas; solo que nadie lo
+   * usaba cuando el modelo contestaba otra cosa.
+   */
+  const loQueDijoElModelo = normalizeText(main.tipo);
+  const loQueSeDeduce = getPrimaryType(answers, esCompra(loQueDijoElModelo) ? "buy" : null);
+  const mainType = esCompra(loQueDijoElModelo) && loQueSeDeduce !== loQueDijoElModelo
+    ? loQueSeDeduce
+    : loQueDijoElModelo;
   const propulsionesViables = enforceUserFuelInPropulsions(normalizeStringArray(value?.propulsiones_viables), answers);
   const providedBreakdown = normalizeScoreBreakdown(value?.score_desglose);
   const providedBreakdownTotal = Object.values(providedBreakdown).reduce((acc, item) => acc + Number(item || 0), 0);
@@ -1765,7 +1790,22 @@ module.exports = async function handler(req, res) {
       const payload = {
         contents: [{ parts: [{ text: promptText }] }],
         generationConfig: {
-          maxOutputTokens: 2200,
+          /*
+           * Ocho mil, y no 2.200.
+           *
+           * Con 2.200 la respuesta se cortaba SIEMPRE. Medido llamando a la
+           * API con el prompt real de un perfil completo: 2.375 tokens de
+           * salida mas 354 de razonamiento, o sea 2.729. El JSON llegaba
+           * partido a la mitad, no se podia leer, se reintentaba con el prompt
+           * de reparacion, volvia a cortarse, y el analisis caia al respaldo
+           * determinista.
+           *
+           * Es decir: el consejo que veia el cliente NO LO ESCRIBIA EL MODELO
+           * nunca. Era el texto de emergencia, el que esta escrito para cuando
+           * la IA no contesta. Y no fallaba nada visible: contestaba 200 con
+           * un analisis de aspecto normal.
+           */
+          maxOutputTokens: 8192,
           responseMimeType: "application/json",
           temperature: 0.4,
         },
@@ -1858,10 +1898,32 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    /*
+     * Y si se acaba usando el respaldo, que se sepa POR QUE.
+     *
+     * Esto se cayo al respaldo durante quien sabe cuanto tiempo sin que nadie
+     * se enterara: contestaba 200, con un analisis de aspecto normal, y lo
+     * unico que lo delataba era un `meta.source` que no mira nadie. La causa
+     * era que la respuesta llegaba cortada por `maxOutputTokens`.
+     *
+     * Un aviso en el log no arregla nada por si solo, pero convierte un fallo
+     * mudo en uno que se puede leer.
+     */
+    const porQue = !parsed
+      ? (finishReasonDe(generation) === "MAX_TOKENS"
+        ? "la respuesta ha llegado cortada por maxOutputTokens"
+        : "la respuesta no era JSON valido")
+      : !isAdvisorResultCompatibleWithContext(parsed, advisorContext)
+        ? "el tipo de solucion no encaja con la via de entrada"
+        : "faltaban campos obligatorios";
+
+    console.warn("[analyze] se usa el respaldo determinista: " + porQue);
+
     return res.status(200).json({
       parsed: buildFallbackAdvisorResult(answers, advisorContext, uiLanguage),
       meta: {
         source: "fallback",
+        porQue,
       },
     });
   } catch (error) {

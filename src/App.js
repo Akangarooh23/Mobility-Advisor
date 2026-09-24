@@ -4393,19 +4393,21 @@ export default function App() {
 
       clearQuestionnaireDraft();
       setQuestionnaireDraft(null);
-      setResultView("analysis");
-      setResult(normalizedResult);
 
       /*
-       * La pantalla de "pensando" se queda hasta que hay ofertas.
+       * Primero las ofertas, y al final se ensena todo junto.
        *
-       * Antes se apagaba aqui, con el analisis recien hecho, y las ofertas se
-       * buscaban despues: el cliente veia aparecer el resultado debajo del
-       * cuestionario y un hueco donde van los coches, que tardaba. Parecia que
-       * el boton no habia hecho nada.
+       * El analisis ya esta hecho aqui, pero no se pone todavia: en cuanto
+       * `result` tiene valor, la pantalla pinta "Tu solucion de movilidad
+       * optima" DEBAJO del cerebro que sigue pensando, con el hueco de las
+       * ofertas vacio. Las dos cosas a la vez, y ninguna terminada.
        *
-       * Si la busqueda falla, se apaga igual: el analisis esta hecho y vale por
-       * si solo. Lo que no puede es quedarse pensando para siempre.
+       * Por eso la busqueda va antes y el resultado se pone despues, de una
+       * vez: o se ve el cerebro, o se ve el resultado entero.
+       *
+       * Si la busqueda falla, se ensena igual: el analisis vale por si solo y
+       * el aviso de las ofertas lo pone su propio recuadro. Lo que no puede es
+       * quedarse pensando para siempre.
        */
       try {
         await searchRealListing(null, null, { resultado: normalizedResult });
@@ -4413,6 +4415,8 @@ export default function App() {
         /* el aviso lo pone la propia busqueda */
       }
 
+      setResultView("analysis");
+      setResult(normalizedResult);
       setLoading(false);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (err) {

@@ -75,4 +75,19 @@ describe("y al terminar se va a pensar", () => {
     expect(buscaOfertas).toBeGreaterThan(0);
     expect(buscaOfertas).toBeLessThan(apaga);
   });
+
+  test("y el resultado no se pinta antes que las ofertas", () => {
+    /*
+     * En cuanto `result` tiene valor, la pantalla pinta "Tu solucion de
+     * movilidad optima" DEBAJO del cerebro que sigue pensando, con el hueco de
+     * las ofertas vacio: las dos cosas a la vez y ninguna terminada. Por eso
+     * el resultado se pone DESPUES de la busqueda.
+     */
+    const analiza = APP.slice(APP.indexOf("const analyzeWithAI = async"));
+    const buscaOfertas = analiza.indexOf("await searchRealListing(null, null, { resultado: normalizedResult })");
+    const poneElResultado = analiza.indexOf("setResult(normalizedResult)");
+
+    expect(poneElResultado).toBeGreaterThan(0);
+    expect(buscaOfertas).toBeLessThan(poneElResultado);
+  });
 });

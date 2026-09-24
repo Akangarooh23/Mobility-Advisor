@@ -78,7 +78,7 @@ const MOTIVOS = [
   ["no_es_coche", `o.es_coche IS FALSE`],
   ["danada", `o.is_damaged IS TRUE`],
   ["sin_foto", `COALESCE(o.image_url, '') = ''`],
-  ["precio_bajo", `o.price IS NULL OR o.price < ${PRECIO_MINIMO}`],
+  ["precio_bajo", `(o.price IS NULL OR o.price < ${PRECIO_MINIMO})`],
   ["precio_alto", `o.price > ${PRECIO_MAXIMO}`],
   ["km_imposible", `o.mileage IS NOT NULL AND (o.mileage < 0 OR o.mileage > ${KM_MAXIMO})`],
 ];
@@ -142,14 +142,39 @@ const CASE_MOTIVO = "CASE\n"
    * de tuplas muertas que el autovacuum tiene que limpiar cada noche.
    */
   console.log("\n  APLICANDO");
+  /*
+   * El motivo se calcula UNA vez, en un CTE, y las cuatro veces que hace falta
+   * leen de ahí.
+   *
+   * Escrito del tirón sale con el CASE repetido cuatro veces dentro del mismo
+   * UPDATE, y entonces Postgres evalúa la subconsulta de duplicados cuatro
+   * veces por fila: 6,3 millones de búsquedas en lugar de 1,58. Da exactamente
+   * lo mismo y tarda cuatro veces más.
+   *
+   * Lo natural sería un LATERAL, que no materializa nada. No se puede: dentro
+   * de un UPDATE, Postgres no deja que el FROM mire a la tabla que se está
+   * actualizando -«invalid reference to FROM-clause entry»-. El CTE sí, a
+   * cambio de guardar 1,58 millones de pares (id, motivo) un rato.
+   *
+   * Y tiene que ser MATERIALIZED. Sin esa palabra, Postgres 12 en adelante
+   * aplana el CTE dentro del UPDATE y vuelve a dejar las cuatro subconsultas
+   * -se ve en el EXPLAIN como SubPlan 1, 2, 3 y 4-, con lo que el CTE no
+   * habría servido para nada.
+   */
   const r = await c.query(`
+    WITH calculado AS MATERIALIZED (
+      SELECT o.id, ${CASE_MOTIVO} AS motivo
+        FROM moveadvisor_market_offers o
+       WHERE ${DONDE}
+    )
     UPDATE moveadvisor_market_offers o
-       SET visible = (${CASE_MOTIVO}) IS NULL,
-           visible_motivo = ${CASE_MOTIVO},
+       SET visible = k.motivo IS NULL,
+           visible_motivo = k.motivo,
            visible_desde = NOW()
-     WHERE ${DONDE}
-       AND (o.visible IS DISTINCT FROM ((${CASE_MOTIVO}) IS NULL)
-            OR o.visible_motivo IS DISTINCT FROM (${CASE_MOTIVO}))`);
+      FROM calculado k
+     WHERE o.id = k.id
+       AND (o.visible IS DISTINCT FROM (k.motivo IS NULL)
+            OR o.visible_motivo IS DISTINCT FROM k.motivo)`);
   console.log("      filas cambiadas: " + r.rowCount.toLocaleString("es"));
 
   /*

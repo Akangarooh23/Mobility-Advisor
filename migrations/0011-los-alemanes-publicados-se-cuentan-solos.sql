@@ -1,0 +1,44 @@
+-- Contar los coches alemanes publicados sin recorrer los 315.000 que no lo están.
+--
+-- El dashboard del ERP dejó de cargar. No era la base: de sus seis consultas,
+-- cinco tardaban 700 ms y la sexta —ésta— tardaba 68 segundos, y la función de
+-- Vercel se muere a los 30. La pantalla entera se caía por un contador.
+--
+--     SELECT COUNT(*) ... FROM moveadvisor_market_offers
+--      WHERE country = 'DE' AND import_published
+--
+-- El plan lo decía todo:
+--
+--     Index Scan using idx_mmo_country   Rows Removed by Filter: 315.116
+--     Buffers: read=178.598 dirtied=174.644     Execution Time: 68.099 ms
+--
+-- `idx_mmo_country` sabe de `country` pero no de `import_published`, así que
+-- encontraba los 315.422 anuncios alemanes y luego iba a la tabla fila a fila a
+-- mirar cuáles estaban publicados. Son 306. En Neon cada página es un viaje por
+-- red, y ahí hay 178.598 viajes para devolver un número de tres cifras.
+--
+-- ── Por qué un índice parcial ──────────────────────────────────────────────
+--
+-- Porque la respuesta son 306 filas de 2,3 millones. Un índice sobre
+-- (country, import_published) entero guardaría los 2,3 millones para contestar
+-- lo mismo; con el predicado metido en el índice, sólo entran las 306 y ocupa
+-- 16 kB. Se lee entero de una sentada y la consulta pasa a 1 segundo.
+--
+-- Lleva `is_active` como columna para que el segundo contador de la consulta
+-- -los que además siguen vivos- salga del propio índice sin tocar la tabla.
+--
+-- ── Ojo al aplicarlo en una base con datos ─────────────────────────────────
+--
+-- En producción se creó con CREATE INDEX CONCURRENTLY, a mano y fuera de este
+-- fichero, porque `scripts/migra.mjs` envuelve cada migración en una
+-- transacción y CONCURRENTLY no puede vivir dentro de una. Sin CONCURRENTLY la
+-- construcción bloquea las escrituras de los scrapers durante los dos minutos
+-- largos que tarda el escaneo, que es exactamente la clase de parón que este
+-- índice viene a evitar.
+--
+-- El IF NOT EXISTS hace que aquí sea un no-op donde ya está, y que funcione tal
+-- cual en una base vacía, que es donde no hay nada que bloquear.
+
+CREATE INDEX IF NOT EXISTS idx_market_offers_import_publicadas
+  ON moveadvisor_market_offers (is_active)
+  WHERE country = 'DE' AND import_published;

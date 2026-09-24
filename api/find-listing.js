@@ -1,6 +1,7 @@
 const SEARCH_ENDPOINT = "https://html.duckduckgo.com/html/";
 const { listInventoryOffers } = require("../lib/inventoryStore");
 const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
+const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -3616,6 +3617,15 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
    * busqueda de ofertas. Ver `lib/las-respuestas-del-test.js`.
    */
   const answers = comoLasLeeElMotor(respuestasDelTest);
+
+  /*
+   * Hasta cuanto quiere gastarse y hasta cuantos kilometros acepta.
+   *
+   * Son las dos preguntas que faltaban y las dos que mas estrechan: con un
+   * tope de precio la consulta usa indice, y sin el recorre el pool entero
+   * -medido: 15-22 segundos con criterios, 107 sin ninguno-.
+   */
+  const delTest = elEncargoDeBusqueda(answers);
   const explicitBrand = normalizeText(filters?.brand || "");
   const explicitModel = normalizeText(filters?.model || "");
   const explicitModelCandidates = [
@@ -3830,7 +3840,9 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       minYear: filters?.minYear || null,
       maxYear: filters?.maxYear || null,
       minMileage: filters?.minMileage || null,
-      maxMileage: filters?.maxMileage || null,
+      // Lo que ha dicho en el test manda; los filtros de la pantalla, si
+      // los toca, mandan mas. Ver lib/el-encargo-de-busqueda.js.
+      maxMileage: filters?.maxMileage || delTest.maxMileage || null,
       minDoors: filters?.minDoors || null,
       maxDoors: filters?.maxDoors || null,
       minSeats: filters?.minSeats || null,
@@ -3838,7 +3850,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       minPowerCv: filters?.minPowerCv || null,
       maxPowerCv: filters?.maxPowerCv || null,
       minPrice: filters?.minPrice || null,
-      maxPrice: filters?.maxPrice || null,
+      maxPrice: filters?.maxPrice || delTest.maxPrice || null,
       limit: requestedInventoryLimit,
     });
 
@@ -3938,7 +3950,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
             bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
             location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
             minPrice: filters?.minPrice || null,
-            maxPrice: filters?.maxPrice || null,
+            maxPrice: filters?.maxPrice || delTest.maxPrice || null,
             limit: TOP_LISTINGS_LIMIT * 6,
           });
           const broadDecorated = (broadInventory?.offers || [])
@@ -3977,7 +3989,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
               bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
               location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
               minPrice: filters?.minPrice || null,
-              maxPrice: filters?.maxPrice || null,
+              maxPrice: filters?.maxPrice || delTest.maxPrice || null,
               limit: TOP_LISTINGS_LIMIT * 10,
             });
             const broadDecorated = (broadInventory?.offers || [])
@@ -4016,7 +4028,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
               modelCandidates: [],
               location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
               minPrice: filters?.minPrice || null,
-              maxPrice: filters?.maxPrice || null,
+              maxPrice: filters?.maxPrice || delTest.maxPrice || null,
               limit: 100,
             });
             const finalBroadCandidates = (finalBroadInventory?.offers || [])

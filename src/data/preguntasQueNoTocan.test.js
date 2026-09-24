@@ -95,6 +95,9 @@ describe("el resto del test no se toca", () => {
     const desaparecidas = sinNada.filter((id) => !conTodo.includes(id));
 
     expect(desaparecidas.sort()).toEqual([
+      // La cuota mensual tambien: a quien paga al contado no le dice nada, y
+      // el precio total ya se le ha preguntado antes.
+      "cuota_mensual",
       "financiacion_gestion",
       "financiacion_plazo",
       "vehiculo_actual_antiguedad",

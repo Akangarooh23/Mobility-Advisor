@@ -37,7 +37,42 @@ export const STEPS = [
      * el resultado decía «330-540 €/mes» sin haber preguntado nunca qué
      * puede pagar quien lo lee.
      */
+    /*
+     * Hasta cuánto quiere gastarse.
+     *
+     * Es lo primero que mira cualquiera en un coche de segunda mano y el
+     * test no lo preguntaba: el precio se deducía de la cuota mensual, lo
+     * que obliga a inventarse un plazo y un interés para llegar a una cifra
+     * que el cliente sabe y podría haber dicho.
+     *
+     * Y es el filtro que más estrecha la búsqueda: con un tope de precio la
+     * consulta usa índice, y sin él recorre el pool entero.
+     */
+    id: "presupuesto_total",
+    block: "Presupuesto",
+    blockIcon: "💰",
+    question: "¿Cuánto quieres gastarte como máximo?",
+    subtitle: "El precio del coche, sin contar seguro ni mantenimiento. Es lo que usamos para buscarte ofertas.",
+    type: "cards",
+    options: [
+      { value: "hasta_10k", label: "Hasta 10.000 €", icon: "🪙", desc: "Coches con más años o más kilómetros" },
+      { value: "10k_15k", label: "De 10.000 a 15.000 €", icon: "💶", desc: "El tramo con más oferta del mercado" },
+      { value: "15k_20k", label: "De 15.000 a 20.000 €", icon: "💶", desc: "Compactos recientes y SUV pequeños" },
+      { value: "20k_30k", label: "De 20.000 a 30.000 €", icon: "💳", desc: "Seminuevos y algún híbrido" },
+      { value: "30k_45k", label: "De 30.000 a 45.000 €", icon: "💎", desc: "Eléctricos, premium o casi nuevos" },
+      { value: "mas_45k", label: "Más de 45.000 €", icon: "🏆", desc: "Sin tope por nuestra parte" },
+    ],
+  },
+  {
     id: "cuota_mensual",
+    /*
+     * Solo a quien vaya a financiar.
+     *
+     * A quien paga al contado la cuota no le dice nada, y el precio total ya
+     * se le ha preguntado. «No lo tengo claro» sí la ve: puede acabar
+     * financiando y es a quien más le sirve saber en qué cuota cae.
+     */
+    soloSi: { flexibilidad: ["propiedad_financiada", "propiedad_entrada_inicial", "renting", "no_tengo_claro"] },
     block: "Presupuesto",
     blockIcon: "💶",
     question: "¿Cuánto puedes destinar al coche cada mes?",
@@ -180,6 +215,27 @@ export const STEPS = [
      * «Me da igual» está de primero a propósito: quien no lo tenga decidido
      * no debe sentir que tiene que elegir.
      */
+    /*
+     * Hasta cuántos kilómetros acepta.
+     *
+     * Junto al precio, lo que todo el mundo mira en un usado. No se
+     * preguntaba en absoluto, así que la búsqueda no podía descartar un
+     * coche de 250.000 km para alguien que quería uno con pocos.
+     */
+    id: "km_maximos_coche",
+    block: "Vehículo",
+    blockIcon: "🛞",
+    question: "¿Hasta cuántos kilómetros aceptarías?",
+    subtitle: "A más kilómetros, menos precio y más mantenimiento por delante.",
+    type: "cards",
+    options: [
+      { value: "hasta_50k", label: "Hasta 50.000 km", icon: "✨", desc: "Casi nuevo, y se paga" },
+      { value: "hasta_100k", label: "Hasta 100.000 km", icon: "👍", desc: "El equilibrio habitual" },
+      { value: "hasta_150k", label: "Hasta 150.000 km", icon: "🛣️", desc: "Más barato, revisa el mantenimiento" },
+      { value: "sin_limite_km", label: "Me da igual", icon: "🤷", desc: "Si el coche está bien cuidado, no me importa" },
+    ],
+  },
+  {
     id: "carroceria_preferida",
     block: "Vehículo",
     blockIcon: "🚗",

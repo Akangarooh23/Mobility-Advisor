@@ -4,6 +4,7 @@ const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
 const { laMedianaDeCada, ordenaPorCalidadPrecio } = require("../lib/lo-que-vale-en-el-mercado");
 const { loQueDeVerdadCumple, loQueSeLeDice } = require("../lib/lo-que-de-verdad-cumple");
+const { elCerebroElige } = require("../lib/el-cerebro-elige");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -4074,7 +4075,41 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         loQueNoSeNegocia
       ).cumplen;
 
-      const distinctByModel = enforceDistinctModelListings(dedupedPrioritizedPool, TOP_LISTINGS_LIMIT);
+      /*
+       * ── Y aqui elige el cerebro ───────────────────────────────────────
+       *
+       * Este es el paso que faltaba. Hasta ahora habia dos etapas: las
+       * preguntas estrechan en SQL -de 2.360.000 anuncios a 181 con el
+       * perfil medido- y la mediana juzga el precio contra lo que se pide
+       * por el mismo modelo, ano y tramo de kilometros. Las dos son
+       * mediciones, y las dos son buenas.
+       *
+       * Lo que no habia era nadie que MIRASE las ofertas que quedaron. El
+       * modelo intervenia antes, escribiendo cinco nombres de coche de
+       * memoria, y la busqueda salia a buscar esos nombres. El resultado
+       * podia cumplir todo lo pedido y no ser lo que le conviene a quien
+       * pregunta, porque nadie habia leido sus respuestas subjetivas con
+       * los coches reales delante.
+       *
+       * Llegan ya coladas y ya ordenadas por calidad precio, asi que el
+       * cerebro no tiene que juzgar precios -eso esta resuelto- ni filtrar
+       * -eso esta hecho-. Solo elige cuales y escribe por que ese coche
+       * para esta persona.
+       *
+       * Si no hay clave, si falla o si tarda, devuelve nada y se sigue con
+       * el orden que traia. Ver lib/el-cerebro-elige.js.
+       */
+      const loQueEligeElCerebro = await elCerebroElige({
+        ofertas: dedupedPrioritizedPool,
+        answers,
+        cuantas: TOP_LISTINGS_LIMIT + 1,
+      });
+
+      const distinctByModel = loQueEligeElCerebro
+        ? loQueEligeElCerebro.map(({ oferta, porque }) => (porque
+            ? { ...oferta, positionReason: porque, matchReason: porque }
+            : oferta))
+        : enforceDistinctModelListings(dedupedPrioritizedPool, TOP_LISTINGS_LIMIT);
       if (distinctByModel.length < TOP_LISTINGS_LIMIT) {
         if (broadLocationInventoryPool.length === 0) {
           try {

@@ -3880,7 +3880,17 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     }
 
     const inventoryDecorated = porCalidadPrecio
-      .map((offer) => inventoryOfferToListing(offer, desiredType))
+      .map((offer) => {
+        const listing = inventoryOfferToListing(offer, desiredType);
+        /*
+         * Lo que se ahorra, pegado a la oferta.
+         *
+         * Va aqui y no se recalcula en la pantalla porque la mediana sale de
+         * la base: quien la pinta no tiene con que.
+         */
+        const suyo = loQueVale.get(offer);
+        return suyo ? { ...listing, mercado: suyo } : listing;
+      })
       .filter((listing) => listing?.url && listing?.title)
       .map((listing) => inventoryOnly
         ? { ...listing, isRelevantMatch: true, isFallbackMatch: false }

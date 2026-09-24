@@ -3,6 +3,52 @@ import { useTranslation } from "react-i18next";
 
 
 
+/**
+ * Lo que la oferta tiene de bueno, en una línea.
+ *
+ * Las ofertas se ordenan por cuánto están por debajo de lo que se pide por
+ * su mismo coche, pero el cliente veía el orden sin la razón. Esto es la
+ * razón.
+ *
+ * **Se dice lo que la cifra es y lo que no.** La mediana sale de los anuncios
+ * del mismo modelo, año y tramo de kilómetros, y **no distingue acabados**:
+ * un Golf base y un GTI entran en la misma. Así que sitúa la oferta en su
+ * mercado y no afirma lo que vale ese coche — de ahí «de lo que se pide por»
+ * y no «vale».
+ *
+ * Y no se enseña nada cuando está por encima: que una oferta sea cara no es
+ * un motivo para no verla —puede ser el coche que buscaba— pero tampoco hay
+ * que decírselo en la tarjeta como si fuera un defecto. Se ordena y ya está.
+ */
+function LoQueSeAhorra({ mercado }) {
+  const ahorro = Number(mercado?.ahorro);
+  const comparables = Number(mercado?.comparables);
+  if (!Number.isFinite(ahorro) || ahorro <= 0 || !Number.isFinite(comparables)) return null;
+
+  const euros = (n) => new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 }).format(n);
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "baseline",
+        gap: 5,
+        flexWrap: "wrap",
+        background: "rgba(4,120,87,0.08)",
+        border: "1px solid rgba(4,120,87,0.18)",
+        borderRadius: 8,
+        padding: "4px 8px",
+        marginBottom: 6,
+      }}
+    >
+      <strong style={{ fontSize: 12, color: "#047857" }}>{euros(ahorro)} € por debajo</strong>
+      <span style={{ fontSize: 10.5, color: "var(--gris-500)" }}>
+        de lo que se pide por ese coche · {euros(comparables)} anuncios parecidos
+      </span>
+    </div>
+  );
+}
+
 export default function ResultsOffersView({
   themeMode,
   quickValidationQuestions,
@@ -382,6 +428,7 @@ export default function ResultsOffersView({
                         </div>
                       )}
                     </div>
+                    <LoQueSeAhorra mercado={featuredOffer.mercado} />
                     <p style={{ margin: "0 0 8px", fontSize: 11, color: "var(--gris-900)", lineHeight: 1.6 }}>
                       <strong>{text.whyFirst}:</strong> {featuredOffer.positionReason || featuredOffer.matchReason}
                     </p>
@@ -590,6 +637,7 @@ export default function ResultsOffersView({
                                 ? ` · ${Number(offer.rankingScore ?? offer.profileScore)}/100`
                                 : ""}
                             </div>
+                            <LoQueSeAhorra mercado={offer.mercado} />
                             <p style={{ margin: "0 0 6px", fontSize: 11, color: bodyColor, lineHeight: 1.5 }}>
                               {offer.positionReason || offer.matchReason}
                             </p>

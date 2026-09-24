@@ -143,10 +143,34 @@ function pasada(estatico, paginaUno, respuestas, nuestras) {
   });
   const trozos = cruce.items.map((x) => x.json).filter((x) => x.seguir);
   console.log("\n  el cruce con la base");
-  comprueba("da bajas", trozos.length > 0, est.cc_muertas + " de " + est.cc_nuestras
-    + " (" + Math.round(100 * est.cc_muertas / est.cc_nuestras) + "%)");
+  /*
+   * Que no haya bajas NO es un fallo: significa que su listado y el nuestro
+   * coinciden, y con el verificador corriendo a diario ese es el caso normal.
+   * Lo que sí sería un fallo es que no las haya SIN explicación -ni bajas, ni
+   * `cc_nada`, ni motivo de freno-, porque eso es el cruce sin ejecutarse.
+   *
+   * Esto pedía `bajas > 0` y por eso llevaba meses en rojo: solo pasaba los
+   * días en que el portal iba por delante de nosotros. Los casos con bajas de
+   * verdad se cubren más abajo, con listas inventadas, que es donde se pueden
+   * provocar a voluntad.
+   */
+  comprueba("el cruce llega hasta el final", trozos.length > 0 || est.cc_nada === true,
+    (est.cc_muertas || 0) + " de " + est.cc_nuestras + " bajas");
   comprueba("no frenó", !est.cc_motivo, est.cc_motivo || "sin motivo");
   comprueba("vivas + muertas = las que teníamos", est.cc_vivas + est.cc_muertas === est.cc_nuestras);
+
+  /*
+   * Y lo que de verdad importa de una baja, que antes solo se contaba: que el
+   * coche sea nuestro y que no esté en su listado. Un cruce que diera de baja
+   * ids de otro portal, o ids que sí están en la página, pasaba las tres
+   * comprobaciones de arriba sin despeinarse.
+   */
+  const nuestrasIds = new Set(vivas.map((x) => String(x.id)));
+  const suyos = new Set(est.cc_ids || []);
+  const bajasIds = trozos.flatMap((t) => (t.sql.match(/'([^']+)'/g) || []).map((s) => s.slice(1, -1)));
+  comprueba("cada baja es una de las nuestras", bajasIds.every((id) => nuestrasIds.has(id)),
+    bajasIds.length + " ids");
+  comprueba("y ninguna sigue en su listado", bajasIds.every((id) => !suyos.has(id)));
 
   /*
    * LA COMPROBACIÓN QUE JUSTIFICA ESTE FICHERO.

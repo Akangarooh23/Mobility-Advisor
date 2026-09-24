@@ -16,14 +16,28 @@
  *     Consumo mixto 4.3 l/100
  *     Emisiones 99 CO2          <- de esta columna tenemos el 0 %
  *
- * Y NO tiene, por más que se busque: color, puertas, carrocería, cilindrada ni
- * combustible. Las palabras «Gasolina» y «GLP» sí aparecen en la ficha, pero en
- * la letra pequeña de la garantía —«Sistema de GLP/GNC (si el vehículo lo
- * equipa)»—, no como dato del coche. Buscarlas sin mirar el contexto habría
- * puesto combustible a coches eléctricos.
+ * En el TEXTO de la ficha no hay color, puertas, carrocería, cilindrada ni
+ * combustible. Las palabras «Gasolina» y «GLP» sí aparecen, pero en la letra
+ * pequeña de la garantía —«Sistema de GLP/GNC (si el vehículo lo equipa)»—, no
+ * como dato del coche. Buscarlas sin mirar el contexto habría puesto
+ * combustible a coches eléctricos.
  *
- * Así que este enriquecedor llena cuatro columnas, no ocho. Lo que falta hay
- * que sacarlo de otro sitio o dejarlo vacío, que es la verdad.
+ * PERO SÍ ESTÁN EN EL JSON-LD, y eso se descubrió el 24-sep-2026. El mismo
+ * bloque que se cogía solo para comprobar el `sku` es un Vehicle de schema.org
+ * y trae en limpio:
+ *
+ *     fuelType        Gasolina
+ *     bodyType        Furgoneta
+ *     numberOfDoors   5
+ *     image           la foto de verdad
+ *
+ * Así que ahora llena ocho columnas. Hacía falta: de las 1.400 filas vivas de
+ * Clicars había 1.069 sin combustible, 1.302 sin carrocería ni puertas y 1.009
+ * sin foto —y sin foto el consejero no puede enseñar la oferta, así que de
+ * Clicars solo mostraba el 28 %—.
+ *
+ * La tarjeta del LISTADO no sirve para esto, también se miró: solo lleva el
+ * cambio y un distintivo en svg, ni combustible ni puertas ni la foto.
  *
  * ── Y se pregunta por el id ────────────────────────────────────────────────
  *
@@ -65,11 +79,32 @@ SELECT id,
 FROM moveadvisor_market_offers
 WHERE portal = 'clicars'
   AND is_active
-  AND enrich_tried_at IS NULL
+  -- UNA SEGUNDA VUELTA, Y SOLO UNA.
+  --
+  -- Hasta el 24-sep-2026 aqui ponia «enrich_tried_at IS NULL» a secas, y hacia
+  -- bien: sin eso, una ficha que no da un dato vuelve en cada pasada y la cola
+  -- no avanza nunca.
+  --
+  -- Pero ese dia el enriquecedor aprendio a leer cuatro columnas mas del
+  -- JSON-LD -combustible, carroceria, puertas y foto-, y 1.324 de las 1.400
+  -- filas vivas ya estaban marcadas como intentadas: no habrian vuelto jamas y
+  -- el cambio no habria servido de nada.
+  --
+  -- La fecha fija da exactamente una pasada mas a las de antes y luego vuelve a
+  -- comportarse como siempre. NO se pone un intervalo movil -«hace mas de 30
+  -- dias»- a proposito: eso seria repetir las mismas fichas para siempre a
+  -- cambio de nada.
+  AND (enrich_tried_at IS NULL OR enrich_tried_at < '2026-09-24'::date)
   AND (seats IS NULL OR seats = 0
        OR COALESCE(co2, '') = ''
        OR COALESCE(consumption, 0) = 0
-       OR COALESCE(environmental_label, '') = '')
+       OR COALESCE(environmental_label, '') = ''
+       -- Las cuatro nuevas, que si no una fila con plazas y CO2 completos
+       -- pero sin foto no entraria en la cola.
+       OR COALESCE(fuel, '') = ''
+       OR COALESCE(body_type, '') = ''
+       OR doors IS NULL OR doors = 0
+       OR COALESCE(image_url, '') = '')
 ORDER BY (last_seen_at > NOW() - INTERVAL '2 days') DESC, scraped_at DESC
 LIMIT ${LOTE}`;
 
@@ -242,8 +277,60 @@ if (iEtq !== -1) {
   etiqueta = ETIQUETAS[primera] || '';
 }
 
+/*
+ * Y AHORA LO QUE ESTABA EN EL JSON-LD Y NO SE LEIA.
+ *
+ * Arriba se coge el bloque ld solo para comprobar el sku y se dice que "los
+ * datos estan en el texto de la ficha, no en el JSON-LD". Eso vale para las
+ * plazas, el CO2 y el consumo, pero ese mismo bloque es un Vehicle de
+ * schema.org y trae ademas, en limpio:
+ *
+ *     fuelType                "Gasolina"
+ *     bodyType                "Furgoneta"
+ *     numberOfDoors           5
+ *     image                   la foto de verdad
+ *
+ * Y hacian falta las cuatro. De las 1.400 filas vivas de Clicars: 1.069 sin
+ * combustible, 1.302 sin carroceria ni puertas y 1.009 sin foto. Sin foto el
+ * consejero no la puede ensenar, asi que de Clicars solo mostraba el 28 %.
+ *
+ * No es que el lector estuviera roto: es que nunca se le pidio esto. El flujo
+ * se llama "Enriquecer (plazas, CO2, consumo, etiqueta)" y hacia exactamente
+ * esas cuatro cosas.
+ *
+ * Cero peticiones nuevas: la ficha ya se descarga.
+ *
+ * Comprobado contra una ficha real el 24-sep-2026. La tarjeta del LISTADO no
+ * sirve para esto -se miro tambien-: solo lleva el cambio y un distintivo en
+ * svg, ni combustible ni puertas ni la foto del coche.
+ */
+const COMBUSTIBLES = {
+  'gasolina': 'Gasolina', 'diesel': 'Diesel', 'diésel': 'Diesel',
+  'eléctrico': 'Eléctrico', 'electrico': 'Eléctrico',
+  'híbrido': 'Híbrido', 'hibrido': 'Híbrido',
+  'híbrido enchufable': 'Híbrido', 'hibrido enchufable': 'Híbrido',
+  'glp': 'Gas', 'gnc': 'Gas',
+};
+const crudoFuel = String(ld.fuelType || '').trim().toLowerCase();
+const combustible = COMBUSTIBLES[crudoFuel] || '';
+
+const carroceria = String(ld.bodyType || '').trim().slice(0, 80);
+
+let puertas = parseInt(ld.numberOfDoors, 10);
+if (isNaN(puertas) || puertas < 2 || puertas > 7) puertas = null;
+
+// ld.image puede venir como texto o como lista.
+let foto = ld.image;
+if (Array.isArray(foto)) foto = foto[0];
+foto = String(foto || '').trim();
+if (foto.indexOf('http') !== 0) foto = '';
+
 // Todo con COALESCE: lo que ya hubiera manda. Esto rellena huecos, no corrige.
 const sets = ['enrich_tried_at = NOW()'];
+if (combustible) sets.push("fuel = COALESCE(NULLIF(fuel, ''), " + esc(combustible) + ')');
+if (carroceria) sets.push("body_type = COALESCE(NULLIF(body_type, ''), " + esc(carroceria) + ')');
+if (puertas !== null) sets.push('doors = COALESCE(NULLIF(doors, 0), ' + puertas + ')');
+if (foto) sets.push("image_url = COALESCE(NULLIF(image_url, ''), " + esc(foto.slice(0, 2000)) + ')');
 if (plazas !== null) sets.push('seats = COALESCE(NULLIF(seats, 0), ' + plazas + ')');
 if (co2 !== null) sets.push("co2 = COALESCE(NULLIF(co2, ''), '" + co2 + "')");
 if (consumo !== null) sets.push('consumption = COALESCE(NULLIF(consumption, 0), '
@@ -255,7 +342,9 @@ if (etiqueta) sets.push("environmental_label = COALESCE(NULLIF(environmental_lab
 // nosotros nos hemos puesto al día. Y updated_at ordena el escaparate.
 console.log('[cl-enrich] ' + id + ': plazas=' + (plazas === null ? '-' : plazas)
   + ' co2=' + (co2 === null ? '-' : co2) + ' consumo=' + (consumo === null ? '-' : consumo)
-  + ' etiqueta=' + (etiqueta || '-'));
+  + ' etiqueta=' + (etiqueta || '-')
+  + ' combustible=' + (combustible || '-') + ' carroceria=' + (carroceria || '-')
+  + ' puertas=' + (puertas === null ? '-' : puertas) + ' foto=' + (foto ? 'si' : '-'));
 
 return [{ json: {
   sql: 'UPDATE moveadvisor_market_offers SET ' + sets.join(', ') + ' WHERE id = ' + esc(id),

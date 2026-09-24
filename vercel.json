@@ -20,6 +20,14 @@
     {
       "path": "/api/cron-vigila-scrapers",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron-facetas-buscador?vista=mmo_modelos",
+      "schedule": "20 * * * *"
+    },
+    {
+      "path": "/api/cron-facetas-buscador?vista=mmo_facetas",
+      "schedule": "40 * * * *"
     }
   ],
   "rewrites": [
@@ -178,6 +186,10 @@
     {
       "source": "/api/cron-vigila-scrapers",
       "destination": "/api/user?route=cron-vigila-scrapers"
+    },
+    {
+      "source": "/api/cron-facetas-buscador",
+      "destination": "/api/user?route=cron-facetas-buscador"
     },
     {
       "source": "/api/modelo-3d/:vehicleId/info",

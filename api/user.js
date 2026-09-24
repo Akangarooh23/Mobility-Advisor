@@ -8,6 +8,7 @@ const viewingHandler = require("../lib/api/viewing-handler");
 const funnelEventHandler = require("../lib/api/funnel-event-handler");
 const cronAppointmentRemindersHandler = require("../lib/api/cron-appointment-reminders-handler");
 const cronVigilaScrapersHandler = require("../lib/api/cron-vigila-scrapers-handler");
+const cronFacetasBuscadorHandler = require("../lib/api/cron-facetas-buscador-handler");
 const cronConditionReportReadyHandler = require("../lib/api/cron-condition-report-ready-handler");
 const cronAlertCheckHandler = require("../lib/api/cron-alert-check-handler");
 const storagePresignHandler = require("../lib/api/storage-presign-handler");
@@ -39,6 +40,7 @@ function resolveRoute(req) {
   if (url.includes("cron-alert-check"))           return "cron-alert-check";
   if (url.includes("cron-condition-report-ready")) return "cron-condition-report-ready";
   if (url.includes("cron-vigila-scrapers"))        return "cron-vigila-scrapers";
+  if (url.includes("cron-facetas-buscador"))       return "cron-facetas-buscador";
   if (url.includes("push-device"))                 return "push-device";
   if (url.includes("papel-del-coche"))             return "papel-del-coche";
   return "";
@@ -58,6 +60,7 @@ const RUTAS_CRON = new Set([
   "cron-alert-check",
   "cron-condition-report-ready",
   "cron-vigila-scrapers",
+  "cron-facetas-buscador",
 ]);
 
 module.exports = async function userRouter(req, res) {
@@ -95,6 +98,8 @@ module.exports = async function userRouter(req, res) {
       return cronAlertCheckHandler(req, res);
     case "cron-condition-report-ready":
       return cronConditionReportReadyHandler(req, res);
+    case "cron-facetas-buscador":
+      return cronFacetasBuscadorHandler(req, res);
     case "cron-vigila-scrapers":
       return cronVigilaScrapersHandler(req, res);
     case "storage-presign":

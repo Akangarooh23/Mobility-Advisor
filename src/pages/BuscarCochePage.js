@@ -49,7 +49,7 @@ const TEXTOS = {
     cualquiera: "Cualquiera",
     orden: "Ordenar por",
     ordenes: { recientes: "Más recientes", precio_asc: "Precio: de menor a mayor", precio_desc: "Precio: de mayor a menor", km_asc: "Menos kilómetros", anio_desc: "Más nuevos" },
-    ofertas: "ofertas", oferta: "oferta",
+    ofertas: "ofertas", oferta: "oferta", masDe: "más de ",
     cargando: "Buscando…",
     ninguna: "Ninguna oferta cumple estos filtros.",
     ningunaAyuda: "Prueba a quitar alguno.",
@@ -78,7 +78,7 @@ const TEXTOS = {
     cualquiera: "Any",
     orden: "Sort by",
     ordenes: { recientes: "Most recent", precio_asc: "Price: low to high", precio_desc: "Price: high to low", km_asc: "Fewest miles", anio_desc: "Newest" },
-    ofertas: "listings", oferta: "listing",
+    ofertas: "listings", oferta: "listing", masDe: "more than ",
     cargando: "Searching…",
     ninguna: "No listing matches these filters.",
     ningunaAyuda: "Try removing one.",
@@ -116,7 +116,7 @@ function num(n) {
  */
 export function Desplegable({
   etiqueta, valor, grupos, vacio,
-  deshabilitado, onChange, filtrarPh, nadaCoincide,
+  deshabilitado, onChange, filtrarPh, nadaCoincide, sinNumeros,
 }) {
   const [abierto, setAbierto] = useState(false);
   const [filtro, setFiltro] = useState("");
@@ -271,7 +271,12 @@ export function Desplegable({
                   onClick={() => elegir(o.valor)}
                 >
                   <span>{o.texto}</span>
-                  {o.n !== null ? <b>{num(o.n)}</b> : null}
+                  {/*
+                    * El numero es el total de esa opcion, no el que queda con
+                    * tus otros filtros puestos. Cuando los hay se esconde: una
+                    * cifra que no corresponde a lo que ves es peor que ninguna.
+                    */}
+                  {o.n !== null && !sinNumeros ? <b>{num(o.n)}</b> : null}
                 </li>
               </React.Fragment>
             ))
@@ -289,6 +294,15 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
   const [abierto, setAbierto] = useState(false);
   const [ofertas, setOfertas] = useState([]);
   const [total, setTotal] = useState(null);
+  /*
+   * Si hay mas de los que se cuentan.
+   *
+   * Contar el millon y medio de ofertas que cumplen «ningun filtro» tardaba
+   * quince segundos, y la pagina no salia hasta tenerlo. Se cuenta hasta
+   * diez mil y se dice «mas de 10.000»; en cuanto los filtros aprietan por
+   * debajo, la cifra vuelve a ser exacta.
+   */
+  const [hayMas, setHayMas] = useState(false);
   const [desde, setDesde] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -319,16 +333,21 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
         if (mio !== peticion.current) return;   // llegó una respuesta vieja
         if (!d?.ok) { setError(d?.error || t.error); return; }
         setTotal(d.total);
+        setHayMas(Boolean(d.hayMas));
         setOfertas((prev) => (desde === 0 ? d.ofertas : [...prev, ...d.ofertas]));
       })
       .catch(() => { if (mio === peticion.current) setError(t.error); })
       .finally(() => { if (mio === peticion.current) setCargando(false); });
   }, [parametros, desde, t.error]);
 
-  // ── Marcas: dependen del resto de filtros, no de la marca elegida ────────
+  /* ── Las marcas, una vez ───────────────────────────────────────────────
+   *
+   * Esto dependia de `parametros`, que cambia con cualquier filtro: mover el
+   * precio o cambiar el orden volvia a pedir las 472 marcas. Y esa peticion
+   * tardaba 41 segundos, asi que el desplegable no se abria hasta que
+   * terminaba. La lista de marcas no depende de nada: se pide al entrar. */
   useEffect(() => {
-    const p = parametros({ facets: "brands", brand: "", model: "" });
-    fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${p}`)
+    fetch(`${SEARCH_OFFERS_API_ENDPOINT}?facets=brands`)
       .then((r) => r.json())
       .then((d) => {
         if (d?.ok) setMarcas({
@@ -338,27 +357,32 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
         });
       })
       .catch(() => {});
-  }, [parametros]);
+  }, []);
 
-  // ── Modelos: solo cuando hay marca ───────────────────────────────────────
+  /* ── Los modelos, solo al cambiar de marca ─────────────────────────────
+   *
+   * Tambien colgaba de `parametros`: tocar el precio volvia a pedir los
+   * modelos de la marca. Los modelos de Audi son los modelos de Audi. */
   useEffect(() => {
     if (!filtros.brand) { setModelos({ conOfertas: [], sinOfertas: [] }); return; }
-    const p = parametros({ facets: "models", model: "" });
+    const p = new URLSearchParams({ facets: "models", brand: filtros.brand });
     fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${p}`)
       .then((r) => r.json())
       .then((d) => { if (d?.ok) setModelos({ conOfertas: d.conOfertas || [], sinOfertas: d.sinOfertas || [] }); })
       .catch(() => {});
-  }, [parametros, filtros.brand]);
+  }, [filtros.brand]);
 
-  // ── El resto de desplegables, solo si están a la vista ───────────────────
+  /* ── El resto de desplegables, la primera vez que se abren ─────────────
+   *
+   * Cuatro consultas de entre ocho y quince segundos cada una, y se pedian
+   * otra vez con cada filtro que tocabas teniendolos a la vista. */
   useEffect(() => {
     if (!abierto) return;
-    const p = parametros({ facets: "extra" });
-    fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${p}`)
+    fetch(`${SEARCH_OFFERS_API_ENDPOINT}?facets=extra`)
       .then((r) => r.json())
       .then((d) => { if (d?.ok) setExtra({ combustible: d.combustible || [], cambio: d.cambio || [], carroceria: d.carroceria || [], provincia: d.provincia || [] }); })
       .catch(() => {});
-  }, [parametros, abierto]);
+  }, [abierto]);
 
   const cambiar = (campo, valor) => {
     setDesde(0);
@@ -369,6 +393,22 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
       return { ...f, [campo]: valor };
     });
   };
+
+  /*
+   * Si hay filtros mas alla de la marca y el modelo.
+   *
+   * Los numeros de los desplegables son el total de cada opcion, no el que
+   * queda con tus filtros puestos: calcular eso ultimo obligaba a recorrer
+   * el pool entero en cada clic. Asi que cuando hay otros filtros los
+   * numeros se esconden, porque una cifra que no corresponde a lo que ves es
+   * peor que ninguna cifra.
+   */
+  const otrosFiltros = useMemo(
+    () => Object.entries(filtros).some(
+      ([k, v]) => !['sort', 'brand', 'model'].includes(k) && v !== ''
+    ),
+    [filtros]
+  );
 
   const hayFiltros = useMemo(
     () => Object.entries(filtros).some(([k, v]) => k !== "sort" && v !== ""),
@@ -423,6 +463,7 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
               grupos={gruposMarca} vacio={t.todasMarcas}
               filtrarPh={t.filtrarPh} nadaCoincide={t.nadaCoincide}
               onChange={(v) => cambiar("brand", v)}
+              sinNumeros={otrosFiltros}
             />
             <Desplegable
               etiqueta={t.modelo} valor={filtros.model}
@@ -431,6 +472,7 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
               deshabilitado={!filtros.brand}
               filtrarPh={t.filtrarPh} nadaCoincide={t.nadaCoincide}
               onChange={(v) => cambiar("model", v)}
+              sinNumeros={otrosFiltros}
             />
 
             <button type="button" className="bc-mas" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}>
@@ -482,10 +524,10 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
                          onChange={(e) => cambiar("minPower", e.target.value.replace(/[^0-9]/g, ""))} />
                 </label>
 
-                <Desplegable etiqueta={t.combustible} valor={filtros.fuel} grupos={gruposExtra.combustible} vacio={t.cualquiera} onChange={(v) => cambiar("fuel", v)} />
-                <Desplegable etiqueta={t.cambio} valor={filtros.transmission} grupos={gruposExtra.cambio} vacio={t.cualquiera} onChange={(v) => cambiar("transmission", v)} />
-                <Desplegable etiqueta={t.carroceria} valor={filtros.bodyType} grupos={gruposExtra.carroceria} vacio={t.cualquiera} onChange={(v) => cambiar("bodyType", v)} />
-                <Desplegable etiqueta={t.provincia} valor={filtros.province} grupos={gruposExtra.provincia} vacio={t.cualquiera} onChange={(v) => cambiar("province", v)} />
+                <Desplegable etiqueta={t.combustible} valor={filtros.fuel} grupos={gruposExtra.combustible} vacio={t.cualquiera} onChange={(v) => cambiar("fuel", v)} sinNumeros={otrosFiltros} />
+                <Desplegable etiqueta={t.cambio} valor={filtros.transmission} grupos={gruposExtra.cambio} vacio={t.cualquiera} onChange={(v) => cambiar("transmission", v)} sinNumeros={otrosFiltros} />
+                <Desplegable etiqueta={t.carroceria} valor={filtros.bodyType} grupos={gruposExtra.carroceria} vacio={t.cualquiera} onChange={(v) => cambiar("bodyType", v)} sinNumeros={otrosFiltros} />
+                <Desplegable etiqueta={t.provincia} valor={filtros.province} grupos={gruposExtra.provincia} vacio={t.cualquiera} onChange={(v) => cambiar("province", v)} sinNumeros={otrosFiltros} />
               </div>
             )}
           </aside>
@@ -496,7 +538,7 @@ export default function BuscarCochePage({ onGoBack, onOpenOffer, uiLanguage = "e
               <p className="bc-total">
                 {total === null
                   ? t.cargando
-                  : <><b>{num(total)}</b> {total === 1 ? t.oferta : t.ofertas}</>}
+                  : <>{hayMas ? t.masDe : null}<b>{num(total)}</b> {total === 1 ? t.oferta : t.ofertas}</>}
               </p>
               <label className="bc-orden">
                 <span>{t.orden}</span>

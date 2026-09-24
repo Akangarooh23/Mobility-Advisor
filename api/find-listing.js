@@ -2535,6 +2535,18 @@ function inventoryOfferToListing(offer, desiredType) {
     Number.isFinite(offer?.mileage) ? `${Number(offer.mileage).toLocaleString("es-ES")} km` : "",
     normalizeText(offer?.fuel),
     [normalizeText(offer?.city), normalizeText(offer?.province)].filter(Boolean).join(", "),
+    /*
+     * Y si viene de fuera, se dice.
+     *
+     * No es un detalle de ficha: la mediana con la que se juzga si esta bien
+     * de precio se calcula SOLO con coches ya matriculados en Espana, asi que
+     * un importado sale siempre por debajo del mercado en parte porque le
+     * falta la matriculacion. Ensenarlo como chollo sin decir que esta
+     * importado seria ensenar un descuento que no existe.
+     */
+    normalizeText(offer?.country) && normalizeText(offer?.country).toUpperCase() !== "ES"
+      ? "importado"
+      : "",
   ].filter(Boolean);
 
   return {
@@ -3702,6 +3714,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     transmission: normalizeText(filters?.transmission || "") || delTest.transmission || "",
     sellerType: normalizeText(filters?.sellerType || "") || delTest.sellerType || "",
     minPowerCv: filters?.minPowerCv || delTest.minPowerCv || null,
+    country: normalizeText(filters?.country || '') || delTest.country || '',
     environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || "")
       || delTest.environmentalLabel || "",
   };
@@ -3901,6 +3914,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       minSeats: filters?.minSeats || null,
       maxSeats: filters?.maxSeats || null,
       minPowerCv: filters?.minPowerCv || delTest.minPowerCv || null,
+      country: normalizeText(filters?.country || '') || delTest.country || '',
       maxPowerCv: filters?.maxPowerCv || null,
       minPrice: filters?.minPrice || null,
       maxPrice: filters?.maxPrice || delTest.maxPrice || null,

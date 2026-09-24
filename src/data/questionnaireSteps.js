@@ -382,6 +382,34 @@ export const STEPS = [
     ],
   },
   {
+    /*
+     * Si le vale un coche importado.
+     *
+     * Uno de cada siete anuncios del pool viene de Alemania: 6.214 de 47.696
+     * medidos, y la columna está rellena en el 100%, así que filtra de verdad.
+     *
+     * Pero esta pregunta no está solo por estrechar. La mediana con la que se
+     * juzga si un coche está bien de precio **se calcula solo con coches ya
+     * matriculados en España**, así que un importado sale siempre «por debajo
+     * del mercado» en parte porque todavía no está matriculado aquí. Ese
+     * descuento no es un chollo: es la matriculación, el impuesto y la ITV que
+     * quien lo compre va a pagar después.
+     *
+     * Quien no quiera papeleo lo dice aquí y no los ve. Quien diga que le da
+     * igual los ve marcados como importados, para que sepa lo que compara.
+     */
+    id: "coche_importado",
+    block: "Vehículo",
+    blockIcon: "🌍",
+    question: "¿Te vale un coche importado?",
+    subtitle: "Uno de cada siete anuncios viene de Alemania. Salen más baratos, pero hay que matricularlos aquí y eso son trámites y dinero.",
+    type: "cards",
+    options: [
+      { value: "solo_nacional", label: "Solo coches ya en España", icon: "🇪🇸", desc: "Matriculado aquí, sin trámites pendientes" },
+      { value: "importado_vale", label: "También importado", icon: "🌍", desc: "Más barato de partida, con el papeleo por hacer" },
+    ],
+  },
+  {
     id: "marca_preferencia",
     block: "Preferencias",
     blockIcon: "🏷️",

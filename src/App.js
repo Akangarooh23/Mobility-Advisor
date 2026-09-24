@@ -1736,6 +1736,24 @@ export default function App() {
   const [listingOptions, setListingOptions] = useState([]);
   const [listingSearchCoverage, setListingSearchCoverage] = useState(null);
   const [listingLoading, setListingLoading] = useState(false);
+
+  /*
+   * Y que el texto del cerebro siga pasando mientras se buscan ofertas.
+   *
+   * Las frases las iba rotando un intervalo que solo vivía durante el
+   * análisis. Con el cerebro visible también durante la búsqueda —que puede
+   * llevarse dos minutos— el texto se quedaba congelado en la misma frase, que
+   * es justo lo que parece una pantalla colgada.
+   */
+  useEffect(() => {
+    if (!listingLoading) return undefined;
+
+    const reloj = setInterval(() => {
+      setLoadingPhase((anterior) => (anterior + 1) % 6);
+    }, 1800);
+
+    return () => clearInterval(reloj);
+  }, [listingLoading]);
   const [listingError, setListingError] = useState(null);
   // Lo que cuenta la busqueda cuando salen menos ofertas de las esperadas.
   const [listingInsight, setListingInsight] = useState(null);
@@ -4972,6 +4990,21 @@ export default function App() {
     );
   }
 
+  /*
+   * El cerebro sigue pensando mientras no haya ofertas que enseñar.
+   *
+   * Antes solo se veía mientras corría el análisis. En cuanto ese terminaba se
+   * pintaba «Tu solución de movilidad óptima» con el recuadro de las ofertas
+   * vacío y el botón de recalcular en gris, porque la búsqueda seguía por
+   * detrás. Media pantalla terminada y media a medias, sin decir cuál era cuál.
+   *
+   * Ahora es una sola idea: si se está analizando **o** se están buscando
+   * ofertas, se ve el cerebro; y el resultado no se pinta hasta que deja de
+   * pensar. También cuando se recalcula desde la propia pantalla de
+   * resultados, que es donde Ana lo vio la última vez.
+   */
+  const elCerebroSiguePensando = (step === FUERA_DEL_CUESTIONARIO && loading) || listingLoading;
+
   // -------------------- RENDER --------------------
   return (
     // Mientras llega el trozo de la pagina se deja el fondo puesto: un blanco
@@ -7575,7 +7608,7 @@ export default function App() {
       )}
 
       {/* LOADING */}
-      {step === 99 && loading && (
+      {elCerebroSiguePensando && (
         <LoadingAnalysisPage
           styles={s}
           themeMode={themeMode}
@@ -7596,7 +7629,7 @@ export default function App() {
       )}
 
       {/* -- RESULT -- */}
-      {result && !activeLegalDocs[entryMode] && !(step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer) && (
+      {result && !elCerebroSiguePensando && !activeLegalDocs[entryMode] && !(step === -1 && entryMode === "vehicleDetail" && vehicleDetailOffer) && (
         <AdviceResultsPage
           result={result}
           resultRef={resultRef}

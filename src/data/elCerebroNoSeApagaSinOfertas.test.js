@@ -125,3 +125,52 @@ describe("el porqué llega a la pantalla", () => {
     expect(APP).toContain("listingInsight={listingInsight}");
   });
 });
+
+/**
+ * Y el cerebro se ve mientras se buscan ofertas, no solo mientras se analiza.
+ *
+ * Ana lo vio tres veces: el análisis terminaba, aparecía «Tu solución de
+ * movilidad óptima» y debajo el recuadro de las ofertas vacío con el botón de
+ * recalcular en gris — porque la búsqueda seguía corriendo por detrás. Media
+ * pantalla terminada y media a medias, sin decir cuál era cuál.
+ *
+ * Su regla, dicha tal cual: «que no se vea esto y continúe el cerebro pensando
+ * hasta que salgan las ofertas; mientras siga poniendo recalculando, que siga
+ * apareciendo la pantalla del cerebro».
+ */
+describe("el cerebro se ve tambien mientras se buscan ofertas", () => {
+  test("hay una sola idea de «sigue pensando»", () => {
+    expect(APP).toMatch(/const elCerebroSiguePensando =/);
+  });
+
+  test("y es analizando O buscando ofertas", () => {
+    const linea = APP.match(/const elCerebroSiguePensando = .*/)[0];
+
+    expect(linea).toContain("loading");
+    expect(linea).toContain("listingLoading");
+  });
+
+  test("la pantalla del cerebro se pinta con esa idea", () => {
+    expect(APP).toContain("{elCerebroSiguePensando && (");
+  });
+
+  test("y el resultado NO se pinta mientras piensa", () => {
+    /*
+     * Esta es la condicion que Ana pidio tres veces: el resultado a medias no
+     * se ensena.
+     */
+    expect(APP).toContain("{result && !elCerebroSiguePensando &&");
+  });
+
+  test("y el texto del cerebro sigue pasando durante la busqueda", () => {
+    /*
+     * Las frases las rotaba un intervalo que solo vivia durante el analisis.
+     * Con una busqueda de dos minutos el texto se quedaba congelado, que es lo
+     * que parece una pantalla colgada.
+     */
+    const efecto = APP.slice(APP.indexOf("if (!listingLoading) return undefined;"));
+
+    expect(efecto).toContain("setLoadingPhase");
+    expect(efecto.slice(0, 400)).toContain("clearInterval");
+  });
+});

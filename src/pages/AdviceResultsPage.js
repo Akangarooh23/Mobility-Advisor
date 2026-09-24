@@ -114,6 +114,7 @@ export default function AdviceResultsPage({
     canSearchListing,
     quickValidationQuestions,
     scoreBreakdown,
+    desgloseMedido,
     whyThisWins,
     tcoDetail,
     comparatorRows,
@@ -277,6 +278,7 @@ export default function AdviceResultsPage({
           displayResult={displayResult}
           scoreBreakdownEntries={scoreBreakdownEntries}
           scoreBreakdown={scoreBreakdown}
+          desgloseMedido={desgloseMedido}
           whyThisWins={whyThisWins}
           tcoDetail={tcoDetail}
           tcoBreakdownItems={tcoBreakdownItems}

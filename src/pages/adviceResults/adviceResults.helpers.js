@@ -65,6 +65,15 @@ export function buildAdviceResultsViewModel({
     isRentingOutcome,
   });
   const scoreBreakdown = displayResult.score_desglose || {};
+  /*
+   * Si las cinco cifras se midieron de verdad.
+   *
+   * Cuando no hay respuestas guardadas, el desglose se fabrica partiendo el
+   * total en porcentajes fijos -30 %, 22 %, 18 %, 17 % y lo que sobre-. Eso no
+   * son cinco medidas, es un numero repartido siempre igual, y dibujarlo como
+   * cinco barras con sus nombres afirma algo que no se sabe.
+   */
+  const desgloseMedido = displayResult.desglose_medido !== false;
   const whyThisWins = Array.isArray(displayResult.por_que_gana)
     ? displayResult.por_que_gana.slice(0, 4)
     : [];
@@ -236,6 +245,7 @@ export function buildAdviceResultsViewModel({
     canSearchListing,
     quickValidationQuestions,
     scoreBreakdown,
+    desgloseMedido,
     whyThisWins,
     tcoDetail,
     comparatorRows,

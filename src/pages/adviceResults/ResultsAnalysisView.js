@@ -8,6 +8,7 @@ export default function ResultsAnalysisView({
   displayResult,
   scoreBreakdownEntries,
   scoreBreakdown,
+  desgloseMedido,
   whyThisWins,
   tcoDetail,
   tcoBreakdownItems,
@@ -219,7 +220,20 @@ export default function ResultsAnalysisView({
             <div style={{ fontSize: 10, color: "var(--gris-800)", marginBottom: 8, fontWeight: 700, letterSpacing: "0.6px" }}>
               {text.scoreBreakdown}
             </div>
-            <div style={{ display: "grid", gap: 8 }}>
+            {/*
+              * Sin medida no hay barras.
+              *
+              * Cuando el desglose se fabrica partiendo el total en porcentajes
+              * fijos, estas cinco lineas parecen cinco medidas y son una sola
+              * repartida siempre igual. Se dice, y ya esta.
+              */}
+            {!desgloseMedido && (
+              <p style={{ fontSize: 11, color: "var(--gris-500)", margin: "0 0 8px", lineHeight: 1.5 }}>
+                De este análisis solo se guardó la puntuación total, así que no hay
+                cinco cifras que enseñar. Vuelve a hacer el cuestionario para verlas.
+              </p>
+            )}
+            <div style={{ display: "grid", gap: 8 }} hidden={!desgloseMedido}>
               {scoreBreakdownEntries.map((item) => {
                 const value = Number(scoreBreakdown[item.key] || 0);
                 return (

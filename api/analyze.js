@@ -346,6 +346,19 @@ function normalizeScoreBreakdown(value) {
   };
 }
 
+/**
+ * NO SE USA PARA PINTAR BARRAS. Ver `elDesgloseEsDeVerdad`.
+ *
+ * Partia el total en cinco trozos fijos -30 %, 22 %, 18 %, 17 % y lo que
+ * sobra- y el resultado se enseñaba como cinco barras con sus nombres:
+ * «Encaje con tu uso», «Coste total», «Flexibilidad»... Parecian cinco
+ * medidas independientes y eran un solo numero repartido siempre igual,
+ * para cualquier persona y cualquier respuesta.
+ *
+ * Se queda porque hay respuestas viejas guardadas que solo traen el total,
+ * y para esas es mejor un reparto declarado que una pantalla rota. Lo que
+ * no se hace es enseñarlo como si se hubiera medido.
+ */
 function deriveScoreBreakdown(totalScore = 0) {
   const safeScore = clamp(Number(totalScore || 0), 0, 100);
   const encaje_uso = Math.round(safeScore * 0.3);
@@ -712,6 +725,26 @@ function normalizeAdvisorResult(value, answers = {}) {
     : Object.keys(answers || {}).length > 0
       ? buildScoreBreakdown(answers, mainType, propulsionesViables)
       : deriveScoreBreakdown(score);
+
+  /*
+   * Si las cinco cifras se han medido o se han repartido.
+   *
+   * La pantalla pinta las barras solo cuando se han medido. Cuando el
+   * desglose sale de partir el total en porcentajes fijos no hay cinco
+   * medidas que enseñar, y dibujarlas es afirmar algo que no se sabe.
+   */
+  const elDesgloseEsDeVerdad = providedBreakdownTotal > 0 || Boolean(answers && Object.keys(answers).length);
+
+  /*
+   * El titular es la suma de las barras, siempre.
+   *
+   * Antes venia por su lado -del modelo, o del  del
+   * camino de reserva- y podia no tener nada que ver con lo que se pintaba
+   * debajo: las barras sumaban 55 y el titulo decia 68 %. Dos numeros que
+   * dicen lo mismo tienen que ser el mismo numero.
+   */
+  const sumaDelDesglose = Object.values(score_desglose).reduce((acc, x) => acc + Number(x || 0), 0);
+  const elPorcentaje = clamp(Math.round(sumaDelDesglose), 0, 100);
   const por_que_gana = normalizeStringArray(value?.por_que_gana).length > 0
     ? normalizeStringArray(value?.por_que_gana).slice(0, 4)
     : Object.keys(answers || {}).length > 0
@@ -753,10 +786,13 @@ function normalizeAdvisorResult(value, answers = {}) {
   );
 
   return {
-    alineacion_pct: Number.isFinite(Number(value?.alineacion_pct)) ? Number(value.alineacion_pct) : 0,
+    alineacion_pct: elPorcentaje,
+    // Para que la pantalla sepa si puede pintar las cinco barras.
+    desglose_medido: elDesgloseEsDeVerdad,
     solucion_principal: {
       tipo: mainType,
-      score,
+      // El mismo numero que el titular y que la suma de las barras.
+      score: elPorcentaje,
       titulo: normalizeText(main.titulo),
       resumen: normalizeText(main.resumen),
       ventajas: normalizeStringArray(main.ventajas),
@@ -869,18 +905,35 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+/**
+ * Que tipo de coche se recomienda.
+ *
+ * Esto miraba , UNA RESPUESTA QUE NO SE PREGUNTABA NUNCA:
+ * no habia ningun paso del cuestionario con ese identificador. Asi que las dos
+ * ramas de dentro no se cumplian jamas y todo el mundo salia con «un compacto
+ * equilibrado», dijera lo que dijera.
+ *
+ * Ahora se pregunta -- y quien contesta manda. El viejo
+ *  se sigue mirando por si quedan respuestas guardadas con el.
+ */
+const COMO_SE_LLAMA_LA_CARROCERIA = {
+  urbano: "un urbano pequeño",
+  compacto: "un compacto equilibrado",
+  berlina: "una berlina",
+  familiar: "un familiar",
+  suv: "un SUV racional",
+  monovolumen: "un monovolumen",
+  suv_crossover: "un SUV compacto racional",
+  berlina_familiar: "una berlina o un familiar eficiente",
+};
+
 function getVehicleProfile(answers) {
-  if (answers.ocupantes === "7") {
-    return "un familiar grande o un monovolumen";
-  }
+  const elegida = COMO_SE_LLAMA_LA_CARROCERIA[answers.carroceria_preferida]
+    || COMO_SE_LLAMA_LA_CARROCERIA[answers.carroceria];
+  if (elegida) return elegida;
 
-  if (answers.carroceria === "suv_crossover") {
-    return "un SUV compacto racional";
-  }
-
-  if (answers.carroceria === "berlina_familiar") {
-    return "una berlina o un familiar eficiente";
-  }
+  // Sin elegir, se deduce. Siete plazas no caben en otra cosa.
+  if (answers.ocupantes === "7") return "un familiar grande o un monovolumen";
 
   return "un compacto equilibrado";
 }
@@ -1373,10 +1426,23 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null, uiLangu
   const highRiskControl = answers.gestion_riesgo === "alto";
   const highZbe = answers.zbe_impacto === "alta";
   const scoreBreakdown = buildScoreBreakdown(answers, primaryType, propulsions);
+  /*
+   * El porcentaje es la suma del desglose. Nada mas.
+   *
+   * Estaba escrito `clamp(suma, 68, 92)`, asi que el resultado NUNCA podia
+   * bajar del 68 % ni subir del 92, contestara lo que contestara el
+   * cliente. Ese «68 % de coincidencia» no era un 68: era el suelo. Y por
+   * eso las cinco barras no cuadraban con el titular -sumaban 55 y arriba
+   * ponia 68-, que es lo primero que nota quien mira con atencion.
+   *
+   * Un porcentaje que no puede bajar no informa de nada, y encima gasta la
+   * unica moneda que tiene un consejero: que se le crea cuando dice que
+   * algo encaja poco.
+   */
   const score = clamp(
     Object.values(scoreBreakdown).reduce((acc, item) => acc + Number(item || 0), 0),
-    68,
-    92
+    0,
+    100
   );
   const companies = getCompaniesForType(primaryType);
   const cost = getCostEstimate(primaryType, answers);

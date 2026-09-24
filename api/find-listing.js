@@ -3777,7 +3777,19 @@ async function findListing({ result, answers, filters }) {
       version: normalizeText(filters?.version || ""),
       fuel: effectiveFuelFilter,
       transmission: normalizeText(filters?.transmission || ""),
-      bodyType: normalizeText(filters?.bodyType || filters?.body_type || ""),
+      /*
+       * La carroceria que ha elegido quien contesta.
+       *
+       * Antes solo llegaba si venia en los filtros de la pantalla, que casi
+       * nunca la traen. Ahora se pregunta en el cuestionario, y si ha elegido
+       * una, se busca esa: recomendar «un SUV» y enseñar compactos es no
+       * haber escuchado.
+       */
+      bodyType: normalizeText(
+        filters?.bodyType || filters?.body_type
+        || (answers?.carroceria_preferida !== "indiferente_carroceria" ? answers?.carroceria_preferida : "")
+        || ""
+      ),
       environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),
       location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
       city: normalizeText(filters?.city || ""),

@@ -3919,7 +3919,15 @@ export default function App() {
     setListingError(null);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 16000);
+    /*
+     * Treinta segundos, no dieciseis.
+     *
+     * La busqueda de ofertas tardaba entre 25 y 103 segundos, asi que el
+     * corte a los 16 saltaba casi siempre. Ahora tarda mucho menos, pero el
+     * margen se deja ancho: cortar antes de tiempo se ve igual que no tener
+     * ofertas, y no es lo mismo.
+     */
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
       const { response, data } = await postListingJson({
@@ -3965,7 +3973,14 @@ export default function App() {
       setListingSearchCoverage(data?.searchCoverage || null);
     } catch (err) {
       if (err?.name === "AbortError") {
-        setListingError(null);
+        /*
+         * Que se vea.
+         *
+         * Esto ponia el error a null: la pantalla se quedaba con su texto de
+         * presentacion y ningun coche debajo, sin decir por que. Tres meses
+         * asi y nadie sabria que la busqueda no llego a terminar.
+         */
+        setListingError("La busqueda de ofertas ha tardado demasiado. Vuelve a intentarlo.");
       } else {
         setListingError(err.message || "No se pudo encontrar un anuncio real ahora mismo.");
       }

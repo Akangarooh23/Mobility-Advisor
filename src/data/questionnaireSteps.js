@@ -28,6 +28,29 @@ export const STEPS = [
     ],
   },
   {
+    /*
+     * Cuánto se puede pagar al mes.
+     *
+     * `cuota_mensual` ya pesaba en el motor —decide parte del coste del
+     * score y si la recomendación tira a contado o a financiado— pero se
+     * preguntaba **después** de recomendar, en la validación rápida. Así,
+     * el resultado decía «330-540 €/mes» sin haber preguntado nunca qué
+     * puede pagar quien lo lee.
+     */
+    id: "cuota_mensual",
+    block: "Presupuesto",
+    blockIcon: "💶",
+    question: "¿Cuánto puedes destinar al coche cada mes?",
+    subtitle: "Todo incluido: cuota o ahorro para la compra, seguro, combustible o luz, mantenimiento e impuestos.",
+    type: "cards",
+    options: [
+      { value: "menos_200", label: "Menos de 200 €", icon: "🪙", desc: "Un coche pequeño y usado, o movilidad sin coche propio" },
+      { value: "200_350", label: "Entre 200 y 350 €", icon: "💶", desc: "Lo más común en un compacto de segunda mano" },
+      { value: "350_500", label: "Entre 350 y 500 €", icon: "💳", desc: "Da acceso a coches recientes o a renting" },
+      { value: "mas_500", label: "Más de 500 €", icon: "💎", desc: "Sin apreturas: SUV, premium o eléctrico nuevo" },
+    ],
+  },
+  {
     id: "propulsion_preferida",
     block: "Energía",
     blockIcon: "⚡",
@@ -143,6 +166,34 @@ export const STEPS = [
       { value: "2_plazas_maletero_pequeno", label: "1-2 plazas + maletero pequeño", icon: "👤", desc: "Uso individual o pareja" },
       { value: "5_plazas_maletero_medio", label: "3-5 plazas + maletero medio", icon: "👨‍👩‍👧", desc: "Uso familiar equilibrado" },
       { value: "7_plazas_maletero_grande", label: "6-7 plazas + maletero grande", icon: "🚐", desc: "Familia numerosa o mucho equipaje" },
+    ],
+  },
+  {
+    /*
+     * Qué tipo de coche.
+     *
+     * La recomendación decía «un compacto equilibrado» sin haberlo
+     * preguntado: lo deducía de los ocupantes y del uso. Y es de las pocas
+     * cosas que la gente tiene decidida de antemano, así que deducirla es
+     * arriesgarse a acertar la modalidad y fallar el coche.
+     *
+     * «Me da igual» está de primero a propósito: quien no lo tenga decidido
+     * no debe sentir que tiene que elegir.
+     */
+    id: "carroceria_preferida",
+    block: "Vehículo",
+    blockIcon: "🚗",
+    question: "¿Qué tipo de coche buscas?",
+    subtitle: "Si no lo tienes claro, lo deducimos del resto de respuestas.",
+    type: "cards",
+    options: [
+      { value: "indiferente_carroceria", label: "Me da igual", icon: "🤷", desc: "Elegid vosotros según lo demás" },
+      { value: "urbano", label: "Urbano pequeño", icon: "🚙", desc: "Para ciudad y aparcar fácil" },
+      { value: "compacto", label: "Compacto", icon: "🚗", desc: "El equilibrio habitual entre tamaño y precio" },
+      { value: "berlina", label: "Berlina", icon: "🚘", desc: "Más maletero y más confort en carretera" },
+      { value: "familiar", label: "Familiar", icon: "🚐", desc: "Maletero largo sin subir de altura" },
+      { value: "suv", label: "SUV o todocamino", icon: "🚙", desc: "Postura alta y más espacio" },
+      { value: "monovolumen", label: "Monovolumen", icon: "🚌", desc: "Seis o siete plazas" },
     ],
   },
   {
@@ -270,6 +321,26 @@ export const ADVANCED_STEPS = [
       { value: "garaje_cargador", label: "Tengo plaza y puedo cargar", icon: "⚡", desc: "La electrificación gana muchos puntos" },
       { value: "garaje_sin_cargador", label: "Tengo plaza pero sin cargador", icon: "🅿️", desc: "Podría instalarlo o depender parcialmente de carga externa" },
       { value: "sin_garaje", label: "No tengo plaza fija / aparco en calle", icon: "🚧", desc: "Mucho más difícil amortizar un eléctrico puro" },
+    ],
+  },
+  {
+    /*
+     * Si puede enchufar donde trabaja.
+     *
+     * Solo se preguntaba por el garaje de casa, y con eso un eléctrico queda
+     * descartado para todo el que aparca en la calle. Con enchufe en el
+     * trabajo sí es viable, y es el caso de mucha gente en ciudad.
+     */
+    id: "carga_trabajo",
+    block: "Energía",
+    blockIcon: "🔌",
+    question: "¿Podrías enchufar el coche donde trabajas?",
+    subtitle: "Aunque no tengas garaje en casa, esto cambia si un eléctrico te encaja o no.",
+    type: "cards",
+    options: [
+      { value: "si_cargador_trabajo", label: "Sí, hay cargador", icon: "🔌", desc: "En el parking de la empresa o cerca" },
+      { value: "no_cargador_trabajo", label: "No", icon: "🚫", desc: "No hay dónde enchufar" },
+      { value: "no_lo_se_trabajo", label: "No lo sé", icon: "🤔", desc: "Habría que preguntarlo" },
     ],
   },
   {

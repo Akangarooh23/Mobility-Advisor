@@ -18,13 +18,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 0 9,12,15,18,21 * * *"
+              "expression": "0 0 9,10,11,12,16,17,18,19,22,23 * * *"
             }
           ]
         }
       },
       "id": "wpv-cron",
-      "name": "12 veces/día (cada 2 h)",
+      "name": "10 veces/día (09-23 h)",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1,
       "position": [
@@ -278,17 +278,6 @@
         ]
       ]
     },
-    "12 veces/día (cada 2 h)": {
-      "main": [
-        [
-          {
-            "node": "PG: Cola a verificar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "IF: ¿hay oferta?": {
       "main": [
         [
@@ -306,6 +295,17 @@
           }
         ]
       ]
+    },
+    "10 veces/día (09-23 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola a verificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -318,5 +318,6 @@
   },
   "staticData": null,
   "triggerCount": 0,
-  "tags": []
+  "tags": [],
+  "id": "WallapopVerif001"
 }

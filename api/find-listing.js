@@ -3,6 +3,7 @@ const { listInventoryOffers, getPostgresPool } = require("../lib/inventoryStore"
 const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
 const { laMedianaDeCada, ordenaPorCalidadPrecio } = require("../lib/lo-que-vale-en-el-mercado");
+const { loQueDeVerdadCumple, loQueSeLeDice } = require("../lib/lo-que-de-verdad-cumple");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -3627,6 +3628,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
    * -medido: 15-22 segundos con criterios, 107 sin ninguno-.
    */
   const delTest = elEncargoDeBusqueda(answers);
+
   const explicitBrand = normalizeText(filters?.brand || "");
   const explicitModel = normalizeText(filters?.model || "");
   const explicitModelCandidates = [
@@ -3656,6 +3658,39 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     });
   };
   const desiredType = getDesiredListingType(result);
+
+  /**
+   * Lo que no se negocia en ninguna busqueda.
+   *
+   * ## De donde sale esto
+   *
+   * Cuando la busqueda principal no llena las cuatro ofertas, hay hasta cinco
+   * busquedas de emergencia que van ensanchando: sin modelo, sin marca, de
+   * toda Espana. Cada una enumeraba sus criterios a mano, y todas se dejaban
+   * por el camino los kilometros maximos, la provincia y el «solo lo que se
+   * puede ensenar». Las dos ultimas ni el precio.
+   *
+   * Resultado en produccion, a quien pidio un compacto de gasolina en Madrid
+   * con 100.000 km como maximo: un Isuzu Trooper de 1989 con 322.000 km a
+   * 3.500 EUR, de Umbrete (Sevilla), en el primer puesto. Ensanchar puede
+   * soltar el modelo o la marca; no puede soltar lo que el cliente ha dicho
+   * que no quiere.
+   *
+   * ## Por que un objeto y no repetir los campos
+   *
+   * Porque enumerarlos a mano es justo lo que fallo, y en seis sitios
+   * distintos. Un campo nuevo que se anada aqui entra en todas las busquedas
+   * sin que nadie tenga que acordarse.
+   */
+  const loQueNoSeNegocia = {
+    desiredType,
+    // Con foto, con precio con sentido y que sea un coche.
+    soloPresentables: true,
+    maxMileage: filters?.maxMileage || delTest.maxMileage || null,
+    maxPrice: filters?.maxPrice || delTest.maxPrice || null,
+    minPrice: filters?.minPrice || null,
+    provinciaFormas: delTest.provinciaFormas || null,
+  };
   const companies = getSearchCompanies({ result, filters, desiredType });
   const queries = buildQueries({ result, answers, filters, companies, desiredType });
   const coverage = getSearchCoverageConfig(result, desiredType);
@@ -3979,6 +4014,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         const seenUrls = new Set(rankedInventory.map((o) => normalizeText(o.url || "")).filter(Boolean));
         try {
           const broadInventory = await listInventoryOffers({
+            ...loQueNoSeNegocia,
             desiredType,
             modelCandidates: [],
             fuel: effectiveFuelFilter,
@@ -4011,13 +4047,25 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         ? rankedInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
         : rankedInventory;
       const prioritizedPool = unseenFirstPool.length > 0 ? unseenFirstPool : rankedInventory;
-      const dedupedPrioritizedPool = dedupeListings(prioritizedPool);
+      /*
+       * Se cuela ANTES de elegir los tres modelos distintos.
+       *
+       * Si se colara solo al final, una oferta que no cumple habria gastado
+       * uno de los tres huecos y se quedaria en dos teniendo una buena mas
+       * abajo en la lista. Se cuela otra vez al final, porque las busquedas
+       * de emergencia anaden por su cuenta despues de este punto.
+       */
+      const dedupedPrioritizedPool = loQueDeVerdadCumple(
+        dedupeListings(prioritizedPool),
+        loQueNoSeNegocia
+      ).cumplen;
 
       const distinctByModel = enforceDistinctModelListings(dedupedPrioritizedPool, TOP_LISTINGS_LIMIT);
       if (distinctByModel.length < TOP_LISTINGS_LIMIT) {
         if (broadLocationInventoryPool.length === 0) {
           try {
             const broadInventory = await listInventoryOffers({
+              ...loQueNoSeNegocia,
               desiredType,
               modelCandidates: [],
               fuel: effectiveFuelFilter,
@@ -4059,6 +4107,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         if (distinctByModel.length < TOP_LISTINGS_LIMIT) {
           try {
             const finalBroadInventory = await listInventoryOffers({
+              ...loQueNoSeNegocia,
               desiredType,
               modelCandidates: [],
               location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
@@ -4091,76 +4140,23 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
 
       rankedInventory = distinctByModel;
 
-      // Hard floor for test flow: always return at least TOP_LISTINGS_LIMIT DB offers
-      // when the inventory universe has enough stock, even if strict filters are too narrow.
-      if (rankedInventory.length < TOP_LISTINGS_LIMIT && Number(inventory?.totalUniverse || 0) >= TOP_LISTINGS_LIMIT) {
-        try {
-          const strictSeen = new Set(
-            rankedInventory
-              .map((item) => normalizeText(item?.url || `${item?.source || ""}|${item?.title || ""}`).toLowerCase())
-              .filter(Boolean)
-          );
+      /*
+       * El colador: lo ultimo que tocan las ofertas antes de salir.
+       *
+       * Aqui habia un suelo -se llamaba asi, "hard floor"- que cuando no
+       * salian tres ofertas iba soltando criterios hasta llenar los huecos.
+       * Por eso a quien pidio 100.000 km como maximo le salio un Isuzu de
+       * 322.000. Tres ofertas que encajan valen mas que tres huecos llenos:
+       * si solo cumple una, sale una, y se dice por que.
+       *
+       * Ver lib/lo-que-de-verdad-cumple.js.
+       */
+      const colado = loQueDeVerdadCumple(rankedInventory, loQueNoSeNegocia);
+      rankedInventory = colado.cumplen;
 
-          const sameLocationPool = await listInventoryOffers({
-            desiredType,
-            modelCandidates: [],
-            location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
-            limit: Math.max(60, TOP_LISTINGS_LIMIT * 20),
-          });
-
-          const sameLocationCandidates = (sameLocationPool?.offers || [])
-            .map((offer) => inventoryOfferToListing(offer, desiredType))
-            .filter((listing) => listing?.url && listing?.title)
-            .filter((listing) => {
-              const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
-              return key && !strictSeen.has(key);
-            });
-
-          for (const listing of sameLocationCandidates) {
-            if (rankedInventory.length >= TOP_LISTINGS_LIMIT) {
-              break;
-            }
-            const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
-            if (!key || strictSeen.has(key)) {
-              continue;
-            }
-            strictSeen.add(key);
-            rankedInventory.push(listing);
-          }
-
-          if (rankedInventory.length < TOP_LISTINGS_LIMIT) {
-            const allSpainPool = await listInventoryOffers({
-              desiredType,
-              modelCandidates: [],
-              location: "",
-              limit: Math.max(120, TOP_LISTINGS_LIMIT * 40),
-            });
-
-            const allSpainCandidates = (allSpainPool?.offers || [])
-              .map((offer) => inventoryOfferToListing(offer, desiredType))
-              .filter((listing) => listing?.url && listing?.title);
-
-            for (const listing of allSpainCandidates) {
-              if (rankedInventory.length >= TOP_LISTINGS_LIMIT) {
-                break;
-              }
-              const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
-              if (!key || strictSeen.has(key)) {
-                continue;
-              }
-              strictSeen.add(key);
-              rankedInventory.push(listing);
-            }
-          }
-
-          if (rankedInventory.length >= TOP_LISTINGS_LIMIT && !filterInsight) {
-            filterInsight = "He ampliado ligeramente la búsqueda dentro del inventario real para mostrarte al menos 3 opciones comparables.";
-          }
-        } catch {
-          // Keep current inventory-ranked selection if broadening query fails.
-        }
+      if (colado.descartadas > 0 && rankedInventory.length < TOP_LISTINGS_LIMIT) {
+        filterInsight = loQueSeLeDice(rankedInventory.length, colado.descartes) || filterInsight;
       }
-
       return {
         listing: rankedInventory[0] || null,
         listings: rankedInventory,

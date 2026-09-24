@@ -81,7 +81,27 @@ export function useQuestionnaireStepVisualSync({
 
     if (stepConfig.type === "score_weights") {
       const saved = answers?.[stepConfig.id];
-      setScoreWeightsSelectionSafe(saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {});
+      /*
+       * Si no hay nada guardado, vale el orden en que se enseñan.
+       *
+       * La pantalla pinta las cinco tarjetas numeradas del 1 al 5 y el estado
+       * estaba vacío hasta que arrastrabas una. Como «Continuar» exige un
+       * orden completo, quien estaba de acuerdo con el que veía pulsaba y no
+       * pasaba nada: sin aviso, sin error y sin manera de adivinar que había
+       * que arrastrar algo para que contara.
+       *
+       * Lo que se ve es lo que hay: si le parece bien, ya está ordenado.
+       */
+      const elOrdenQueSeVe = {};
+      (stepConfig.metrics || []).forEach((metric, i) => {
+        if (metric?.key) elOrdenQueSeVe[metric.key] = i + 1;
+      });
+
+      setScoreWeightsSelectionSafe(
+        saved && typeof saved === "object" && !Array.isArray(saved) && Object.keys(saved).length
+          ? saved
+          : elOrdenQueSeVe
+      );
       setMultiSelectedSafe([]);
       setDualTimelineSelectionSafe(EMPTY_TIMELINE_SELECTION);
       return;

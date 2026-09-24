@@ -3910,11 +3910,20 @@ export default function App() {
   };
 
   const searchRealListing = useCallback(async (nextFilters = null, nextQuickValidation = null, options = {}) => {
-    if (!result) {
+    /*
+     * El resultado puede venir de fuera.
+     *
+     * Al terminar el analisis se quiere buscar ofertas ANTES de quitar la
+     * pantalla de "pensando", y en ese momento  todavia no esta puesto
+     * en el estado: React no lo ha aplicado. Sin esto, la llamada se salia por
+     * el  de abajo y no buscaba nada.
+     */
+    const { forceRefresh = false, resultado = null } = options || {};
+    const elResultado = resultado || result;
+    if (!elResultado) {
       return;
     }
 
-    const { forceRefresh = false } = options || {};
     const filtersToUse = nextFilters || {
       company: "",
       budget: inferListingBudgetFromAnswers(answers),
@@ -3954,7 +3963,7 @@ export default function App() {
 
     try {
       const { response, data } = await postListingJson({
-        result,
+        result: elResultado,
         answers: {
           ...answers,
           validacion_rapida: validationToUse,
@@ -4363,6 +4372,24 @@ export default function App() {
       setQuestionnaireDraft(null);
       setResultView("analysis");
       setResult(normalizedResult);
+
+      /*
+       * La pantalla de "pensando" se queda hasta que hay ofertas.
+       *
+       * Antes se apagaba aqui, con el analisis recien hecho, y las ofertas se
+       * buscaban despues: el cliente veia aparecer el resultado debajo del
+       * cuestionario y un hueco donde van los coches, que tardaba. Parecia que
+       * el boton no habia hecho nada.
+       *
+       * Si la busqueda falla, se apaga igual: el analisis esta hecho y vale por
+       * si solo. Lo que no puede es quedarse pensando para siempre.
+       */
+      try {
+        await searchRealListing(null, null, { resultado: normalizedResult });
+      } catch {
+        /* el aviso lo pone la propia busqueda */
+      }
+
       setLoading(false);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (err) {

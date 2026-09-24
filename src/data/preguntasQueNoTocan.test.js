@@ -106,3 +106,45 @@ describe("el resto del test no se toca", () => {
     ]);
   });
 });
+
+/**
+ * La del coche importado no se le pregunta a quien compra a un particular.
+ *
+ * Medido sobre el pool: de 6.461 anuncios importados, los 6.461 los vende un
+ * profesional. Ni uno solo es de particular. Así que a quien ya ha dicho que
+ * se lo quiere comprar a un particular, esta pregunta no le puede cambiar
+ * nada — y preguntar algo cuya respuesta no cambia nada solo alarga el test.
+ */
+describe("el importado solo a quien puede encontrarse uno", () => {
+  const laDelImportado = STEPS.find((p) => p.id === "coche_importado");
+
+  test("existe y es una pregunta aparte", () => {
+    expect(laDelImportado).toBeTruthy();
+    expect(laDelImportado.type).toBe("cards");
+  });
+
+  test("a quien compra a un particular no se le pregunta", () => {
+    expect(seLePregunta(laDelImportado, { quien_vende: "particular" })).toBe(false);
+  });
+
+  test("pero al que va a profesional, o le da igual, sí", () => {
+    expect(seLePregunta(laDelImportado, { quien_vende: "profesional" })).toBe(true);
+    expect(seLePregunta(laDelImportado, { quien_vende: "indiferente_vendedor" })).toBe(true);
+  });
+
+  test("y antes de contestar a la del vendedor, sigue estando", () => {
+    /*
+     * Esconderla antes seria adivinar: quien aun no ha dicho a quien se lo
+     * compra puede acabar diciendo «profesional».
+     */
+    expect(seLePregunta(laDelImportado, {})).toBe(true);
+  });
+
+  test("y la del vendedor se pregunta antes que ella", () => {
+    const vendedor = STEPS.findIndex((p) => p.id === "quien_vende");
+    const importado = STEPS.findIndex((p) => p.id === "coche_importado");
+
+    expect(vendedor).toBeGreaterThan(-1);
+    expect(vendedor).toBeLessThan(importado);
+  });
+});

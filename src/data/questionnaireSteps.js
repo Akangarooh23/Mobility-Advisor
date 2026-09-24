@@ -399,6 +399,16 @@ export const STEPS = [
      * igual los ve marcados como importados, para que sepa lo que compara.
      */
     id: "coche_importado",
+    /*
+     * Solo a quien pueda encontrarse uno.
+     *
+     * Medido sobre el pool: de 6.461 anuncios importados, los 6.461 los vende
+     * un profesional. Ni uno solo es de particular. Así que a quien ya ha
+     * dicho que se lo quiere comprar a un particular esta pregunta no le puede
+     * cambiar nada, y preguntar algo cuya respuesta no cambia nada solo alarga
+     * el test.
+     */
+    soloSi: { quien_vende: ["indiferente_vendedor", "profesional"] },
     block: "Vehículo",
     blockIcon: "🌍",
     question: "¿Te vale un coche importado?",

@@ -4,6 +4,7 @@ const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
 const { laMedianaDeCada, ordenaPorCalidadPrecio } = require("../lib/lo-que-vale-en-el-mercado");
 const { loQueDeVerdadCumple, loQueSeLeDice } = require("../lib/lo-que-de-verdad-cumple");
+const { LAS_MARCAS_DE_CADA_FAMILIA } = require("../lib/las-marcas-que-quiere");
 const { elCerebroElige } = require("../lib/el-cerebro-elige");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -355,13 +356,13 @@ const PURCHASE_DOMAINS = [
   "coches.com",
 ];
 const READABLE_PROXY_DOMAINS = ["coches.net", "ocasionplus.com", "flexicar.es", "autoocasion.com", "coches.com", "milanuncios.com"];
-const BRAND_PREFERENCE_KEYWORDS = {
-  generalista_europea: ["volkswagen", "seat", "renault", "skoda", "peugeot", "citroen", "dacia"],
-  asiatica_fiable: ["toyota", "kia", "hyundai", "nissan", "lexus", "mazda", "honda", "byd", "mg", "xpeng"],
-  premium_alemana: ["bmw", "audi", "mercedes"],
-  premium_escandinava: ["volvo"],
-  nueva_china: ["byd", "mg", "xpeng", "omoda", "jaecoo"],
-};
+/*
+ * La tabla vive en lib/las-marcas-que-quiere.js: la necesitan tambien el
+ * encargo de busqueda -para meter la marca en el WHERE- y la lista de
+ * modelos recomendados, que sin ella proponia coches que el filtro de marca
+ * tiraba justo despues.
+ */
+const BRAND_PREFERENCE_KEYWORDS = LAS_MARCAS_DE_CADA_FAMILIA;
 
 function normalizeText(value) {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
@@ -3764,6 +3765,10 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
      * test entero salian CERO ofertas teniendo el pool 75 que cumplian.
      */
     fuels: requestedFuelModes.size ? Array.from(requestedFuelModes) : null,
+    // La familia de marcas que eligio, dentro del WHERE.
+    brands: delTest.brands || null,
+    // La antiguedad maxima, ya traducida a un ano minimo.
+    minYear: filters?.minYear || delTest.minYear || null,
     /*
      * Y la carroceria, que tambien la eligio el.
      *
@@ -3910,6 +3915,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       fuel: effectiveFuelFilter,
       // Todos los que ha marcado, no solo cuando marca uno.
       fuels: requestedFuelModes.size ? Array.from(requestedFuelModes) : null,
+      brands: delTest.brands || null,
       transmission: normalizeText(filters?.transmission || "") || delTest.transmission || "",
       /*
        * La carroceria que ha elegido quien contesta.
@@ -3943,8 +3949,16 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       consumption: normalizeText(filters?.consumption || ""),
       consumptionMin: Number(filters?.consumptionMin) || null,
       consumptionMax: Number(filters?.consumptionMax) || null,
-      targetYear: answers?.antiguedad_vehiculo_buscada?.[0] || null,
-      minYear: filters?.minYear || null,
+      /*
+       * El ano objetivo solo si lo pide la pantalla.
+       *
+       * Aqui se leia `answers.antiguedad_vehiculo_buscada?.[0]`, y esa
+       * respuesta es una CADENA -«5_anos»-, asi que el [0] era el caracter
+       * «5» y se metia en la consulta como un ano de matriculacion. La
+       * antiguedad ahora se traduce a un ano minimo en el encargo de busqueda.
+       */
+      targetYear: filters?.targetYear || null,
+      minYear: filters?.minYear || delTest.minYear || null,
       maxYear: filters?.maxYear || null,
       minMileage: filters?.minMileage || null,
       // Lo que ha dicho en el test manda; los filtros de la pantalla, si
@@ -4255,17 +4269,68 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
        *
        * Ver lib/lo-que-de-verdad-cumple.js.
        */
+      /*
+       * Un rastro de lo que llega, detrás de una variable de entorno.
+       *
+       * Está aquí porque sin él la única información ante una pantalla vacía
+       * era «cero ofertas», y con eso no se distingue entre «no hay coches
+       * así», «el filtro está mal» y «la consulta ni se ha ejecutado». Con él
+       * se vieron en una tarde el híbrido que se buscaba como enchufable, el
+       * combustible que no llegaba a la base y el «5_anos» que entraba como
+       * año de matriculación.
+       *
+       * Apagado no cuesta nada. Se enciende con RASTRO_COLADOR=1.
+       */
       if (process.env.RASTRO_COLADOR) {
         console.log("[rastro] limites: " + JSON.stringify(loQueNoSeNegocia));
         for (const l of rankedInventory) {
           console.log("[rastro] " + (l.brand||"") + " " + (l.model||"") + " | carroceria=" + JSON.stringify(l.bodyType) + " | fuel=" + JSON.stringify(l.fuel) + " | " + l.province + " | " + l.price + " | " + l.mileage + " km | cambio=" + JSON.stringify(l.transmission) + " | vende=" + JSON.stringify(l.sellerType) + " | pais=" + JSON.stringify(l.country));
         }
       }
-      const colado = loQueDeVerdadCumple(rankedInventory, loQueNoSeNegocia);
+      const lasQueLlegaron = rankedInventory;
+      const colado = loQueDeVerdadCumple(lasQueLlegaron, loQueNoSeNegocia);
       rankedInventory = colado.cumplen;
+
+      /*
+       * Y si con eso no salen tres, las que no dicen qué tipo de coche son.
+       *
+       * Esto costó tres intentos. Dejarlas pasar siempre coló un Audi A3 en
+       * una búsqueda de SUV; descartarlas siempre dejó ese mismo perfil —SUV
+       * premium alemán en Madrid— en CERO OFERTAS, porque muchos Audi y BMW no
+       * traen la carrocería rellena.
+       *
+       * Ni una cosa ni la otra: primero las que se sabe que encajan, y solo si
+       * no llegan a tres se completan con las que no lo dicen. Las que se sabe
+       * que son de OTRO tipo no entran por aquí; esas ya se han caído y no
+       * vuelven.
+       */
+      if (rankedInventory.length < TOP_LISTINGS_LIMIT && loQueNoSeNegocia.bodyType) {
+        const yaEstan = new Set(rankedInventory);
+        const sinCarroceria = lasQueLlegaron.filter(
+          (listing) => !yaEstan.has(listing) && !normalizeText(listing?.bodyType || listing?.body_type)
+        );
+
+        const cumplenLoDemas = loQueDeVerdadCumple(sinCarroceria, {
+          ...loQueNoSeNegocia,
+          bodyType: "",
+        }).cumplen;
+
+        rankedInventory = [...rankedInventory, ...cumplenLoDemas].slice(0, 20);
+      }
 
       if (colado.descartadas > 0 && rankedInventory.length < TOP_LISTINGS_LIMIT) {
         filterInsight = loQueSeLeDice(rankedInventory.length, colado.descartes) || filterInsight;
+      } else if (rankedInventory.length >= TOP_LISTINGS_LIMIT) {
+        /*
+         * Y si al final hay ofertas, se borra lo que se dijo por el camino.
+         *
+         * Los avisos se ponen antes de ensanchar la busqueda, asi que quedaban
+         * en pie aunque despues aparecieran coches. Con tres ofertas en
+         * pantalla se leia «No hay ofertas en inventario que cumplan
+         * estrictamente el filtro de marca y combustible»: el mensaje
+         * contradecia lo que el cliente estaba viendo.
+         */
+        filterInsight = null;
       }
       return {
         listing: rankedInventory[0] || null,

@@ -1,6 +1,10 @@
 const JSON5 = require("json5");
 const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { laMotorizacionQuePidio, laEtiquetaQueLeCorresponde } = require("../lib/la-motorizacion-que-pidio");
+const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
+const { losModelosQueHaySinPasarse, comoSeLosCuentas, esDeLosQueHay } = require("../lib/los-modelos-que-hay");
+const { getPostgresPool } = require("../lib/inventoryStore");
+const { lasMarcasQueQuiere } = require("../lib/las-marcas-que-quiere");
 const { jsonrepair } = require("jsonrepair");
 
 function sanitizeJsonStringContent(input) {
@@ -722,6 +726,58 @@ const finishReasonDe = (generation) =>
     ? generation.data.candidates[0].finishReason
     : null;
 
+/**
+ * Los modelos que de verdad hay, pegados al encargo del modelo.
+ *
+ * Sin esto, los cinco modelos que proponia salian de una tabla escrita a
+ * mano que solo miraba el combustible: a quien pedia un COMPACTO de MARCA
+ * GENERALISTA EUROPEA le contestaba con un C-HR, un Niro, un Kona y un
+ * Qashqai. Cuatro SUV japoneses y coreanos, contradiciendo dos respuestas.
+ *
+ * Ahora se le dan los que la base tiene con las condiciones del cliente, con
+ * cuantos hay y desde que precio, y se le pide que elija de ahi. Son datos
+ * verdaderos que ademas puede usar en su explicacion.
+ */
+function conLosModelosDelante(prompt, modelos) {
+  if (!modelos.length) return prompt;
+
+  return prompt + [
+    "",
+    "LOS MODELOS QUE DE VERDAD HAY PARA ESTE PERFIL, con cuantos anuncios hay ahora mismo y desde que precio:",
+    "",
+    comoSeLosCuentas(modelos),
+    "",
+    "`vehiculos_recomendados` SOLO puede contener modelos de esa lista. No propongas ninguno que no este: los que faltan no existen con lo que ha pedido, y recomendarselos es mandarle a buscar un coche que no va a encontrar. Si la lista trae menos de cinco, devuelve los que haya.",
+    "",
+    "Esa lista es SOLO para `vehiculos_recomendados`. El `titulo` y el `resumen` describen la MODALIDAD que le conviene -comprar al contado, financiar, renting- y no llevan el nombre de un coche: «Compra al contado de un compacto automatico» si, «Ford Focus Compacto Automatico Nacional» no.",
+  ].join("\n");
+}
+
+/**
+ * Y lo que devuelve se comprueba contra esa lista.
+ *
+ * Un modelo que no este se cae. Si no queda ninguno se usan los de la base
+ * tal cual: peor recomendacion que la del modelo, pero al menos existe.
+ */
+function soloLosQueExisten(resultado, modelos) {
+  if (!modelos.length) return resultado;
+
+  const suyos = (resultado.vehiculos_recomendados || []).filter((v) => esDeLosQueHay(v, modelos));
+  if (suyos.length >= 1) {
+    return { ...resultado, vehiculos_recomendados: suyos.map((v, i) => ({ ...v, rank: i + 1 })) };
+  }
+
+  return {
+    ...resultado,
+    vehiculos_recomendados: modelos.map((m, i) => ({
+      rank: i + 1,
+      marca: m.marca,
+      modelo: m.modelo,
+      titulo: m.marca + " " + m.modelo,
+      razon: "Hay " + m.cuantos + " en venta que cumplen lo que has pedido, desde " + m.desde + " EUR.",
+    })),
+  };
+}
 const esCompra = (tipo) => tipo === "compra_contado" || tipo === "compra_financiada";
 
 function normalizeAdvisorResult(value, answers = {}) {
@@ -744,7 +800,21 @@ function normalizeAdvisorResult(value, answers = {}) {
   const mainType = esCompra(loQueDijoElModelo) && loQueSeDeduce !== loQueDijoElModelo
     ? loQueSeDeduce
     : loQueDijoElModelo;
-  const propulsionesViables = enforceUserFuelInPropulsions(normalizeStringArray(value?.propulsiones_viables), answers);
+  /*
+   * La motorización la ha elegido él, igual que la forma de pago.
+   *
+   * El modelo devolvía «hibrido suave · hibrido_no_enchufable · gasolina» a
+   * quien había marcado dos casillas, gasolina e híbrido no enchufable. El
+   * «híbrido suave» se lo añadió él, y como la etiqueta DGT se calcula del
+   * primero de esa lista, el informe acababa prometiendo una ECO.
+   *
+   * Lo que ha marcado manda. Solo cuando no ha marcado nada —«sin
+   * preferencia»— vale lo que proponga el modelo.
+   */
+  const lasSuyas = laMotorizacionQuePidio(answers);
+  const propulsionesViables = lasSuyas
+    ? lasSuyas
+    : enforceUserFuelInPropulsions(normalizeStringArray(value?.propulsiones_viables), answers);
   const providedBreakdown = normalizeScoreBreakdown(value?.score_desglose);
   const providedBreakdownTotal = Object.values(providedBreakdown).reduce((acc, item) => acc + Number(item || 0), 0);
   const score_desglose = providedBreakdownTotal > 0
@@ -896,7 +966,16 @@ function isCompleteAdvisorResult(value) {
       normalized.propulsiones_viables.length >= 1 &&
       normalized.por_que_gana.length >= 2 &&
       scoreBreakdownTotal > 0 &&
-      normalized.vehiculos_recomendados.length >= 5
+      /*
+       * Dos, no cinco.
+       *
+       * Exigir cinco es lo que obligaba a rellenar la lista, y el relleno
+       * sale de una tabla que no mira la carroceria ni la marca: a quien
+       * pedia un SUV premium aleman le metia un Toyota Corolla y un Kia Niro
+       * detras de sus dos Audi. Dos modelos que existen valen mas que cinco
+       * de los cuales tres no vienen a cuento.
+       */
+      normalized.vehiculos_recomendados.length >= 2
   );
 }
 
@@ -939,7 +1018,21 @@ function buildRecommendedVehiclesFallback(answers = {}, propulsions = []) {
     ];
   }
 
-  return shortlist.map((item, index) => ({
+  /*
+   * Y si ha elegido una familia de marcas, solo esas.
+   *
+   * Esta lista se escribio mirando solo el combustible. A quien pidio
+   * premium alemana le proponia un Toyota, un Kia y un Hyundai; a quien
+   * pidio generalista europea, cuatro SUV japoneses y coreanos. Si despues
+   * de filtrar no queda ninguno, no se propone ninguno: mejor dos modelos
+   * de verdad que cinco que contradicen lo que ha contestado.
+   */
+  const lasSuyas = lasMarcasQueQuiere(answers);
+  const queLeValen = lasSuyas
+    ? shortlist.filter((item) => lasSuyas.includes(normalizeText(item.marca).toLowerCase()))
+    : shortlist;
+
+  return queLeValen.map((item, index) => ({
     rank: index + 1,
     ...item,
     titulo: `${item.marca} ${item.modelo}`,
@@ -1856,7 +1949,20 @@ module.exports = async function handler(req, res) {
       };
     }
 
-    const generation = await generateContent(prompt);
+    /*
+     * Que modelos hay para este cliente, antes de preguntar nada.
+     *
+     * Si la base no contesta se sigue igual: esto mejora la recomendacion,
+     * no puede tumbarla.
+     */
+    const losQueExisten = await losModelosQueHaySinPasarse(
+      getPostgresPool(),
+      { ...elEncargoDeBusqueda(answers), soloPresentables: true },
+      5
+    );
+
+    const elEncargo = conLosModelosDelante(prompt, losQueExisten);
+    const generation = await generateContent(elEncargo);
 
     if (!generation.ok) {
       const lastErrorStatus = generation.status;
@@ -1882,10 +1988,10 @@ module.exports = async function handler(req, res) {
     const parsed = parseGeminiJson(text);
 
     if (parsed && isCompleteAdvisorResult(parsed) && isAdvisorResultCompatibleWithContext(parsed, advisorContext)) {
-      return res.status(200).json({ parsed: normalizeAdvisorResult(parsed, answers) });
+      return res.status(200).json({ parsed: soloLosQueExisten(normalizeAdvisorResult(parsed, answers), losQueExisten) });
     }
 
-    const repairPrompt = `${prompt}\n\nLa respuesta anterior ha llegado incompleta o con campos vacios. Repite el analisis y devuelve JSON VALIDO COMPLETO. Requisitos obligatorios:\n- No dejes ningun string vacio.\n- Incluye exactamente 3 ventajas.\n- Incluye exactamente 2 inconvenientes.\n- Incluye exactamente 2 alternativas con titulo, score y razon.\n- Incluye score_desglose con encaje_uso, coste_total, flexibilidad, viabilidad_real y ajuste_preferencias.\n- Incluye 4 bullets en por_que_gana.\n- Incluye comparador_final con 3-4 filas comparando criterio, opcion_principal, alternativa_1, alternativa_2 y ganador.\n- Incluye transparencia con confianza_nivel, confianza_motivo, supuestos_clave y validaciones_pendientes.\n- Incluye plan_accion con semaforo, estado, resumen, acciones y alertas_rojas.\n- Incluye tco_detalle con concepto_base, entrada_inicial, base_mensual, seguro, energia, mantenimiento, extras, total_mensual, total_anual y nota.\n- Incluye al menos 3 empresas_recomendadas reales en Espana.\n- Incluye consejo_experto, siguiente_paso y tco_aviso con contenido concreto.\n- Incluye vehiculos_recomendados con exactamente 5 entradas (marca, modelo, rank, titulo, razon), sin repetir modelo.\n- Devuelve solo JSON.`;
+    const repairPrompt = `${elEncargo}\n\nLa respuesta anterior ha llegado incompleta o con campos vacios. Repite el analisis y devuelve JSON VALIDO COMPLETO. Requisitos obligatorios:\n- No dejes ningun string vacio.\n- Incluye exactamente 3 ventajas.\n- Incluye exactamente 2 inconvenientes.\n- Incluye exactamente 2 alternativas con titulo, score y razon.\n- Incluye score_desglose con encaje_uso, coste_total, flexibilidad, viabilidad_real y ajuste_preferencias.\n- Incluye 4 bullets en por_que_gana.\n- Incluye comparador_final con 3-4 filas comparando criterio, opcion_principal, alternativa_1, alternativa_2 y ganador.\n- Incluye transparencia con confianza_nivel, confianza_motivo, supuestos_clave y validaciones_pendientes.\n- Incluye plan_accion con semaforo, estado, resumen, acciones y alertas_rojas.\n- Incluye tco_detalle con concepto_base, entrada_inicial, base_mensual, seguro, energia, mantenimiento, extras, total_mensual, total_anual y nota.\n- Incluye al menos 3 empresas_recomendadas reales en Espana.\n- Incluye consejo_experto, siguiente_paso y tco_aviso con contenido concreto.\n- Incluye vehiculos_recomendados con exactamente 5 entradas (marca, modelo, rank, titulo, razon), sin repetir modelo.\n- Devuelve solo JSON.`;
 
     const repairedGeneration = await generateContent(repairPrompt);
 
@@ -1894,7 +2000,7 @@ module.exports = async function handler(req, res) {
       const repairedParsed = parseGeminiJson(repairedText);
 
       if (repairedParsed && isCompleteAdvisorResult(repairedParsed) && isAdvisorResultCompatibleWithContext(repairedParsed, advisorContext)) {
-        return res.status(200).json({ parsed: normalizeAdvisorResult(repairedParsed, answers) });
+        return res.status(200).json({ parsed: soloLosQueExisten(normalizeAdvisorResult(repairedParsed, answers), losQueExisten) });
       }
     }
 
@@ -1920,7 +2026,7 @@ module.exports = async function handler(req, res) {
     console.warn("[analyze] se usa el respaldo determinista: " + porQue);
 
     return res.status(200).json({
-      parsed: buildFallbackAdvisorResult(answers, advisorContext, uiLanguage),
+      parsed: soloLosQueExisten(buildFallbackAdvisorResult(answers, advisorContext, uiLanguage), losQueExisten),
       meta: {
         source: "fallback",
         porQue,

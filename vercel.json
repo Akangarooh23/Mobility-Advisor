@@ -1,7 +1,8 @@
 {
   "buildCommand": "npm run build",
   "functions": {
-    "api/find-listing.js": { "maxDuration": 300 }
+    "api/find-listing.js": { "maxDuration": 300 },
+    "api/analyze.js": { "maxDuration": 300 }
   },
   "crons": [
     {

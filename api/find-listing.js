@@ -1,7 +1,8 @@
 const SEARCH_ENDPOINT = "https://html.duckduckgo.com/html/";
-const { listInventoryOffers } = require("../lib/inventoryStore");
+const { listInventoryOffers, getPostgresPool } = require("../lib/inventoryStore");
 const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
+const { laMedianaDeCada, ordenaPorCalidadPrecio } = require("../lib/lo-que-vale-en-el-mercado");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -3854,7 +3855,29 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       limit: requestedInventoryLimit,
     });
 
-    const inventoryDecorated = (inventory?.offers || [])
+    /*
+     * Las mejores de precio primero, no las mas recientes.
+     *
+     * Se compara cada oferta con lo que se pide por su mismo coche -mismo
+     * modelo, mismo ano, mismo tramo de kilometros- y se ordena por la
+     * diferencia. Ver lib/lo-que-vale-en-el-mercado.js.
+     *
+     * Si esto falla, se sigue con el orden que venia: quedarse sin ofertas por
+     * no poder ordenarlas seria mucho peor que ensenarlas mal ordenadas.
+     */
+    let porCalidadPrecio = inventory?.offers || [];
+    let loQueVale = new Map();
+    try {
+      const pool = getPostgresPool();
+      if (pool) {
+        loQueVale = await laMedianaDeCada(pool, porCalidadPrecio);
+        porCalidadPrecio = ordenaPorCalidadPrecio(porCalidadPrecio, loQueVale);
+      }
+    } catch (err) {
+      console.warn("[find-listing] no se ha podido ordenar por precio de mercado:", err?.message);
+    }
+
+    const inventoryDecorated = porCalidadPrecio
       .map((offer) => inventoryOfferToListing(offer, desiredType))
       .filter((listing) => listing?.url && listing?.title)
       .map((listing) => inventoryOnly

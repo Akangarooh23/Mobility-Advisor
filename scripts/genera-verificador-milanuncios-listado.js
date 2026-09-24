@@ -84,7 +84,13 @@ SELECT lower(o.brand)                  AS marca,
        s.swept_at                      AS ultimo_barrido,
        (s.swept_at IS NULL
         OR (COALESCE(s.total_pages, 0) > 9
-            AND s.swept_at < NOW() - INTERVAL '30 days')) AS sondear
+            AND s.swept_at < NOW() - INTERVAL '30 days')) AS sondear,
+       COALESCE(s.refresh_page, 0)     AS refresco_por,
+       -- Cuantas de esa marca se estan quedando rancias. Es lo que decide a
+       -- quien le toca el refresco: el comparable tira las ofertas que llevan
+       -- mas de 90 dias sin verse, asi que las que ya pasan de 60 son las que
+       -- estan a punto de caerse y las que mas vale refrescar.
+       count(*) FILTER (WHERE o.last_seen_at < NOW() - INTERVAL '60 days') AS rancias
 FROM moveadvisor_market_offers o
 LEFT JOIN moveadvisor_brand_sweeps s
        ON s.portal = 'milanuncios'
@@ -95,7 +101,7 @@ WHERE o.portal = 'milanuncios'
   AND lower(o.brand) <> 'otros coches'
   -- Ya barrida hoy: no se repite. Misma idea que en el verificador de Wallapop.
   AND (s.swept_at IS NULL OR s.swept_at < NOW() - INTERVAL '20 hours')
-GROUP BY 1, s.total_pages, s.swept_at
+GROUP BY 1, s.total_pages, s.swept_at, s.refresh_page
 ORDER BY
   CASE WHEN s.total_pages IS NOT NULL AND s.total_pages <= 9 THEN 0 ELSE 1 END,
   s.swept_at ASC NULLS FIRST
@@ -128,10 +134,11 @@ const urlDe = (slug, n) => 'https://www.milanuncios.com/' + slug + '-de-segunda-
 let queda = PRESUPUESTO;
 const peticiones = [];
 
-function abre(marca, esperadas, sonda) {
+function abre(marca, esperadas, sonda, refresco) {
   s.mil_marcas[marca] = {
     esperadas: esperadas, leidas: 0, vistos: 0,
     totalPaginas: 0, bloqueo: false, sonda: !!sonda,
+    refresco: !!refresco, desde: 0,
   };
 }
 
@@ -157,12 +164,68 @@ for (const c of candidatas) {
   queda -= 1;
 }
 
-const enteras = Object.keys(s.mil_marcas).filter(m => !s.mil_marcas[m].sonda);
+/* --- pasada 3: REFRESCAR las marcas grandes, que si no no se miran nunca ----
+ *
+ * El 24-sep-2026 la libreta contaba esto:
+ *
+ *     alpine          2 paginas   barrida entera
+ *     aston martin    4           barrida entera
+ *     audi          200           1 pagina leida, nunca completa
+ *     citroen       200           1
+ *     cupra          40           1
+ *
+ * Con 9 peticiones de cupo, "nunca se empieza una marca que no cabe entera"
+ * significa que Audi, Citroen o Volkswagen -donde estan casi todas nuestras
+ * filas- NO SE MIRAN JAMAS. El verificador gastaba su cupo en marcas diminutas
+ * y refrescaba ~200 ofertas al dia de las 263.349 que hay.
+ *
+ * La regla de "entera o nada" es correcta PARA DAR DE BAJA: sin el listado
+ * completo, una ausencia no prueba nada. Pero no hace falta para REFRESCAR: ver
+ * un anuncio en un listado prueba que sigue publicado, se haya leido una pagina
+ * o doscientas. Y refrescar es justo lo que necesitan las 262.378 filas que
+ * entraron del volcado con fecha del 21-sep y caducan del comparable el 20-dic.
+ *
+ * Asi que lo que sobra del cupo se gasta en leer paginas de las marcas grandes,
+ * desde donde se quedo la vez anterior. No da de baja a nadie -el codigo del
+ * veredicto ya lo impide: exige leidas >= totalPaginas- y cada pagina salva 42
+ * ofertas de caducar.
+ *
+ * El turno lo decide cuantas filas de esa marca estan a punto de caerse, no el
+ * orden alfabetico ni la antiguedad del barrido: refrescar una marca cuyas
+ * ofertas se vieron ayer no salva a nadie.
+ */
+const grandes = candidatas
+  .filter(c => !s.mil_marcas[c.marca] && Number(c.paginas || 0) > PRESUPUESTO)
+  .sort((a, b) => Number(b.rancias || 0) - Number(a.rancias || 0));
+
+for (const c of grandes) {
+  if (queda <= 0) break;
+  const paginas = Number(c.paginas || 0);
+  // Desde donde toca. Al llegar al final se vuelve a empezar: el catalogo ha
+  // cambiado para entonces y las primeras paginas vuelven a traer novedades.
+  let desde = Number(c.refresco_por || 0) + 1;
+  if (desde > paginas) desde = 1;
+  const cuantas = Math.min(queda, paginas - desde + 1);
+  if (cuantas <= 0) continue;
+  abre(c.marca, cuantas, false, true);
+  s.mil_marcas[c.marca].desde = desde;
+  const slug = slugDe(c.marca);
+  for (let n = desde; n < desde + cuantas; n++) {
+    peticiones.push({ marca: c.marca, pagina: n, url: urlDe(slug, n), sonda: false, refresco: true });
+  }
+  queda -= cuantas;
+}
+
+const enteras = Object.keys(s.mil_marcas).filter(m => !s.mil_marcas[m].sonda && !s.mil_marcas[m].refresco);
 const sondas = Object.keys(s.mil_marcas).filter(m => s.mil_marcas[m].sonda);
+const refrescos = Object.keys(s.mil_marcas).filter(m => s.mil_marcas[m].refresco);
 console.log('[mil-verificar] ' + candidatas.length + ' candidatas. '
   + peticiones.length + ' peticiones de ' + PRESUPUESTO + ': '
-  + enteras.length + ' marcas enteras (' + (enteras.join(', ') || '-') + ')'
-  + ' y ' + sondas.length + ' sondas (' + (sondas.join(', ') || '-') + ')');
+  + enteras.length + ' marcas enteras (' + (enteras.join(', ') || '-') + '), '
+  + sondas.length + ' sondas (' + (sondas.join(', ') || '-') + ') y '
+  + refrescos.length + ' refrescos (' + (refrescos.map(function (m) {
+      return m + ' desde p' + s.mil_marcas[m].desde;
+    }).join(', ') || '-') + ')');
 
 return peticiones.map(p => ({ json: p }));`;
 
@@ -295,6 +358,36 @@ for (const marca of Object.keys(marcas)) {
     + ' pages_read = EXCLUDED.pages_read, complete = EXCLUDED.complete,'
     + ' seen_count = EXCLUDED.seen_count, deactivated = EXCLUDED.deactivated,'
     + ' blocked = EXCLUDED.blocked';
+
+  /*
+   * Un REFRESCO se apunta aparte y no toca swept_at.
+   *
+   * swept_at es el turno de los barridos completos -los que pueden dar de baja-
+   * y la cola descarta lo barrido en las ultimas 20 horas. Si un refresco lo
+   * moviera, una marca grande se quedaria fuera de esa cola sin haberse
+   * verificado nunca, que es justo lo que ya pasaba.
+   *
+   * Lo que se guarda es por que pagina se ha llegado, para seguir maniana desde
+   * ahi en vez de releer siempre las primeras.
+   */
+  if (m.refresco) {
+    const hasta = Number(m.desde || 1) + m.leidas - 1;
+    const vuelta = m.totalPaginas > 0 && hasta >= m.totalPaginas;
+    console.log('[mil-verificar] ' + marca + ': REFRESCO de las paginas ' + m.desde
+      + '-' + hasta + ' de ' + m.totalPaginas + ', ' + m.vistos + ' anuncios refrescados'
+      + (vuelta ? '. Fin del catalogo: la proxima vez empieza por la 1.' : '.'));
+    salida.push({ json: { marca: marca, bajas: false, sql:
+      'INSERT INTO moveadvisor_brand_sweeps (portal, brand, swept_at, total_pages,'
+      + ' pages_read, complete, seen_count, deactivated, blocked, refresh_page, refresh_at)'
+      + " SELECT 'milanuncios', " + esc(marca) + ', NULL, ' + num(m.totalPaginas) + ', '
+      + num(m.leidas) + ', FALSE, ' + num(m.vistos) + ', 0, '
+      + (m.bloqueo ? 'TRUE' : 'FALSE') + ', ' + (vuelta ? '0' : num(hasta)) + ', NOW()'
+      + ' ON CONFLICT (portal, brand) DO UPDATE SET'
+      + ' total_pages = EXCLUDED.total_pages, seen_count = EXCLUDED.seen_count,'
+      + ' blocked = EXCLUDED.blocked, refresh_page = EXCLUDED.refresh_page,'
+      + ' refresh_at = EXCLUDED.refresh_at' } });
+    continue;
+  }
 
   if (!completo) {
     const motivo = m.bloqueo ? 'bloqueo a mitad'

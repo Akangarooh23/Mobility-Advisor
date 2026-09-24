@@ -128,6 +128,48 @@ async function corre(peticiones, estatico, respuesta, cliente) {
   comprueba("las urls de la pagina 2 en adelante si",
     pet.filter((p) => p.pagina > 1).every((p) => p.url.endsWith("?pagina=" + p.pagina)));
 
+  /*
+   * REFRESCO — lo que sobra del cupo va a las marcas grandes.
+   *
+   * Sin esto, "nunca se empieza una marca que no cabe entera" dejaba a Audi,
+   * Citroen y Volkswagen sin mirar JAMAS: la libreta del 24-sep-2026 tenia a
+   * Audi con 200 paginas y UNA leida desde el 14 de septiembre. El verificador
+   * gastaba el cupo en marcas diminutas y refrescaba ~200 ofertas al dia de las
+   * 263.349 que hay.
+   */
+  console.log("\nREFRESCO — el cupo que sobra va a las marcas grandes");
+  const eR = {};
+  const planR = ejecuta(codigo("Code: Repartir la noche"), {
+    estatico: eR, $: () => uno({}), $input: varios([
+      { marca: "daewoo", activas: 20, paginas: 2, sondear: false },
+      // La grande con mas ofertas a punto de caducar: debe llevarse el resto.
+      { marca: "audi", activas: 18431, paginas: 200, sondear: false, refresco_por: 37, rancias: 9000 },
+      { marca: "citroen", activas: 16512, paginas: 200, sondear: false, refresco_por: 0, rancias: 1200 },
+    ]),
+  });
+  planR.log.forEach((l) => console.log("      " + l));
+  const petR = planR.items.map((i) => i.json);
+  const audi = petR.filter((p) => p.marca === "audi");
+  comprueba("no se pasa del presupuesto", petR.length <= 9, "(" + petR.length + ")");
+  comprueba("ahora SI entra una marca grande", audi.length > 0, "(" + audi.length + " paginas de audi)");
+  comprueba("elige la que tiene mas ofertas rancias, no la primera",
+    audi.length > 0 && petR.filter((p) => p.marca === "citroen").length === 0);
+  comprueba("sigue desde donde lo dejo, no desde la pagina 1",
+    audi.length > 0 && audi[0].pagina === 38, "(empieza en la " + (audi[0] || {}).pagina + ")");
+  comprueba("las marca como refresco", audi.every((p) => p.refresco === true));
+  comprueba("y las paginas van seguidas",
+    audi.every((p, i) => p.pagina === audi[0].pagina + i));
+  // Al final del catalogo se vuelve a la 1: si no, la marca se quedaria
+  // atascada en la ultima pagina para siempre.
+  const planV = ejecuta(codigo("Code: Repartir la noche"), {
+    estatico: {}, $: () => uno({}), $input: varios([
+      { marca: "audi", activas: 18431, paginas: 200, sondear: false, refresco_por: 200, rancias: 9000 },
+    ]),
+  });
+  const audiV = planV.items.map((i) => i.json).filter((p) => p.marca === "audi");
+  comprueba("al llegar al final vuelve a empezar por la 1",
+    audiV.length > 0 && audiV[0].pagina === 1, "(empieza en la " + (audiV[0] || {}).pagina + ")");
+
   // =========================================================== barrido bueno
   console.log("\nBARRIDO COMPLETO — dos marcas enteras, bajas contra la base real");
   const SIGUEN_MAS = 200, SIGUEN_DAE = 12;
@@ -169,9 +211,21 @@ async function corre(peticiones, estatico, respuesta, cliente) {
     comprueba("quedan activas las " + SIGUEN_MAS + " vistas de maserati", quedanMas === SIGUEN_MAS, "(" + quedanMas + ")");
     comprueba("quedan activas las " + SIGUEN_DAE + " vistas de daewoo", quedanDae === SIGUEN_DAE, "(" + quedanDae + ")");
 
+    /*
+     * Solo las cinco de este ensayo.
+     *
+     * Antes se contaban TODAS las de milanuncios esperando que fueran cinco, y
+     * eso solo era cierto mientras la libreta estaba vacia. El verificador de
+     * verdad lleva semanas apuntando marcas -el 24-sep-2026 habia 30-, asi que
+     * la comprobacion fallaba todos los dias sin que pasara nada malo. Un test
+     * que falla siempre deja de mirarse, y con el se dejan de ver los que
+     * fallan de verdad.
+     */
+    const LAS_CINCO = ["maserati", "daewoo", "mazda", "jeep", "ds"];
     const lib = {};
-    for (const r of (await c.query(`SELECT * FROM moveadvisor_brand_sweeps WHERE portal='milanuncios'`)).rows)
-      lib[r.brand] = r;
+    for (const r of (await c.query(
+      `SELECT * FROM moveadvisor_brand_sweeps WHERE portal='milanuncios' AND brand = ANY($1)`,
+      [LAS_CINCO])).rows) lib[r.brand] = r;
     comprueba("apunta las 5 marcas en la libreta", Object.keys(lib).length === 5, "(" + Object.keys(lib).length + ")");
     comprueba("apunta las bajas reales de maserati", lib.maserati.deactivated === bajasMas,
       "(" + lib.maserati.deactivated + " de " + bajasMas + ")");

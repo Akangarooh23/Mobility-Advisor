@@ -134,6 +134,7 @@
     "test:as24-altas": "node scripts/comprueba-altas-as24-es.js",
     "carga-dealers": "node scripts/carga-dealers-cochesnet.js",
     "analiza-volcado": "node scripts/analiza-volcado.js",
+    "carga-volcado": "node --max-old-space-size=4096 scripts/carga-volcado.js",
     "arregla-urls-autocasion": "node scripts/arregla-urls-autocasion.js",
     "arregla-cilindrada": "node scripts/arregla-cilindrada.js",
     "enlaza-segmento-autocasion": "node scripts/enlaza-segmento-autocasion.js",

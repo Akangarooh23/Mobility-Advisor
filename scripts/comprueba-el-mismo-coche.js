@@ -13,7 +13,8 @@
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
-const { agrupaPorCoche, huellaSql, normalizaProvincia } = require("../lib/el-mismo-coche");
+const { agrupaPorCoche, huellaSql, normalizaProvincia,
+  COLUMNAS_DE_LA_HUELLA, CAMPOS_DE_CALIDAD, calidadSql } = require("../lib/el-mismo-coche");
 
 const RAIZ = path.join(__dirname, "..");
 const env = fs.readFileSync(path.join(RAIZ, ".env.local"), "utf8");
@@ -30,7 +31,10 @@ const PRESENTABLE = `COALESCE(country,'ES')='ES' AND is_active
   AND COALESCE(image_url,'') <> '' AND price BETWEEN 4500 AND 200000
   AND (mileage IS NULL OR mileage BETWEEN 0 AND 500000) AND es_coche IS NOT FALSE`;
 
-const COLUMNAS = "id, portal, province, brand, model, version, year, mileage, fuel, power_cv, price, image_url";
+// Las de la huella, las que identifican la fila y TODAS las de CAMPOS_DE_CALIDAD:
+// sin ellas el orden del representante no se puede calcular.
+const COLUMNAS = ["id", "portal", ...COLUMNAS_DE_LA_HUELLA, ...CAMPOS_DE_CALIDAD]
+  .filter((c, i, a) => a.indexOf(c) === i).join(", ");
 const interior = (extra) => `SELECT ${COLUMNAS} FROM moveadvisor_market_offers
    WHERE ${PRESENTABLE} ${extra}`;
 
@@ -81,35 +85,78 @@ const interior = (extra) => `SELECT ${COLUMNAS} FROM moveadvisor_market_offers
   // ── El representante ─────────────────────────────────────────────────────
   console.log("\nQUE ANUNCIO DEL GRUPO SE ENSENA");
   /*
-   * El precio esta DENTRO de la huella, asi que todas las copias de un grupo
-   * valen lo mismo y "el mas barato" no distingue nada. Lo que hay que
-   * comprobar es que el representante sea uno de los anuncios del grupo -no
-   * una fila inventada- y que el desempate por id menor se cumpla.
+   * QUE SEA UN ANUNCIO DE VERDAD, no una fila compuesta.
    *
-   * La primera version de esto comparaba contra el minimo de las filas con
-   * igual marca/modelo/version/ano/km/CV, SIN el precio: o sea, contra otros
-   * grupos. Daba 353 "fallos" que no lo eran.
+   * La comprobacion de "cual" es la de mas abajo -la ficha mas completa-. Aqui
+   * solo se mira que el id que sale exista en la tabla y pertenezca a ese
+   * grupo: una consulta con agregados puede devolver perfectamente una fila
+   * que mezcle valores de varias.
+   *
+   * Esta comprobacion ha sido mala dos veces y las dos por lo mismo, escribir
+   * el criterio a mano en vez de derivarlo:
+   *
+   *   - primero comparaba contra el minimo de las filas con igual
+   *     marca/modelo/version/ano/km/CV SIN el precio, o sea contra OTROS
+   *     grupos, y daba 353 falsos fallos;
+   *   - luego exigia el id menor, que era el criterio hasta que paso a ser la
+   *     ficha mas completa, y daba 120.
    */
-  const noEsElMenor = (await c.query(
+  /*
+   * TODO con IS NOT DISTINCT FROM, no con `=`.
+   *
+   * La primera version comparaba `o.mileage = t.mileage`, y en SQL NULL = NULL
+   * no es cierto: es NULL. Los coches sin kilometraje -que el filtro de
+   * presentables deja pasar a proposito- salian como "inventados". Eran 24 y no
+   * habia ni uno mal.
+   */
+  const igualQueLaHuella = COLUMNAS_DE_LA_HUELLA
+    .map((c) => (c === "version"
+      ? "COALESCE(o.version,'') = COALESCE(t.version,'')"
+      : `o.${c} IS NOT DISTINCT FROM t.${c}`))
+    .join(" AND ");
+  const inventadas = (await c.query(
     `WITH t AS (${a.sql})
      SELECT count(*)::int n FROM t
-      WHERE t.id <> (SELECT min(o.id) FROM moveadvisor_market_offers o
-                      WHERE ${PRESENTABLE} ${filtro}
-                        AND o.brand = t.brand AND o.model = t.model
-                        AND COALESCE(o.version,'') = COALESCE(t.version,'')
-                        AND o.year = t.year AND o.mileage = t.mileage
-                        AND o.fuel IS NOT DISTINCT FROM t.fuel
-                        AND o.power_cv IS NOT DISTINCT FROM t.power_cv
-                        AND o.price = t.price)`,
+      WHERE NOT EXISTS (SELECT 1 FROM moveadvisor_market_offers o
+                         WHERE o.id = t.id AND ${igualQueLaHuella})`,
     a.valores)).rows[0].n;
-  ok(Number(noEsElMenor) === 0, "el representante es un anuncio real del grupo, el de id menor",
-    "(" + noEsElMenor + " que no)");
+  ok(Number(inventadas) === 0, "cada tarjeta es un anuncio real, no una fila compuesta",
+    "(" + inventadas + " inventadas)");
 
   // Dos veces la misma consulta tiene que dar lo mismo: sin un desempate fijo,
   // el representante cambiaria entre una busqueda y la siguiente.
   const uno = (await c.query(`SELECT id FROM (${a.sql}) z ORDER BY price, id LIMIT 30`, a.valores)).rows.map((x) => x.id);
   const dos = (await c.query(`SELECT id FROM (${a.sql}) z ORDER BY price, id LIMIT 30`, a.valores)).rows.map((x) => x.id);
   ok(uno.join() === dos.join(), "y es el mismo si se repite la busqueda");
+
+  // ── El representante es el de la ficha mas completa ─────────────────────
+  console.log("\nCUANDO ESTA EN VARIOS PORTALES, SE ENSENA EL MAS COMPLETO");
+  const mejor = (await c.query(
+    `WITH t AS (${a.sql})
+     SELECT count(*)::int n FROM t
+      WHERE (${calidadSql(CAMPOS_DE_CALIDAD, "t")}) < (
+        SELECT max(${calidadSql(CAMPOS_DE_CALIDAD, "o")}) FROM moveadvisor_market_offers o
+         WHERE ${PRESENTABLE} ${filtro}
+           AND o.brand = t.brand AND o.model = t.model
+           AND COALESCE(o.version,'') = COALESCE(t.version,'')
+           AND o.year = t.year AND o.mileage = t.mileage
+           AND o.fuel IS NOT DISTINCT FROM t.fuel
+           AND o.power_cv IS NOT DISTINCT FROM t.power_cv
+           AND o.price = t.price)`,
+    a.valores)).rows[0].n;
+  ok(Number(mejor) === 0, "ninguna tarjeta es menos completa que otra de su grupo",
+    "(" + mejor + " que si)");
+
+  // Y el caso que lo motiva: grupos repartidos entre varios portales.
+  const variosPortales = (await c.query(
+    `SELECT portal, portales, copias, ${calidadSql(CAMPOS_DE_CALIDAD, "z")} AS campos
+       FROM (${a.sql}) z WHERE array_length(portales, 1) > 1
+      ORDER BY copias DESC LIMIT 3`, a.valores)).rows;
+  for (const v of variosPortales) {
+    console.log("      " + String(v.copias).padStart(2) + " anuncios en [" + v.portales.join(", ")
+      + "]  ->  se ensena " + v.portal + " con " + v.campos + " campos");
+  }
+  ok(variosPortales.length > 0, "hay coches en varios portales a la vez");
 
   // ── El filtro de provincia ───────────────────────────────────────────────
   console.log("\nFILTRAR POR PROVINCIA");

@@ -3690,6 +3690,19 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     maxPrice: filters?.maxPrice || delTest.maxPrice || null,
     minPrice: filters?.minPrice || null,
     provinciaFormas: delTest.provinciaFormas || null,
+    /*
+     * Y lo que se pregunta en el test sobre el coche en si.
+     *
+     * Las tres salen de columnas que el pool tiene rellenas -el cambio y el
+     * vendedor en el 100% de las ofertas, la potencia en el 95%-, que es la
+     * razon por la que se pregunta por ellas y no por las plazas, que estan
+     * en el 26%. Ver lib/el-encargo-de-busqueda.js.
+     */
+    transmission: normalizeText(filters?.transmission || "") || delTest.transmission || "",
+    sellerType: normalizeText(filters?.sellerType || "") || delTest.sellerType || "",
+    minPowerCv: filters?.minPowerCv || delTest.minPowerCv || null,
+    environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || "")
+      || delTest.environmentalLabel || "",
   };
   const companies = getSearchCompanies({ result, filters, desiredType });
   const queries = buildQueries({ result, answers, filters, companies, desiredType });
@@ -3842,7 +3855,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       modelCandidates: models,
       version: normalizeText(filters?.version || ""),
       fuel: effectiveFuelFilter,
-      transmission: normalizeText(filters?.transmission || ""),
+      transmission: normalizeText(filters?.transmission || "") || delTest.transmission || "",
       /*
        * La carroceria que ha elegido quien contesta.
        *
@@ -3856,11 +3869,12 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         || (answers?.carroceria_preferida !== "indiferente_carroceria" ? answers?.carroceria_preferida : "")
         || ""
       ),
-      environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || ""),
+      environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || "")
+        || delTest.environmentalLabel || "",
       location: normalizeText(String(filters?.location || "").replace(/_/g, " ")),
       city: normalizeText(filters?.city || ""),
       color: normalizeText(filters?.color || ""),
-      sellerType: normalizeText(filters?.sellerType || ""),
+      sellerType: normalizeText(filters?.sellerType || "") || delTest.sellerType || "",
       traction: normalizeText(filters?.traction || ""),
       displacement: normalizeText(filters?.displacement || ""),
       displacementMin: Number(filters?.displacementMin) || null,
@@ -3885,7 +3899,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       maxDoors: filters?.maxDoors || null,
       minSeats: filters?.minSeats || null,
       maxSeats: filters?.maxSeats || null,
-      minPowerCv: filters?.minPowerCv || null,
+      minPowerCv: filters?.minPowerCv || delTest.minPowerCv || null,
       maxPowerCv: filters?.maxPowerCv || null,
       minPrice: filters?.minPrice || null,
       maxPrice: filters?.maxPrice || delTest.maxPrice || null,

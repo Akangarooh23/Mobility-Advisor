@@ -330,6 +330,58 @@ export const STEPS = [
     ],
   },
   {
+    /*
+     * Cambio, vendedor y potencia.
+     *
+     * Las tres salen de columnas que el pool tiene rellenas -el cambio y el
+     * vendedor en el 100% de las ofertas, la potencia en el 95%- y las tres
+     * son decisiones que la gente ya trae tomada de casa. Preguntar algo que
+     * la base no sabe responder no estrecha la búsqueda: la ralentiza.
+     *
+     * Por eso NO se pregunta por plazas ni por tracción aunque parezcan
+     * útiles: las plazas están en el 26% de las ofertas y la tracción en el
+     * 16%, así que filtrar por ellas escondería tres de cada cuatro coches
+     * buenos por no haberlos sabido describir.
+     */
+    id: "cambio_preferido",
+    block: "Vehículo",
+    blockIcon: "⚙️",
+    question: "¿Cambio automático o manual?",
+    subtitle: "El automático se paga más caro de salida y en ciudad se agradece cada día.",
+    type: "cards",
+    options: [
+      { value: "indiferente_cambio", label: "Me da igual", icon: "🤷", desc: "Lo que mejor encaje con lo demás" },
+      { value: "automatico", label: "Automático", icon: "🅰️", desc: "Menos cansado en atascos y en ciudad" },
+      { value: "manual", label: "Manual", icon: "🇲", desc: "Más barato de comprar y de reparar" },
+    ],
+  },
+  {
+    id: "quien_vende",
+    block: "Vehículo",
+    blockIcon: "🤝",
+    question: "¿A quién prefieres comprárselo?",
+    subtitle: "Un profesional responde con garantía legal de doce meses; un particular suele salir más barato.",
+    type: "cards",
+    options: [
+      { value: "indiferente_vendedor", label: "Me da igual", icon: "🤷", desc: "Lo importante es el coche" },
+      { value: "profesional", label: "Profesional", icon: "🏢", desc: "Concesionario o compraventa, con garantía" },
+      { value: "particular", label: "Particular", icon: "👤", desc: "Sin garantía, pero suele costar menos" },
+    ],
+  },
+  {
+    id: "potencia_minima",
+    block: "Vehículo",
+    blockIcon: "🐎",
+    question: "¿Necesitas potencia de sobra?",
+    subtitle: "Cuenta si haces carretera con el coche cargado o si arrastras remolque o caravana.",
+    type: "cards",
+    options: [
+      { value: "indiferente_potencia", label: "Me da igual", icon: "🤷", desc: "Con la potencia normal de su categoría me vale" },
+      { value: "al_menos_110", label: "Al menos 110 CV", icon: "🛣️", desc: "Carretera con gente y equipaje sin ir justo" },
+      { value: "al_menos_150", label: "Al menos 150 CV", icon: "🚀", desc: "Remolque, caravana o mucha autopista cargado" },
+    ],
+  },
+  {
     id: "marca_preferencia",
     block: "Preferencias",
     blockIcon: "🏷️",

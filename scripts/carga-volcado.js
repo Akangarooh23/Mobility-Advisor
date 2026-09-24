@@ -139,7 +139,31 @@ function txt(v, col) {
 }
 const nulo = (v) => (v === null || v === undefined || v === "" ? "NULL" : String(v));
 const anio = (s) => { const m = String(s || "").match(/^(\d{4})/); return m ? Number(m[1]) : null; };
-const entero = (v) => { const n = parseInt(String(v).replace(/[^\d-]/g, ""), 10); return isNaN(n) ? null : n; };
+
+/*
+ * OJO CON EL PUNTO DECIMAL. Esta funcion decia:
+ *
+ *     parseInt(String(v).replace(/[^\d-]/g, ""), 10)
+ *
+ * y eso QUITA el punto y PEGA los digitos: "90.0" se convertia en 900. El 96 %
+ * de los `power` de wallapop y el 93 % de los de milanuncios vienen con
+ * decimal, asi que la carga del 24-sep-2026 metio 620.175 coches con la
+ * potencia multiplicada por diez -un T-Roc de 110 CV guardado como 1.100, y se
+ * veia en el buscador-.
+ *
+ * Se descarto al principio porque los kilometrajes de milanuncios no traian
+ * decimales, y no se volvio a mirar el resto de campos. Los kilometros, las
+ * puertas y la garantia estan bien en los dos volcados; la potencia no lo
+ * estaba.
+ *
+ * Ahora se parsea como numero y se redondea. La coma tambien se contempla, que
+ * es como lo escribe media Europa.
+ */
+const entero = (v) => {
+  const s = String(v === null || v === undefined ? "" : v).replace(/[^\d.,-]/g, "").replace(",", ".");
+  const n = Math.round(parseFloat(s));
+  return isNaN(n) ? null : n;
+};
 
 const COLS = "id, portal, url, title, brand, model, version, year, mileage, price, fuel, "
   + "transmission, power_cv, environmental_label, color, body_type, doors, province, city, "

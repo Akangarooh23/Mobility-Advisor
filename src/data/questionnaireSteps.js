@@ -386,6 +386,7 @@ export const ADVANCED_STEPS = [
   },
   {
     id: "vehiculo_actual_antiguedad",
+    soloSi: { vehiculo_actual: ["si_entrego", "si_vendo"] },
     block: "Coche a entregar",
     blockIcon: "🔁",
     question: "¿De qué año es el coche que entregas o vendes?",
@@ -401,6 +402,7 @@ export const ADVANCED_STEPS = [
   },
   {
     id: "vehiculo_actual_km",
+    soloSi: { vehiculo_actual: ["si_entrego", "si_vendo"] },
     block: "Coche a entregar",
     blockIcon: "🛣️",
     question: "¿Cuántos kilómetros tiene el coche que entregas o vendes?",
@@ -416,6 +418,7 @@ export const ADVANCED_STEPS = [
   },
   {
     id: "vehiculo_actual_deuda",
+    soloSi: { vehiculo_actual: ["si_entrego", "si_vendo"] },
     block: "Coche a entregar",
     blockIcon: "💳",
     question: "¿Tiene financiación pendiente?",
@@ -431,6 +434,7 @@ export const ADVANCED_STEPS = [
   },
   {
     id: "financiacion_plazo",
+    soloSi: { flexibilidad: ["propiedad_financiada", "propiedad_entrada_inicial", "no_tengo_claro"] },
     block: "Financiación",
     blockIcon: "📆",
     question: "¿Qué plazo de financiación te gustaría?",
@@ -447,6 +451,7 @@ export const ADVANCED_STEPS = [
   },
   {
     id: "financiacion_gestion",
+    soloSi: { flexibilidad: ["propiedad_financiada", "propiedad_entrada_inicial", "no_tengo_claro"] },
     block: "Financiación",
     blockIcon: "🏦",
     question: "¿Cómo prefieres gestionar la financiación?",
@@ -464,3 +469,42 @@ export const ADVANCED_STEPS = [
 
 export const getQuestionnaireSteps = (advancedMode = false) =>
   advancedMode ? [...STEPS, ...ADVANCED_STEPS] : STEPS;
+
+/**
+ * Si esta pregunta le toca a quien ha contestado esto.
+ *
+ * Había cinco que se le hacían a todo el mundo y solo tienen sentido para
+ * algunos:
+ *
+ *   - el año, los kilómetros y la deuda **del coche que entrega**, a quien
+ *     acababa de decir que no tiene ninguno;
+ *   - el plazo y la gestión **de la financiación**, a quien acababa de decir
+ *     que paga al contado.
+ *
+ * Se notaba en que las dos de financiación tenían «No quiero financiar»
+ * como primera opción: la pregunta llevaba dentro la prueba de que se
+ * estaba haciendo a quien no tocaba.
+ *
+ * `soloSi` es un objeto y no una función a propósito: así se lee de un
+ * vistazo en la propia pregunta y no hay que ir a buscar ninguna regla.
+ */
+export function seLePregunta(paso, respuestas = {}) {
+  const condicion = paso && paso.soloSi;
+  if (!condicion) return true;
+
+  return Object.entries(condicion).every(([clave, valen]) => {
+    const contestado = respuestas ? respuestas[clave] : undefined;
+    /*
+     * Sin contestar todavía, la pregunta se queda.
+     *
+     * Esconderla aquí sería adivinar: quien aún no ha dicho si entrega
+     * coche puede acabar diciendo que sí, y la pregunta tiene que estar
+     * esperándole. En cuanto conteste, desaparece sola si no le toca.
+     */
+    if (contestado === undefined || contestado === null || contestado === "") return true;
+
+    const lista = Array.isArray(valen) ? valen : [valen];
+    if (Array.isArray(contestado)) return contestado.some((v) => lista.includes(v));
+    return lista.includes(contestado);
+  });
+}

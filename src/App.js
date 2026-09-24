@@ -126,7 +126,7 @@ import { captureUtmFromUrl } from "./utils/utmTracker";
 import { recuerdaLaMatricula } from "./utils/encargoDeVentaWeb";
 import { trackFunnelEvent } from "./utils/funnelTracker";
 import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
-import { STEPS, getQuestionnaireSteps } from "./data/questionnaireSteps";
+import { STEPS, getQuestionnaireSteps, seLePregunta } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
 import { createAppStyles } from "./ui/appStyles";
 import LogoPopCar from "./ui/LogoPopCar";
@@ -2180,7 +2180,17 @@ export default function App() {
   const avisoCookiesAbierto = showCookieGate;
 
   const activeSteps = useMemo(() => {
-    const steps = getQuestionnaireSteps(advancedMode).filter((s) => s.id !== "perfil");
+    /*
+     * Las preguntas que no le tocan no se le hacen.
+     *
+     * Esto solo miraba el modo avanzado y de dónde venía. Así, a quien
+     * acababa de decir que no tiene coche que entregar se le preguntaba el
+     * año, los kilómetros y la deuda de ese coche; y a quien había dicho que
+     * paga al contado, el plazo de financiación.
+     */
+    const steps = getQuestionnaireSteps(advancedMode)
+      .filter((s) => s.id !== "perfil")
+      .filter((s) => seLePregunta(s, answers));
     if (advisorContext === "renting") {
       // Skip the flexibilidad question: renting is already pre-selected
       return steps.filter((s) => s.id !== "flexibilidad");
@@ -2199,7 +2209,7 @@ export default function App() {
       );
     }
     return steps;
-  }, [advancedMode, advisorContext]);
+  }, [advancedMode, advisorContext, answers]);
 
   useAppBootstrap({
     setSesionComprobada,
@@ -2395,6 +2405,19 @@ export default function App() {
       canonicalLink.setAttribute("href", canonicalUrl);
     }
   }, [entryMode]);
+
+  /*
+   * Si la lista encoge, el indice no puede quedarse fuera.
+   *
+   * Cambiar de opinion -«sí entrego coche» por «no»- hace desaparecer tres
+   * preguntas de golpe. Sin esto, el indice podria apuntar a una que ya no
+   * esta y la pantalla se quedaria en blanco a mitad del test.
+   */
+  useEffect(() => {
+    if (step >= 0 && activeSteps.length > 0 && step > activeSteps.length - 1) {
+      setStep(activeSteps.length - 1);
+    }
+  }, [step, activeSteps.length]);
 
   const currentStep = activeSteps[step];
   const totalSteps = activeSteps.length;

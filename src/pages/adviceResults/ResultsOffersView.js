@@ -1,68 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const SPAIN_PROVINCES = [
-  "A Coruna",
-  "Alava",
-  "Albacete",
-  "Alicante",
-  "Almeria",
-  "Asturias",
-  "Avila",
-  "Badajoz",
-  "Barcelona",
-  "Burgos",
-  "Caceres",
-  "Cadiz",
-  "Cantabria",
-  "Castellon",
-  "Ceuta",
-  "Ciudad Real",
-  "Cordoba",
-  "Cuenca",
-  "Girona",
-  "Granada",
-  "Guadalajara",
-  "Guipuzcoa",
-  "Huelva",
-  "Huesca",
-  "Illes Balears",
-  "Jaen",
-  "La Rioja",
-  "Las Palmas",
-  "Leon",
-  "Lleida",
-  "Lugo",
-  "Madrid",
-  "Malaga",
-  "Melilla",
-  "Murcia",
-  "Navarra",
-  "Ourense",
-  "Palencia",
-  "Pontevedra",
-  "Salamanca",
-  "Santa Cruz de Tenerife",
-  "Segovia",
-  "Sevilla",
-  "Soria",
-  "Tarragona",
-  "Teruel",
-  "Toledo",
-  "Valencia",
-  "Valladolid",
-  "Vizcaya",
-  "Zamora",
-  "Zaragoza",
-];
 
-const PRICE_RANGE_OPTIONS = [
-  { value: "", label: "Todos", min: null, max: null },
-  { value: "under_15000", label: "< 15.000 EUR", min: null, max: 15000 },
-  { value: "15000_25000", label: "15.000 - 25.000 EUR", min: 15000, max: 25000 },
-  { value: "25000_35000", label: "25.000 - 35.000 EUR", min: 25000, max: 35000 },
-  { value: "over_35000", label: "> 35.000 EUR", min: 35000, max: null },
-];
 
 export default function ResultsOffersView({
   themeMode,
@@ -138,9 +77,7 @@ export default function ResultsOffersView({
     save: t("resultsOffersView.save"),
     inSaved: t("resultsOffersView.inSaved"),
     searchReal: t("resultsOffersView.searchReal"),
-    location: isEn ? "LOCATION" : "UBICACION",
     allSpain: isEn ? "All Spain" : "Toda Espana",
-    priceRange: isEn ? "PRICE RANGE" : "RANGO DE PRECIOS",
     featuredOfferAlt: isEn ? "Featured offer" : "Oferta destacada",
     offerAlt: isEn ? "Offer" : "Oferta",
     nationalDelivery: isEn ? "Nationwide delivery" : "Entrega nacional",
@@ -254,60 +191,16 @@ export default function ResultsOffersView({
           </div>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, color: isDark ? "var(--gris-400)" : "var(--gris-500)", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
-            {text.location}
-          </span>
-          <select
-            value={listingFilters.location || ""}
-            onChange={(event) => updateListingFilter("location", event.target.value)}
-            style={{
-              border: isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.22)",
-              background: isDark ? "rgba(17,17,17,0.9)" : "var(--blanco)",
-              color: isDark ? "var(--gris-200)" : "var(--gris-800)",
-              borderRadius: 8,
-              padding: "6px 10px",
-              fontSize: 12,
-              fontWeight: 600,
-              minWidth: 170,
-              cursor: "pointer",
-            }}
-          >
-            <option value="">{text.allSpain}</option>
-            {SPAIN_PROVINCES.map((province) => (
-              <option key={province} value={province}>{province}</option>
-            ))}
-          </select>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 10, color: isDark ? "var(--gris-400)" : "var(--gris-500)", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
-            {text.priceRange}
-          </span>
-          {PRICE_RANGE_OPTIONS.map((option) => {
-            const selected = (listingFilters.priceRange || "") === option.value;
-            return (
-              <button
-                key={option.value || "all-price"}
-                type="button"
-                onClick={() => updateListingFilter("priceRange", option.value)}
-                style={{
-                  background: selected ? (isDark ? "rgba(150,150,143,0.2)" : "rgba(94,94,89,0.1)") : "transparent",
-                  border: selected ? "1px solid rgba(150,150,143,0.4)" : (isDark ? "1px solid rgba(150,150,143,0.28)" : "1px solid rgba(150,150,143,0.22)"),
-                  color: selected ? (isDark ? "var(--gris-300)" : "var(--gris-600)") : (isDark ? "var(--gris-300)" : "var(--gris-600)"),
-                  padding: "4px 10px",
-                  borderRadius: 100,
-                  fontSize: 11,
-                  fontWeight: selected ? 700 : 500,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+        {/*
+          * Aqui habia un desplegable de ubicacion y unos botones de rango de
+          * precio. Se han quitado: filtraban las DOCE ofertas que la base ya
+          * habia elegido, no las 1.579.000 entre las que elegir.
+          *
+          * Las dos cosas se preguntan ahora en el test -"de que provincia
+          * quieres el coche" y "cuanto quieres gastarte"- y viajan al WHERE.
+          * Filtrar en la base trae doce ofertas que encajan; filtrar despues
+          * se queda con las tres de esas doce que cumplian, o con ninguna.
+          */}
       </div>
 
       <div

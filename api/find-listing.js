@@ -3802,6 +3802,8 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
        * decidir nada.
        */
       soloPresentables: true,
+      // La provincia que ha elegido en el test, con todas sus escrituras.
+      provinciaFormas: delTest.provinciaFormas || null,
       modelCandidates: models,
       version: normalizeText(filters?.version || ""),
       fuel: effectiveFuelFilter,

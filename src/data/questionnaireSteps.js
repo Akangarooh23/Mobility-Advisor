@@ -205,16 +205,82 @@ export const STEPS = [
   },
   {
     /*
-     * Qué tipo de coche.
+     * De qué provincia quiere el coche.
      *
-     * La recomendación decía «un compacto equilibrado» sin haberlo
-     * preguntado: lo deducía de los ocupantes y del uso. Y es de las pocas
-     * cosas que la gente tiene decidida de antemano, así que deducirla es
-     * arriesgarse a acertar la modalidad y fallar el coche.
+     * La pantalla de resultados tenía un desplegable de ubicación **encima
+     * de las ofertas ya elegidas**: filtraba doce coches que la base ya
+     * había decidido. Preguntarlo aquí filtra en la base, que es donde hay
+     * millón y medio, y de paso hace la consulta más rápida.
      *
-     * «Me da igual» está de primero a propósito: quien no lo tenga decidido
-     * no debe sentir que tiene que elegir.
+     * La lista sale de `lib/de-donde-quiere-el-coche.js`, que además guarda
+     * con qué escrituras se busca cada una. No se saca de la columna del
+     * pool porque ahí hay **3.444 «provincias» distintas**: «Madrid» y
+     * «MADRID» por separado, y 11.600 ofertas cuya provincia es PATERNA,
+     * que es un pueblo de Valencia.
      */
+    id: "provincia_del_coche",
+    block: "Vehículo",
+    blockIcon: "📍",
+    question: "¿De qué provincia quieres el coche?",
+    subtitle: "Si te da igual, buscamos en toda España. Elegir una acota mucho, pero deja fuera buenas ofertas de al lado.",
+    type: "cards",
+    options: [
+      { value: "cualquier_provincia", label: "Me da igual, de cualquier provincia", icon: "🇪🇸", desc: "Más ofertas entre las que elegir" },
+      { value: "alava", label: "Álava", icon: "📍" },
+      { value: "albacete", label: "Albacete", icon: "📍" },
+      { value: "alicante", label: "Alicante", icon: "📍" },
+      { value: "almeria", label: "Almería", icon: "📍" },
+      { value: "asturias", label: "Asturias", icon: "📍" },
+      { value: "avila", label: "Ávila", icon: "📍" },
+      { value: "badajoz", label: "Badajoz", icon: "📍" },
+      { value: "baleares", label: "Baleares", icon: "📍" },
+      { value: "barcelona", label: "Barcelona", icon: "📍" },
+      { value: "burgos", label: "Burgos", icon: "📍" },
+      { value: "caceres", label: "Cáceres", icon: "📍" },
+      { value: "cadiz", label: "Cádiz", icon: "📍" },
+      { value: "cantabria", label: "Cantabria", icon: "📍" },
+      { value: "castellon", label: "Castellón", icon: "📍" },
+      { value: "ceuta", label: "Ceuta", icon: "📍" },
+      { value: "ciudad_real", label: "Ciudad Real", icon: "📍" },
+      { value: "cordoba", label: "Córdoba", icon: "📍" },
+      { value: "cuenca", label: "Cuenca", icon: "📍" },
+      { value: "girona", label: "Girona", icon: "📍" },
+      { value: "granada", label: "Granada", icon: "📍" },
+      { value: "guadalajara", label: "Guadalajara", icon: "📍" },
+      { value: "gipuzkoa", label: "Gipuzkoa", icon: "📍" },
+      { value: "huelva", label: "Huelva", icon: "📍" },
+      { value: "huesca", label: "Huesca", icon: "📍" },
+      { value: "jaen", label: "Jaén", icon: "📍" },
+      { value: "a_coruna", label: "A Coruña", icon: "📍" },
+      { value: "la_rioja", label: "La Rioja", icon: "📍" },
+      { value: "las_palmas", label: "Las Palmas", icon: "📍" },
+      { value: "leon", label: "León", icon: "📍" },
+      { value: "lleida", label: "Lleida", icon: "📍" },
+      { value: "lugo", label: "Lugo", icon: "📍" },
+      { value: "madrid", label: "Madrid", icon: "📍" },
+      { value: "malaga", label: "Málaga", icon: "📍" },
+      { value: "melilla", label: "Melilla", icon: "📍" },
+      { value: "murcia", label: "Murcia", icon: "📍" },
+      { value: "navarra", label: "Navarra", icon: "📍" },
+      { value: "ourense", label: "Ourense", icon: "📍" },
+      { value: "palencia", label: "Palencia", icon: "📍" },
+      { value: "pontevedra", label: "Pontevedra", icon: "📍" },
+      { value: "salamanca", label: "Salamanca", icon: "📍" },
+      { value: "tenerife", label: "Santa Cruz de Tenerife", icon: "📍" },
+      { value: "segovia", label: "Segovia", icon: "📍" },
+      { value: "sevilla", label: "Sevilla", icon: "📍" },
+      { value: "soria", label: "Soria", icon: "📍" },
+      { value: "tarragona", label: "Tarragona", icon: "📍" },
+      { value: "teruel", label: "Teruel", icon: "📍" },
+      { value: "toledo", label: "Toledo", icon: "📍" },
+      { value: "valencia", label: "Valencia", icon: "📍" },
+      { value: "valladolid", label: "Valladolid", icon: "📍" },
+      { value: "bizkaia", label: "Bizkaia", icon: "📍" },
+      { value: "zamora", label: "Zamora", icon: "📍" },
+      { value: "zaragoza", label: "Zaragoza", icon: "📍" },
+    ],
+  },
+  {
     /*
      * Hasta cuántos kilómetros acepta.
      *
@@ -236,6 +302,17 @@ export const STEPS = [
     ],
   },
   {
+    /*
+     * Qué tipo de coche.
+     *
+     * La recomendación decía «un compacto equilibrado» sin haberlo
+     * preguntado: lo deducía de los ocupantes y del uso. Y es de las pocas
+     * cosas que la gente tiene decidida de antemano, así que deducirla es
+     * arriesgarse a acertar la modalidad y fallar el coche.
+     *
+     * «Me da igual» está de primero a propósito: quien no lo tenga decidido
+     * no debe sentir que tiene que elegir.
+     */
     id: "carroceria_preferida",
     block: "Vehículo",
     blockIcon: "🚗",

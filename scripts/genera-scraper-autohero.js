@@ -8,9 +8,9 @@
  *
  * ── Por qué se rehace ──────────────────────────────────────────────────────
  *
- * Porque no estaba corriendo: en n8n no hay ni un flujo de Autohero. Los dos
- * JSON del repo llevan la credencial «uG6rcC7AqSKyEJOW», que no existe en esta
- * instalación, y nunca llegaron a importarse. El último coche suyo que vimos
+ * Porque no estaba corriendo: en n8n no había ni un flujo de Autohero. Los dos
+ * JSON del repo llevaban una credencial de otra instalación, que aquí no
+ * existe, y por eso nunca llegaron a importarse. El último coche suyo que vimos
  * fue el 2 de septiembre.
  *
  * Damos 3.849 por vivos y su catálogo tiene 2.407. Son 2.340 bajas y 898
@@ -256,6 +256,10 @@ const conexiones = {
 };
 
 const wf = {
+  // El id que n8n le dio la primera vez. Sin el, importar no actualiza:
+  // crea una copia con su propio cron y n8n lo da por bueno. Y NO vale
+  // inventarse uno: tiene que ser este, o la copia se crea igual.
+  id: "xtky00Hn45Qnnupa",
   name: "Autohero – Scraper (mercado)",
   nodes: nodos,
   connections: conexiones,

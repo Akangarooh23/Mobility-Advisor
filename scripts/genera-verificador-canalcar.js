@@ -393,6 +393,10 @@ const conexiones = {
 };
 
 const wf = {
+  // El id que n8n le dio la primera vez. Sin el, importar no actualiza:
+  // crea una copia con su propio cron y n8n lo da por bueno. Y NO vale
+  // inventarse uno: tiene que ser este, o la copia se crea igual.
+  id: "6CwPwT7pT7wNZmPO",
   name: "CanalCar – Verificar ofertas activas",
   nodes: nodos,
   connections: conexiones,

@@ -8,9 +8,9 @@
  *
  * ── Por qué se rehace ──────────────────────────────────────────────────────
  *
- * Porque el que había NO ESTABA CORRIENDO. En n8n no hay ni un flujo de
- * CanalCar: los dos JSON que hay en el repo llevan la credencial de Postgres
- * «uG6rcC7AqSKyEJOW», que no existe en esta instalación, y nunca llegaron a
+ * Porque el que había NO ESTABA CORRIENDO. En n8n no había ni un flujo de
+ * CanalCar: los dos JSON que hay en el repo llevaban una credencial de Postgres
+ * de otra instalación, que aquí no existe, y por eso nunca llegaron a
  * importarse. La última vez que vimos un coche de este portal fue el 1 de
  * septiembre; hoy es el 22.
  *
@@ -58,8 +58,19 @@ const fs = require("fs");
 const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 
-// El id de la credencial que EXISTE en n8n. La que traían los JSON viejos de
-// CanalCar («uG6rcC7AqSKyEJOW») no existe, y por eso nunca se importaron.
+/*
+ * La credencial de Postgres que EXISTE en esta instalación de n8n.
+ *
+ * Los JSON viejos de CanalCar traían otra, de una instalación anterior, y por
+ * eso nunca llegaron a importarse. n8n ya no casa las credenciales por nombre:
+ * si el id no existe, los nodos entran SIN credencial, corren y no escriben
+ * nada. Un workflow así no falla a gritos, parece que va bien.
+ *
+ * Aquí no se escribe el id viejo, y es a propósito: este fichero ya tuvo un
+ * find/replace de un id por otro que alcanzó también a los comentarios que
+ * hablaban del malo, y durante días dijeron que la credencial buena «no
+ * existe» justo encima de la línea que la usa.
+ */
 const PG_CRED = { postgres: { id: "uG6rcC7AqSKyEJOW", name: "Postgres account" } };
 const REINTENTA = { retryOnFail: true, maxTries: 3, waitBetweenTries: 5000 };
 const ERROR_WF = "9BwKOPMIzjj3owho";
@@ -227,6 +238,10 @@ const conexiones = {
 };
 
 const wf = {
+  // El id que n8n le dio la primera vez. Sin el, importar no actualiza:
+  // crea una copia con su propio cron y n8n lo da por bueno. Y NO vale
+  // inventarse uno: tiene que ser este, o la copia se crea igual.
+  id: "YkWL92848ZH87dAI",
   name: "CanalCar – Scraper (mercado)",
   nodes: nodos,
   connections: conexiones,

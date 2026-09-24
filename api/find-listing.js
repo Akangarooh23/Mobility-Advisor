@@ -1,5 +1,6 @@
 const SEARCH_ENDPOINT = "https://html.duckduckgo.com/html/";
 const { listInventoryOffers } = require("../lib/inventoryStore");
+const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -3605,7 +3606,16 @@ async function searchExactObjectiveMarketplaceListings(context) {
     }));
 }
 
-async function findListing({ result, answers, filters }) {
+async function findListing({ result, answers: respuestasDelTest, filters }) {
+  /*
+   * Con los nombres que esta funcion busca.
+   *
+   * Aqui dentro se lee `answers.km_anuales` y `answers.horizonte`, y el
+   * cuestionario guarda `uso_km_anuales` y `horizonte_tenencia`: nunca
+   * coincidian, asi que los kilometros y el horizonte no entraban en la
+   * busqueda de ofertas. Ver `lib/las-respuestas-del-test.js`.
+   */
+  const answers = comoLasLeeElMotor(respuestasDelTest);
   const explicitBrand = normalizeText(filters?.brand || "");
   const explicitModel = normalizeText(filters?.model || "");
   const explicitModelCandidates = [

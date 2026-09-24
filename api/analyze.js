@@ -1,4 +1,5 @@
 const JSON5 = require("json5");
+const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { jsonrepair } = require("jsonrepair");
 
 function sanitizeJsonStringContent(input) {
@@ -1665,7 +1666,18 @@ module.exports = async function handler(req, res) {
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const prompt = body?.prompt;
-    const answers = body?.answers && typeof body.answers === "object" ? body.answers : {};
+    /*
+     * Con los nombres que el motor busca.
+     *
+     * El cuestionario guarda  y , y aqui
+     * dentro se lee  y . No coincidian nunca, asi que
+     * las dos respuestas mas determinantes del test -cuanto conduces y cuanto
+     * tiempo lo quieres- no pesaban en el resultado. Ver
+     * .
+     */
+    const answers = comoLasLeeElMotor(
+      body?.answers && typeof body.answers === "object" ? body.answers : {}
+    );
     const advisorContext = normalizeText(body?.advisorContext || null) || null;
     const uiLanguage = body?.uiLanguage || "es";
 

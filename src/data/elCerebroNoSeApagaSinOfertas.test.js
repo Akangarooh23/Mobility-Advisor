@@ -94,3 +94,34 @@ describe("y si no hay ofertas, sigue pensando", () => {
       .toBeLessThan(analiza.indexOf("setResult(normalizedResult)"));
   });
 });
+
+/**
+ * Y por qué no hay ofertas, cuando no las hay.
+ *
+ * Ana volvió a ver la pantalla del resultado con el recuadro de las ofertas
+ * vacío, esta vez **sin ningún aviso**: solo el texto de bienvenida rellenando
+ * el hueco. La búsqueda había terminado bien y había devuelto cero.
+ *
+ * Y no es que no supiéramos por qué. La API lo explicaba desde hacía horas
+ * —«no hay ninguna oferta que cumpla lo que pediste: las que hay tienen más
+ * kilómetros de los que pusiste»— y `searchRealListing` **no leía ese campo de
+ * la respuesta**. El mensaje moría ahí.
+ */
+describe("el porqué llega a la pantalla", () => {
+  test("la búsqueda lee el mensaje de la respuesta", () => {
+    expect(APP).toContain("setListingInsight(data?.filterInsight || null)");
+  });
+
+  test("y se limpia al empezar otra, para no dejar el de antes", () => {
+    const busca = APP.slice(APP.indexOf("const searchRealListing = useCallback"));
+    const limpia = busca.indexOf("setListingInsight(null)");
+    const guarda = busca.indexOf("setListingInsight(data?.filterInsight");
+
+    expect(limpia).toBeGreaterThan(0);
+    expect(limpia).toBeLessThan(guarda);
+  });
+
+  test("y llega a la vista de ofertas", () => {
+    expect(APP).toContain("listingInsight={listingInsight}");
+  });
+});

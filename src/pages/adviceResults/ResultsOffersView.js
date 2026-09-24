@@ -66,6 +66,7 @@ export default function ResultsOffersView({
   searchRealListing,
   listingCoverageSummary,
   listingError,
+  listingInsight,
   featuredOffer,
   featuredOfferAction,
   featuredOfferSaved,
@@ -333,7 +334,42 @@ export default function ResultsOffersView({
               </div>
             )}
 
-            {!featuredOffer && !listingLoading && !listingError && (
+            {/*
+              * Por qué no hay más ofertas, cuando no las hay.
+              *
+              * La búsqueda lo explica —«he encontrado una oferta que cumpla
+              * todo lo que pediste, he dejado fuera el resto porque tienen más
+              * kilómetros de los que pusiste»— y ese mensaje no se pintaba en
+              * ningún sitio: moría en la respuesta.
+              *
+              * Va arriba y con fondo ámbar, no como texto suelto, porque es la
+              * respuesta a la pregunta que se hace cualquiera al ver menos
+              * coches de los que esperaba.
+              */}
+            {listingInsight && !listingLoading && !listingError && (
+              <div
+                style={{
+                  background: "rgba(245,158,11,0.08)",
+                  border: "1px solid rgba(251,191,36,0.24)",
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 10,
+                  fontSize: 12,
+                  color: "#92400e",
+                  lineHeight: 1.6,
+                }}
+              >
+                {listingInsight}
+              </div>
+            )}
+
+            {/*
+              * Y el texto de bienvenida solo cuando no hay nada mejor que
+              * decir. Rellenaba el hueco de las ofertas cuando la busqueda
+              * volvia vacia, y hacia parecer que la pantalla estaba a medias
+              * sin explicar nunca por que.
+              */}
+            {!featuredOffer && !listingLoading && !listingError && !listingInsight && (
               <div
                 style={{
                   background: cardBg,

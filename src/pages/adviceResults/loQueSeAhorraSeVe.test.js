@@ -102,3 +102,34 @@ describe("lo que se ahorra, en la tarjeta", () => {
     expect(screen.queryByText(/por debajo/)).not.toBeInTheDocument();
   });
 });
+
+/**
+ * El texto de bienvenida no puede tapar un «no hay ofertas».
+ *
+ * Cuando la búsqueda volvía vacía, el hueco se rellenaba con la frase de
+ * presentación —«la oferta destacada es la que mejor funciona para tu caso»—
+ * y quien lo leía veía una pantalla a medias sin saber por qué. El motivo
+ * existía y no se pintaba.
+ */
+describe("cuando no hay ofertas se dice por que", () => {
+  const FUENTE = require("fs")
+    .readFileSync(require("path").join(__dirname, "ResultsOffersView.js"), "utf8")
+    .replace(/\r\n/g, "\n");
+
+  test("la vista recibe el motivo", () => {
+    expect(FUENTE).toMatch(/^\s*listingInsight,$/m);
+  });
+
+  test("y lo pinta cuando lo hay", () => {
+    expect(FUENTE).toContain("{listingInsight && !listingLoading && !listingError && (");
+  });
+
+  test("y entonces el texto de bienvenida se calla", () => {
+    /*
+     * Esta es la condicion que importa: sin el `!listingInsight`, las dos
+     * cosas se pintarian a la vez y la explicacion quedaria debajo de la
+     * frase generica que la contradice.
+     */
+    expect(FUENTE).toContain("{!featuredOffer && !listingLoading && !listingError && !listingInsight && (");
+  });
+});

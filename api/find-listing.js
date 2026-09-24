@@ -3715,6 +3715,19 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     sellerType: normalizeText(filters?.sellerType || "") || delTest.sellerType || "",
     minPowerCv: filters?.minPowerCv || delTest.minPowerCv || null,
     country: normalizeText(filters?.country || '') || delTest.country || '',
+    /*
+     * Y la carroceria, que tambien la eligio el.
+     *
+     * Salio un Audi TT Coupe de tercera opcion a quien habia pedido un
+     * compacto. Ensanchar puede soltar el modelo y la marca; la carroceria la
+     * eligio de una lista que tiene «me da igual» de primera opcion, asi que
+     * si la eligio no es negociable.
+     */
+    bodyType: normalizeText(
+      filters?.bodyType || filters?.body_type
+      || (answers?.carroceria_preferida !== "indiferente_carroceria" ? answers?.carroceria_preferida : "")
+      || ""
+    ),
     environmentalLabel: normalizeText(filters?.environmentalLabel || filters?.dgtLabel || "")
       || delTest.environmentalLabel || "",
   };

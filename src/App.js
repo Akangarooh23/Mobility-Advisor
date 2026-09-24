@@ -1737,6 +1737,8 @@ export default function App() {
   const [listingSearchCoverage, setListingSearchCoverage] = useState(null);
   const [listingLoading, setListingLoading] = useState(false);
   const [listingError, setListingError] = useState(null);
+  // Lo que cuenta la busqueda cuando salen menos ofertas de las esperadas.
+  const [listingInsight, setListingInsight] = useState(null);
   const [quickValidationAnswers, setQuickValidationAnswers] = useState({});
   const [decisionAiResult, setDecisionAiResult] = useState(null);
   const [decisionLoading, setDecisionLoading] = useState(false);
@@ -3987,6 +3989,7 @@ export default function App() {
 
     setListingLoading(true);
     setListingError(null);
+    setListingInsight(null);
 
     const controller = new AbortController();
     /*
@@ -4046,6 +4049,17 @@ export default function App() {
       setListingResult(visibleListings[0] || data.listing || null);
       setListingOptions(visibleListings);
       setListingSearchCoverage(data?.searchCoverage || null);
+      /*
+       * Y por que no hay mas, si no las hay.
+       *
+       * La API lo explica desde hace horas -«he encontrado una oferta que
+       * cumpla todo lo que pediste, he dejado fuera el resto porque tienen
+       * mas kilometros de los que pusiste»- y ESTE FICHERO NO LO LEIA. El
+       * mensaje moria en la respuesta y la pantalla rellenaba el hueco con su
+       * texto de bienvenida, que es lo que hacia parecer que no habia pasado
+       * nada.
+       */
+      setListingInsight(data?.filterInsight || null);
       /*
        * Y se dice cuantas han salido.
        *
@@ -7585,6 +7599,7 @@ export default function App() {
           listingSearchCoverage={listingSearchCoverage}
           listingLoading={listingLoading}
           listingError={listingError}
+          listingInsight={listingInsight}
           quickValidationAnswers={quickValidationAnswers}
           savedComparisons={savedComparisons}
           saveFeedback={saveFeedback}

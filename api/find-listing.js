@@ -3773,6 +3773,14 @@ async function findListing({ result, answers, filters }) {
     const requestedInventoryLimit = Math.max(20, Math.min(Number(filters?.limit || 30), 5000));
     const inventory = await listInventoryOffers({
       desiredType,
+      /*
+       * Al cliente solo se le enseña lo que se puede enseñar.
+       *
+       * El 23 % del pool no tiene ninguna foto, y hay ofertas a 0 € y a
+       * 8.500.000 €. Una tarjeta con un hueco donde va el coche no ayuda a
+       * decidir nada.
+       */
+      soloPresentables: true,
       modelCandidates: models,
       version: normalizeText(filters?.version || ""),
       fuel: effectiveFuelFilter,

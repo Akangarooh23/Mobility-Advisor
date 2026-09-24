@@ -138,6 +138,7 @@
     "carga-volcado": "node --max-old-space-size=4096 scripts/carga-volcado.js",
     "carga-dealers-todos": "node --max-old-space-size=4096 scripts/carga-dealers.js",
     "arregla-potencia": "node --max-old-space-size=4096 scripts/arregla-potencia-volcado.js",
+    "test:mismo-coche": "node scripts/comprueba-el-mismo-coche.js",
     "arregla-urls-autocasion": "node scripts/arregla-urls-autocasion.js",
     "arregla-cilindrada": "node scripts/arregla-cilindrada.js",
     "enlaza-segmento-autocasion": "node scripts/enlaza-segmento-autocasion.js",

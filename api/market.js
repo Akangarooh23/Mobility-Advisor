@@ -20,6 +20,7 @@ const whatsappHandler             = require("../lib/api/whatsapp-handler");
 const erpAppointmentHandler        = require("../lib/api/erp-appointment-handler");
 const userErpAppointmentsHandler   = require("../lib/api/user-erp-appointments-handler");
 const conditionReportHandler       = require("../lib/api/condition-report-handler");
+const informeDeEstadoInternoHandler = require("../lib/api/informe-de-estado-interno-handler");
 // El catálogo entero en una lista, solo para la app: la web sigue con sus tres
 // buscadores y sus tres pantallas.
 const appCatalogoHandler           = require("../lib/api/app-catalogo-handler");
@@ -76,6 +77,8 @@ module.exports = async function marketRouter(req, res) {
     case "erp-appointment":       return erpAppointmentHandler(req, res);
     case "user-erp-appointments": return userErpAppointmentsHandler(req, res);
     case "condition-report":      return conditionReportHandler(req, res);
+    // Para el ERP, con el secreto compartido: ver el manejador.
+    case "informe-de-estado-interno": return informeDeEstadoInternoHandler(req, res);
     default:
       return res.status(404).json({ error: "Market route not found" });
   }

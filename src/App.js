@@ -234,6 +234,25 @@ function normalizeRangeValue(value) {
  */
 const FUERA_DEL_CUESTIONARIO = 99;
 
+/*
+ * Lo que espera el navegador a que conteste la busqueda de ofertas.
+ *
+ * La funcion de Vercel tiene 300 segundos declarados en vercel.json. Esto se
+ * queda cinco por debajo para que quien corte sea siempre ella -que sabe
+ * contestar lo que haya encontrado- y nunca el navegador, que solo sabe tirar
+ * la respuesta a la basura.
+ */
+const LO_QUE_ESPERA_EL_NAVEGADOR_MS = 295000;
+
+/*
+ * Cuantas veces se intenta traer ofertas antes de ensenar el resultado.
+ *
+ * Dos, y no una: la primera puede irse en una busqueda que se corta. Y no mas
+ * de dos, porque cada intento puede llevarse cuatro minutos y en algun momento
+ * hay que decirle al cliente que ahora mismo no hay.
+ */
+const LOS_INTENTOS_DE_BUSQUEDA = 2;
+
 function hasCompleteScoreWeights(value, metrics = []) {
   if (!value || typeof value !== "object" || Array.isArray(value) || metrics.length === 0) {
     return false;
@@ -3971,18 +3990,19 @@ export default function App() {
 
     const controller = new AbortController();
     /*
-     * Cuatro minutos, y la pantalla de «pensando» mientras tanto.
+     * El navegador espera a que conteste la funcion, no menos.
      *
-     * El corte estaba en 16 s y lo subi a 30, pero la busqueda tarda entre 25
-     * y 145 segundos contra el pool de 2,36 millones de ofertas: cortarla era
-     * garantizar el aviso de que habia tardado demasiado.
+     * Estaba en 240 segundos y la funcion tiene 300. Una busqueda con los
+     * siete criterios contestados tarda 253 SEGUNDOS medidos contra
+     * produccion, asi que el navegador cortaba una busqueda que iba a salir
+     * bien trece segundos despues. Eso es lo que dejaba el recuadro de las
+     * ofertas vacio debajo del resultado.
      *
-     * Que tarde. Mientras tarda, el cerebro sigue pensando, que es una espera
-     * honesta; un aviso de error cuando lo que pasa es que aun no ha terminado
-     * no lo es. Los cuatro minutos son el tope de la funcion en Vercel -cinco-
-     * con un margen para que conteste ella y no se corte el navegador antes.
+     * Ahora espera 295: la funcion se muere a los 300 y contesta antes, asi
+     * que quien corta es siempre ella y nunca el navegador. Si tarda, que
+     * tarde; el cerebro sigue pensando mientras, que es una espera honesta.
      */
-    const timeoutId = setTimeout(() => controller.abort(), 240000);
+    const timeoutId = setTimeout(() => controller.abort(), LO_QUE_ESPERA_EL_NAVEGADOR_MS);
 
     try {
       const { response, data } = await postListingJson({
@@ -4026,6 +4046,13 @@ export default function App() {
       setListingResult(visibleListings[0] || data.listing || null);
       setListingOptions(visibleListings);
       setListingSearchCoverage(data?.searchCoverage || null);
+      /*
+       * Y se dice cuantas han salido.
+       *
+       * No devolvia nada, asi que quien la llamaba no podia saber si habia
+       * ofertas que ensenar o un hueco: apagaba el cerebro igual.
+       */
+      return visibleListings;
     } catch (err) {
       if (err?.name === "AbortError") {
         /*
@@ -4043,6 +4070,8 @@ export default function App() {
       clearTimeout(timeoutId);
       setListingLoading(false);
     }
+
+    return [];
   }, [answers, listingOptionsRef, listingSeenRef, result]);
 
   useListingQuickValidationRefresh({
@@ -4409,10 +4438,29 @@ export default function App() {
        * el aviso de las ofertas lo pone su propio recuadro. Lo que no puede es
        * quedarse pensando para siempre.
        */
-      try {
-        await searchRealListing(null, null, { resultado: normalizedResult });
-      } catch {
-        /* el aviso lo pone la propia busqueda */
+      /*
+       * Y si no hay ofertas, se vuelve a intentar sin apagar el cerebro.
+       *
+       * Ana lo vio en produccion: el cerebro terminaba, aparecia «Tu solucion
+       * de movilidad optima» y debajo el recuadro de las ofertas VACIO. La
+       * busqueda se habia cortado a los 240 segundos y aqui se daba por buena
+       * igual, porque el catch se tragaba el fallo y seguia.
+       *
+       * Ensenar el resultado sin los coches es ensenar la mitad del trabajo.
+       * Que siga pensando y lo intente otra vez: la espera es mas honesta que
+       * el hueco.
+       */
+      let ofertas = [];
+      for (let intento = 1; intento <= LOS_INTENTOS_DE_BUSQUEDA; intento += 1) {
+        try {
+          ofertas = await searchRealListing(null, null, { resultado: normalizedResult }) || [];
+        } catch {
+          ofertas = [];
+        }
+
+        if (ofertas.length > 0) {
+          break;
+        }
       }
 
       setResultView("analysis");

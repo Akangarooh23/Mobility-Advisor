@@ -1,5 +1,6 @@
 const JSON5 = require("json5");
 const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
+const { laMotorizacionQuePidio, laEtiquetaQueLeCorresponde } = require("../lib/la-motorizacion-que-pidio");
 const { jsonrepair } = require("jsonrepair");
 
 function sanitizeJsonStringContent(input) {
@@ -816,7 +817,17 @@ function normalizeAdvisorResult(value, answers = {}) {
       inconvenientes: normalizeStringArray(main.inconvenientes),
       coste_estimado: normalizeText(main.coste_estimado),
       empresas_recomendadas: normalizeStringArray(main.empresas_recomendadas),
-      etiqueta_dgt: normalizeText(main.etiqueta_dgt),
+      /*
+       * La etiqueta NO se la cree del modelo.
+       *
+       * A quien pidio un gasolina de menos de 10.000 EUR le contesto «CERO»,
+       * que es la etiqueta de los electricos. La etiqueta se calcula de la
+       * motorizacion que se esta recomendando -que ahora es la que el cliente
+       * ha elegido- y solo se usa la del modelo si esa cuenta no sale.
+       *
+       * Ver lib/la-motorizacion-que-pidio.js.
+       */
+      etiqueta_dgt: laEtiquetaQueLeCorresponde(propulsionesViables) || normalizeText(main.etiqueta_dgt),
       tension_principal: normalizeText(main.tension_principal),
     },
     score_desglose,
@@ -983,6 +994,22 @@ function isAdvisorResultCompatibleWithContext(resultData, advisorContext = null)
 }
 
 function getViablePropulsions(answers) {
+  /*
+   * Lo que ha elegido el cliente ES la lista.
+   *
+   * Esto se deducia del garaje y del entorno de uso SIN MIRAR lo que habia
+   * contestado: a quien pidio gasolina se le contestaba «hibrido, PHEV,
+   * gasolina eficiente», por ese orden. Y de ahi salia la etiqueta, asi que
+   * ademas se le prometia una CERO que un gasolina no puede tener.
+   *
+   * Lo deducido sigue valiendo, pero solo para quien ha dicho que no tiene
+   * preferencia. Ver lib/la-motorizacion-que-pidio.js.
+   */
+  const lasSuyas = laMotorizacionQuePidio(answers);
+  if (lasSuyas) {
+    return lasSuyas.slice(0, 4);
+  }
+
   const propulsions = [];
   const noGarage = answers.garaje === "sin_garaje";
   const ownCharger = answers.garaje === "garaje_cargador";
@@ -1318,16 +1345,18 @@ function buildTcoEstimate(answers = {}, primaryType = "", propulsions = []) {
   });
 }
 
+/*
+ * La etiqueta sale de la motorizacion que se recomienda, y de nada mas.
+ *
+ * Antes bastaba con que la palabra «PHEV» apareciera EN CUALQUIER POSICION de
+ * la lista para afirmar CERO, y devolvia «C» para todo lo demas sin saber el
+ * ano: un gasolina de 2007 es C y uno de 2004 es B, y esa letra decide si
+ * puedes entrar en el centro de Madrid.
+ *
+ * Ver lib/la-motorizacion-que-pidio.js.
+ */
 function getDgtLabel(propulsions) {
-  if (propulsions.includes("electrico") || propulsions.includes("PHEV")) {
-    return "CERO";
-  }
-
-  if (propulsions.includes("hibrido")) {
-    return "ECO";
-  }
-
-  return "C";
+  return laEtiquetaQueLeCorresponde(propulsions);
 }
 
 function getTensionPrincipal(answers, primaryType) {
@@ -1589,7 +1618,14 @@ function buildFallbackAdvisorResult(answers = {}, advisorContext = null, uiLangu
   ] : [
     `Se adapta mejor a un uso ${answers.entorno_uso || "mixto"} con ${answers.km_anuales || "kilometraje medio"} sin disparar el coste total.`,
     `Encaja con tu horizonte ${answers.horizonte || "de uso"} y te deja una salida mas limpia si cambian tus necesidades.`,
-    `Permite priorizar ${vehicleProfile} con etiqueta ${dgtLabel} y una oferta realista en el mercado espanol actual.`,
+    /*
+     * Solo se nombra la etiqueta cuando se sabe cual es. Con un gasolina o un
+     * diesel depende del ano de matriculacion, que aqui no se sabe, y la
+     * frase se queda sin ese trozo en vez de inventarselo.
+     */
+    dgtLabel && dgtLabel.length <= 4
+      ? `Permite priorizar ${vehicleProfile} con etiqueta ${dgtLabel} y una oferta realista en el mercado espanol actual.`
+      : `Permite priorizar ${vehicleProfile} con una oferta realista en el mercado espanol actual.`,
   ];
 
   const disadvantages = isEn ? [

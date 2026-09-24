@@ -940,48 +940,69 @@ function normalizeAdvisorResult(value, answers = {}) {
   };
 }
 
-function isCompleteAdvisorResult(value) {
-  const normalized = normalizeAdvisorResult(value);
-  const main = normalized.solucion_principal;
-  const scoreBreakdownTotal = Object.values(normalized.score_desglose || {}).reduce(
+/**
+ * Que le falta al analisis para poder ensenarse, campo por campo.
+ *
+ * ## Por que una lista y no un si o un no
+ *
+ * Porque el aviso era mudo. «La IA ha devuelto un analisis incompleto»
+ * despues de veinte preguntas y dos minutos de espera, con quince campos
+ * candidatos y ninguna pista. Se arreglaron tres cosas distintas a ciegas y
+ * el recuadro rojo seguia saliendo.
+ *
+ * ## Esta funcion tiene gemela
+ *
+ * La misma esta en src/utils/advisorResults.js, porque `src/` no puede
+ * importar de `api/` en este proyecto. Si se toca una, se toca la otra: hay
+ * una prueba que las pasa por los mismos casos y compara lo que dicen.
+ */
+function queLeFaltaAlAnalisis(value) {
+  const n = normalizeAdvisorResult(value);
+  const main = n.solucion_principal;
+  const sumaDelDesglose = Object.values(n.score_desglose || {}).reduce(
     (acc, item) => acc + Number(item || 0),
     0
   );
 
-  return Boolean(
-    normalized.alineacion_pct > 0 &&
-      main.tipo &&
-      main.score > 0 &&
-      main.titulo &&
-      main.resumen &&
-      main.ventajas.length >= 2 &&
-      main.inconvenientes.length >= 1 &&
-      main.coste_estimado &&
-      main.empresas_recomendadas.length >= 1 &&
-      normalized.alternativas.length >= 1 &&
-      normalized.tco_aviso &&
-      normalized.tco_detalle?.total_mensual > 0 &&
-      normalized.consejo_experto &&
-      normalized.siguiente_paso &&
-      normalized.propulsiones_viables.length >= 1 &&
-      normalized.por_que_gana.length >= 2 &&
-      scoreBreakdownTotal > 0
-      /*
-       * Los modelos recomendados NO son un requisito.
-       *
-       * Estaban aqui como «>= 5», que es lo que obligaba a rellenar la lista
-       * con coches que contradicen lo contestado. Se bajo a dos, y entonces
-       * aparecio lo de verdad: con premium alemana, escandinava o nueva china
-       * la lista de repuesto se queda VACIA al filtrarla por marca, y el
-       * analisis entero se rechazaba con «La IA ha devuelto un analisis
-       * incompleto». Veinte preguntas contestadas para un recuadro rojo.
-       *
-       * Un consejo sin sugerencias de modelo sigue siendo un consejo: dice la
-       * modalidad, el coste, la etiqueta y por que. Los coches concretos los
-       * pone la busqueda de ofertas, que no depende de esta lista.
-       */
-  );
+  const exigencias = {
+    alineacion_pct: n.alineacion_pct > 0,
+    tipo: Boolean(main.tipo),
+    score: main.score > 0,
+    titulo: Boolean(main.titulo),
+    resumen: Boolean(main.resumen),
+    ventajas: main.ventajas.length >= 2,
+    inconvenientes: main.inconvenientes.length >= 1,
+    coste_estimado: Boolean(main.coste_estimado),
+    empresas_recomendadas: main.empresas_recomendadas.length >= 1,
+    alternativas: n.alternativas.length >= 1,
+    tco_aviso: Boolean(n.tco_aviso),
+    tco_mensual: (n.tco_detalle && n.tco_detalle.total_mensual) > 0,
+    consejo_experto: Boolean(n.consejo_experto),
+    siguiente_paso: Boolean(n.siguiente_paso),
+    propulsiones_viables: n.propulsiones_viables.length >= 1,
+    por_que_gana: n.por_que_gana.length >= 2,
+    score_desglose: sumaDelDesglose > 0,
+  };
+
+  /*
+   * Los modelos recomendados NO estan aqui, y es a proposito.
+   *
+   * Estuvieron como «>= 5», que es lo que obligaba a rellenar la lista con
+   * coches que contradicen lo contestado. Y al filtrar el relleno por marca,
+   * la lista se queda VACIA para premium alemana, escandinava y nueva china:
+   * el consejo entero se rechazaba por no traer sugerencias de modelo.
+   *
+   * Un consejo sin sugerencias sigue siendo un consejo. Los coches concretos
+   * los pone la busqueda de ofertas, que no depende de esta lista.
+   */
+
+  return Object.keys(exigencias).filter((campo) => !exigencias[campo]);
 }
+
+function isCompleteAdvisorResult(value) {
+  return queLeFaltaAlAnalisis(value).length === 0;
+}
+
 
 function buildRecommendedVehiclesFallback(answers = {}, propulsions = []) {
   const marcaPreferencia = normalizeText(answers?.marca_preferencia).toLowerCase();
@@ -2042,3 +2063,6 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+
+/* Para la prueba que compara esta funcion con su gemela de src/. */
+module.exports.queLeFaltaAlAnalisis = queLeFaltaAlAnalisis;

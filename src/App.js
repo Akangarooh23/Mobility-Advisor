@@ -50,7 +50,7 @@ import {
   resolveOfferProviderName,
 } from "./utils/offerHelpers";
 import {
-  isCompleteAdvisorResult,
+  queLeFaltaAlAnalisis,
   isCompleteDecisionAiResult,
   isCompleteSellAiResult,
   normalizeAdvisorResult,
@@ -4426,8 +4426,19 @@ export default function App() {
 
       clearInterval(phaseInterval);
 
-      if (!isCompleteAdvisorResult(normalizedResult)) {
-        throw new Error("La IA ha devuelto un analisis incompleto. Intentalo de nuevo.");
+      /*
+       * Y si falta algo, QUE SE DIGA QUE FALTA.
+       *
+       * Este aviso era mudo: «La IA ha devuelto un analisis incompleto»
+       * despues de veinte preguntas y dos minutos de espera, con quince
+       * campos candidatos y ninguna pista. Se arreglaron tres cosas distintas
+       * a ciegas y el recuadro rojo seguia saliendo.
+       */
+      const loQueFalta = queLeFaltaAlAnalisis(normalizedResult);
+      if (loQueFalta.length) {
+        throw new Error(
+          "La IA ha devuelto un analisis incompleto (falta: " + loQueFalta.join(", ") + "). Intentalo de nuevo."
+        );
       }
 
       if (!isAdvisorResultCompatibleWithContext(normalizedResult, advisorContext)) {

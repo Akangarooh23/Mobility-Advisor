@@ -965,17 +965,21 @@ function isCompleteAdvisorResult(value) {
       normalized.siguiente_paso &&
       normalized.propulsiones_viables.length >= 1 &&
       normalized.por_que_gana.length >= 2 &&
-      scoreBreakdownTotal > 0 &&
+      scoreBreakdownTotal > 0
       /*
-       * Dos, no cinco.
+       * Los modelos recomendados NO son un requisito.
        *
-       * Exigir cinco es lo que obligaba a rellenar la lista, y el relleno
-       * sale de una tabla que no mira la carroceria ni la marca: a quien
-       * pedia un SUV premium aleman le metia un Toyota Corolla y un Kia Niro
-       * detras de sus dos Audi. Dos modelos que existen valen mas que cinco
-       * de los cuales tres no vienen a cuento.
+       * Estaban aqui como «>= 5», que es lo que obligaba a rellenar la lista
+       * con coches que contradicen lo contestado. Se bajo a dos, y entonces
+       * aparecio lo de verdad: con premium alemana, escandinava o nueva china
+       * la lista de repuesto se queda VACIA al filtrarla por marca, y el
+       * analisis entero se rechazaba con «La IA ha devuelto un analisis
+       * incompleto». Veinte preguntas contestadas para un recuadro rojo.
+       *
+       * Un consejo sin sugerencias de modelo sigue siendo un consejo: dice la
+       * modalidad, el coste, la etiqueta y por que. Los coches concretos los
+       * pone la busqueda de ofertas, que no depende de esta lista.
        */
-      normalized.vehiculos_recomendados.length >= 2
   );
 }
 

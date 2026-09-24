@@ -452,21 +452,21 @@ export function isCompleteAdvisorResult(value) {
        * -el servidor no manda nada que no pase su propia comprobacion- pero
        * era la misma grieta por la que se colo lo de abajo.
        */
-      normalized.por_que_gana.length >= 2 &&
+      normalized.por_que_gana.length >= 2
       /*
-       * Dos, no cinco, y este numero tiene gemelo.
+       * Los modelos recomendados NO son un requisito.
        *
-       * La misma comprobacion existe en api/analyze.js. Alli se bajo a dos
-       * -exigir cinco obligaba a rellenar la lista con coches que contradicen
-       * lo contestado- y AQUI NO, asi que el servidor mandaba un analisis
-       * correcto con dos modelos y la pantalla lo rechazaba con «La IA ha
-       * devuelto un analisis incompleto». El test entero terminaba en un
-       * recuadro rojo.
+       * Estaban aqui como «>= 5», que es lo que obligaba a rellenar la lista
+       * con coches que contradicen lo contestado. Se bajo a dos, y entonces
+       * aparecio lo de verdad: con premium alemana, escandinava o nueva china
+       * la lista de repuesto se queda VACIA al filtrarla por marca, y el
+       * analisis entero se rechazaba con «La IA ha devuelto un analisis
+       * incompleto». Veinte preguntas contestadas para un recuadro rojo.
        *
-       * Si se toca uno, se toca el otro. Hay una prueba que lo comprueba:
-       * src/utils/losDosNumerosSonElMismo.test.js.
+       * Un consejo sin sugerencias de modelo sigue siendo un consejo: dice la
+       * modalidad, el coste, la etiqueta y por que. Los coches concretos los
+       * pone la busqueda de ofertas, que no depende de esta lista.
        */
-      normalized.vehiculos_recomendados.length >= 2
   );
 }
 

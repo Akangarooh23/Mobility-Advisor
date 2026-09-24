@@ -60,11 +60,15 @@ describe("las dos copias exigen lo mismo", () => {
     expect(deLaPantalla).toEqual(delServidor);
   });
 
-  test("y en concreto, los modelos recomendados", () => {
+  test("y los modelos recomendados no los exige ninguna", () => {
     /*
-     * Este es el que se separo: cinco en la pantalla y dos en el servidor.
+     * Este es el que se separo: cinco en la pantalla y dos en el servidor. Y
+     * al mirarlo de cerca no deberia estar en ninguna de las dos: con premium
+     * alemana, escandinava o nueva china la lista de repuesto se queda vacia
+     * al filtrarla por marca, y el analisis entero acababa en un recuadro
+     * rojo. Un consejo sin sugerencias de modelo sigue siendo un consejo.
      */
-    expect(deLaPantalla.vehiculos_recomendados).toBe(2);
-    expect(delServidor.vehiculos_recomendados).toBe(2);
+    expect(deLaPantalla.vehiculos_recomendados).toBeUndefined();
+    expect(delServidor.vehiculos_recomendados).toBeUndefined();
   });
 });

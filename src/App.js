@@ -31,6 +31,7 @@ import { useAuthDialogControls } from "./hooks/useAuthDialogControls";
 import { useAuthSessionReset } from "./hooks/useAuthSessionReset";
 import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useAppPreferences } from "./hooks/useAppPreferences";
+import { useCitaDeServicio } from "./hooks/useCitaDeServicio";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1696,10 +1697,16 @@ export default function App() {
   const [temaDeContacto, setTemaDeContacto] = useState("compra");
   const [selectedIdCarVehicleId, setSelectedIdCarVehicleId] = useState("");
   const [selectedIdCarOpenEditor, setSelectedIdCarOpenEditor] = useState(false);
-  const [serviceAppointmentVehicleId, setServiceAppointmentVehicleId] = useState("");
-  const [serviceAppointmentTypeTitle, setServiceAppointmentTypeTitle] = useState("");
-  const [serviceAppointmentBackMode, setServiceAppointmentBackMode] = useState("serviceOptions");
-  const [serviceAppointmentDraft, setServiceAppointmentDraft] = useState(null);
+  const {
+    citaVehicleId,
+    citaTipo,
+    citaVolverA,
+    citaBorrador,
+    preparaLaCita,
+    eligeElCoche,
+    guardaElBorrador,
+    olvidaElBorrador,
+  } = useCitaDeServicio();
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
   const [sellFlowType, setSellFlowType] = useState(""); // "certificate" | "report" | ""
   const [step, setStep] = useState(-1);
@@ -6463,10 +6470,7 @@ export default function App() {
               openAuthDialog("login", { entryMode: "serviceAppointment", routePage: "home" });
               return;
             }
-            setServiceAppointmentVehicleId("");
-            setServiceAppointmentTypeTitle("");
-            setServiceAppointmentBackMode("serviceOptions");
-            setServiceAppointmentDraft(null);
+            preparaLaCita();
             setEntryMode("serviceAppointment");
             setStep(-1);
           }}
@@ -6636,10 +6640,7 @@ export default function App() {
             setStep(-1);
           }}
           onSelectAppointment={() => {
-            setServiceAppointmentVehicleId("");
-            setServiceAppointmentTypeTitle("");
-            setServiceAppointmentBackMode("serviceOptions");
-            setServiceAppointmentDraft(null);
+            preparaLaCita();
             setEntryMode("serviceAppointment");
             setStep(-1);
           }}
@@ -6679,10 +6680,11 @@ export default function App() {
           userMaintenances={userMaintenances}
           onUpdateAppointmentStatus={updateUserAppointmentStatus}
           onScheduleAppointment={(context = {}) => {
-            setServiceAppointmentVehicleId(normalizeText(context?.vehicleId));
-            setServiceAppointmentTypeTitle(normalizeText(context?.appointmentType));
-            setServiceAppointmentBackMode("serviceMaintenance");
-            setServiceAppointmentDraft(null);
+            preparaLaCita({
+              vehicleId: context?.vehicleId,
+              tipo: context?.appointmentType,
+              volverA: "serviceMaintenance",
+            });
             setEntryMode("serviceAppointment");
             setStep(-1);
           }}
@@ -6808,13 +6810,13 @@ export default function App() {
           themeMode={themeMode}
           styles={s}
           currentUserEmail={currentUser?.email || ""}
-          selectedVehicleId={serviceAppointmentVehicleId}
-          selectedRevisionTitle={serviceAppointmentTypeTitle}
+          selectedVehicleId={citaVehicleId}
+          selectedRevisionTitle={citaTipo}
           onSelectVehicleId={(vehicleId) => {
-            setServiceAppointmentVehicleId(normalizeText(vehicleId));
+            eligeElCoche(vehicleId);
           }}
           onConfirmAppointment={async (context = {}) => {
-            setServiceAppointmentDraft({
+            guardaElBorrador({
               vehicleId: normalizeText(context?.vehicleId),
               vehicleTitle: normalizeText(context?.vehicleTitle),
               vehiclePlate: normalizeText(context?.vehiclePlate),
@@ -6842,7 +6844,7 @@ export default function App() {
             setStep(-1);
           }}
           onGoBack={() => {
-            setEntryMode(serviceAppointmentBackMode || "serviceOptions");
+            setEntryMode(citaVolverA || "serviceOptions");
             setStep(-1);
           }}
           onGoHome={restart}
@@ -6851,13 +6853,13 @@ export default function App() {
 
       {step === -1 && entryMode === "serviceAppointmentCalendar" && (
         <ServiceAppointmentCalendarPage
-          bookingDraft={serviceAppointmentDraft}
+          bookingDraft={citaBorrador}
           onBack={() => {
             setEntryMode("serviceAppointment");
             setStep(-1);
           }}
           onConfirmBooking={async (booking = {}) => {
-            const draft = serviceAppointmentDraft || {};
+            const draft = citaBorrador || {};
             const dateKey = normalizeText(booking?.selectedDateKey);
             const timeStr = normalizeText(booking?.selectedTime);
 
@@ -6886,7 +6888,7 @@ export default function App() {
               }).catch(() => { /* silencioso — ERP sync best-effort */ });
             }
 
-            setServiceAppointmentDraft(null);
+            olvidaElBorrador();
           }}
           onGoHome={() => navigateToUserDashboardPage("appointments")}
         />

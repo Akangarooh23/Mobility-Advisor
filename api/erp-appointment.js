@@ -19,24 +19,13 @@
  * ERP. Quien lea citas viejas escritas con el correo sigue encontrándolas: el
  * listado mira las dos cosas.
  */
-const { Pool } = require("pg");
-const { SSL_POSTGRES } = require("../lib/postgres-ssl");
+const { elPoolObligatorio } = require("../lib/postgres");
 const { aplicaCors } = require("../lib/cors");
 const { identidadDeLaPeticion } = require("../lib/api/identidad");
 
 let pool;
 function getPool() {
-  if (!pool) {
-    const cs = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-    if (!cs) throw new Error("No DATABASE_URL configured");
-    pool = new Pool({
-      connectionString: cs,
-      ssl: SSL_POSTGRES,
-      max: 2,
-      connectionTimeoutMillis: 8000,
-    });
-  }
-  return pool;
+  return elPoolObligatorio();
 }
 
 const TYPE_MAP = [

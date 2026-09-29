@@ -1,10 +1,10 @@
 ﻿const fs = require("fs");
+const { elPoolObligatorio } = require("../lib/postgres");
 const path = require("path");
 const crypto = require("crypto");
 const { execFileSync } = require("child_process");
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
 const { plantilla, parrafo, aviso, codigo } = require("../lib/correo");
-const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 const { aplicaCors } = require("../lib/cors");
 const FRENO = require("../lib/freno");
 
@@ -591,15 +591,7 @@ let mssqlPoolPromise = null;
 let _pgPool = null;
 
 function getPgPool() {
-  if (!_pgPool) {
-    const { Pool } = require("pg");
-    const connString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-    if (!connString) {
-      throw new Error("No DATABASE_URL or POSTGRES_URL env var found for PostgreSQL connection");
-    }
-    _pgPool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
-  }
-  return _pgPool;
+  return elPoolObligatorio();
 }
 
 function getAuthProvider() {

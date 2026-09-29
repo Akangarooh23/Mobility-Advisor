@@ -1,7 +1,7 @@
+const { elPoolObligatorio } = require("../lib/postgres");
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 const { aplicaCors } = require("../lib/cors");
 
 // mssql is only needed when VEHICLE_CATALOG_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
@@ -214,15 +214,7 @@ async function getMssqlPool() {
 let _pgPool = null;
 
 function getPgPool() {
-  if (!_pgPool) {
-    const { Pool } = require("pg");
-    const connString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-    if (!connString) {
-      throw new Error("No DATABASE_URL o POSTGRES_URL configurados para conexión PostgreSQL");
-    }
-    _pgPool = new Pool({ connectionString: connString, ssl: SSL_POSTGRES });
-  }
-  return _pgPool;
+  return elPoolObligatorio();
 }
 
 let _pgCatalogSchemaEnsured = false;

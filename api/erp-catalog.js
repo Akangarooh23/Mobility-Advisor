@@ -1,7 +1,7 @@
+const { elPoolObligatorio } = require("../lib/postgres");
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
-const { SSL_POSTGRES } = require("../lib/postgres-ssl");
 const { aplicaCors } = require("../lib/cors");
 
 function getMssqlModule() {
@@ -91,18 +91,7 @@ let pgPool = null;
 let pgErpSchemaEnsured = false;
 
 function getPgPool() {
-  if (!pgPool) {
-    const { Pool } = require("pg");
-    const connectionString = normalizeText(process.env.POSTGRES_URL || process.env.DATABASE_URL);
-    if (!connectionString) {
-      throw new Error("No DATABASE_URL o POSTGRES_URL configurados para ERP catalog en PostgreSQL.");
-    }
-    pgPool = new Pool({
-      connectionString,
-      ssl: SSL_POSTGRES,
-    });
-  }
-  return pgPool;
+  return elPoolObligatorio();
 }
 
 async function ensureErpCatalogSchemaPostgres() {

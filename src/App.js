@@ -18,7 +18,7 @@ import {
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
 import { useListingBootstrap } from "./hooks/useListingBootstrap";
-import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
+import { useLaBusquedaDeOfertas } from "./hooks/useLaBusquedaDeOfertas";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
 import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftPersistence";
 import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
@@ -1756,20 +1756,22 @@ export default function App() {
   const [reservedMarketplaceIds, setReservedMarketplaceIds] = useState(new Set());
   const [vehicleDetailOffer, setVehicleDetailOffer] = useState(null);
   const [vehicleDetailBackTarget, setVehicleDetailBackTarget] = useState("decision");
-  const [listingFilters, setListingFilters] = useState({
-    company: "",
-    budget: "",
-    income: "",
-    location: "",
-    priceRange: "",
-    minPrice: null,
-    maxPrice: null,
-  });
+  /* Los siete de la busqueda de ofertas viven en `useLaBusquedaDeOfertas`,
+     que es quien sabe que caduca al empezar otra y que se conserva. */
+  const {
+    listingFilters, setListingFilters,
+    listingResult, setListingResult,
+    listingOptions, setListingOptions,
+    listingSearchCoverage, setListingSearchCoverage,
+    listingLoading, setListingLoading,
+    listingError, setListingError,
+    listingInsight, setListingInsight,
+    listingOptionsRef,
+    listingSeenRef,
+    resetListingDiscovery,
+    olvidaLoQueContoLaAnterior,
+  } = useLaBusquedaDeOfertas();
   const [advancedMode, setAdvancedMode] = useState(false);
-  const [listingResult, setListingResult] = useState(null);
-  const [listingOptions, setListingOptions] = useState([]);
-  const [listingSearchCoverage, setListingSearchCoverage] = useState(null);
-  const [listingLoading, setListingLoading] = useState(false);
 
   /*
    * Y que el texto del cerebro siga pasando mientras se buscan ofertas.
@@ -1788,9 +1790,6 @@ export default function App() {
 
     return () => clearInterval(reloj);
   }, [listingLoading]);
-  const [listingError, setListingError] = useState(null);
-  // Lo que cuenta la busqueda cuando salen menos ofertas de las esperadas.
-  const [listingInsight, setListingInsight] = useState(null);
   const [quickValidationAnswers, setQuickValidationAnswers] = useState({});
   const [savedComparisons, setSavedComparisons] = useState([]);
   /* Los seis del panel viven en `useUserMobilitySync`, que es quien los trae. */
@@ -1938,12 +1937,6 @@ export default function App() {
   useEffect(() => {
     applyUiLanguage(uiLanguage);
   }, [applyUiLanguage, uiLanguage]);
-
-  const {
-    listingOptionsRef,
-    listingSeenRef,
-    resetListingDiscoveryMemory,
-  } = useListingDiscoveryMemory(listingOptions);
 
   const {
     syncBrowserPath,
@@ -2650,16 +2643,6 @@ export default function App() {
 
   /* La regla «si cambian las respuestas, los resultados dejan de valer» vive
      ahora dentro de `useElFlujoDeVenta`, con el estado que gobierna. */
-
-  const resetListingDiscovery = useCallback(() => {
-    setListingFilters({ company: "", budget: "", income: "", location: "", priceRange: "", minPrice: null, maxPrice: null });
-    setListingResult(null);
-    setListingOptions([]);
-    resetListingDiscoveryMemory();
-    setListingSearchCoverage(null);
-    setListingError(null);
-    setListingLoading(false);
-  }, [resetListingDiscoveryMemory]);
 
   const resumeQuestionnaireDraft = useResumeQuestionnaireDraft({
     countAnsweredSteps,
@@ -3960,8 +3943,17 @@ export default function App() {
     const previousTopUrl = normalizeText(currentListings[0]?.url);
 
     setListingLoading(true);
-    setListingError(null);
-    setListingInsight(null);
+    /*
+     * Y lo que conto la busqueda anterior caduca aqui, cobertura incluida.
+     *
+     * La linea de cobertura afirma con numeros «se han revisado 12 paginas de
+     * 4/7 portales PARA ESTA BUSQUEDA», y no la borraba nadie: se quedaba en
+     * pantalla los 253 segundos que puede tardar la nueva, y para siempre si
+     * la nueva fallaba. El resultado y las opciones SI se conservan -se sigue
+     * viendo lo que ya habia mientras llega la tanda nueva, y de ahi sale la
+     * lista de lo que no hay que repetir.
+     */
+    olvidaLoQueContoLaAnterior();
 
     const controller = new AbortController();
     /*
@@ -4058,7 +4050,14 @@ export default function App() {
     }
 
     return [];
-  }, [answers, listingOptionsRef, listingSeenRef, result]);
+  }, [
+    answers, listingOptionsRef, listingSeenRef, result,
+    // Los `set...` vienen de `useLaBusquedaDeOfertas`. Son estables -salen de
+    // `useState`- pero ESLint no puede saberlo a traves de un hook propio.
+    olvidaLoQueContoLaAnterior, setListingInsight, setListingLoading,
+    setListingOptions, setListingResult, setListingSearchCoverage,
+    setListingError,
+  ]);
 
   useListingQuickValidationRefresh({
     result,

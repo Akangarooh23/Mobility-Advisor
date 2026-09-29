@@ -113,8 +113,16 @@ describe("el porqué llega a la pantalla", () => {
   });
 
   test("y se limpia al empezar otra, para no dejar el de antes", () => {
+    /*
+     * Esto mira`setListingInsight(null)` escrito a mano en la funcion. Ahora
+     * lo borra `olvidaLoQueContoLaAnterior()`, que ademas borra la cobertura
+     * -que era lo que se quedaba en pantalla con los numeros de la busqueda
+     * anterior. Lo que se comprueba sigue siendo lo mismo: que se limpia
+     * antes de guardar lo nuevo. Que limpie las tres lo prueba
+     * `laBusquedaNuevaNoHeredaLaCuenta.test.js`, con el hook de verdad.
+     */
     const busca = APP.slice(APP.indexOf("const searchRealListing = useCallback"));
-    const limpia = busca.indexOf("setListingInsight(null)");
+    const limpia = busca.indexOf("olvidaLoQueContoLaAnterior()");
     const guarda = busca.indexOf("setListingInsight(data?.filterInsight");
 
     expect(limpia).toBeGreaterThan(0);

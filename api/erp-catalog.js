@@ -94,54 +94,7 @@ function getPgPool() {
   return elPoolObligatorio();
 }
 
-async function ensureErpCatalogSchemaPostgres() {
-  if (pgErpSchemaEnsured) {
-    return;
-  }
-
-  const pool = getPgPool();
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_erp_brands (
-      id BIGINT PRIMARY KEY,
-      name VARCHAR(120) NOT NULL
-    )
-  `);
-  await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_erp_brands_name ON moveadvisor_erp_brands (name)");
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_erp_models (
-      id BIGINT PRIMARY KEY,
-      brand_id BIGINT NOT NULL REFERENCES moveadvisor_erp_brands(id),
-      name VARCHAR(160) NOT NULL
-    )
-  `);
-  await pool.query("CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_erp_models_brand_name ON moveadvisor_erp_models (brand_id, name)");
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_erp_versions (
-      codversion VARCHAR(128) PRIMARY KEY,
-      brand_id BIGINT NOT NULL REFERENCES moveadvisor_erp_brands(id),
-      model_id BIGINT NOT NULL REFERENCES moveadvisor_erp_models(id),
-      label VARCHAR(200) NOT NULL,
-      fuel VARCHAR(80) NOT NULL DEFAULT '',
-      body_type VARCHAR(80) NOT NULL DEFAULT '',
-      cv VARCHAR(40) NOT NULL DEFAULT '',
-      doors VARCHAR(20) NOT NULL DEFAULT '',
-      seats VARCHAR(20) NOT NULL DEFAULT '',
-      co2 VARCHAR(40) NOT NULL DEFAULT '',
-      transmision VARCHAR(80) NOT NULL DEFAULT '',
-      consumption VARCHAR(80) NOT NULL DEFAULT ''
-    )
-  `);
-  await pool.query("CREATE INDEX IF NOT EXISTS ix_moveadvisor_erp_versions_brand_model ON moveadvisor_erp_versions (brand_id, model_id)");
-  await pool.query("CREATE INDEX IF NOT EXISTS ix_moveadvisor_erp_versions_model ON moveadvisor_erp_versions (model_id)");
-  await pool.query("CREATE INDEX IF NOT EXISTS ix_moveadvisor_erp_versions_label ON moveadvisor_erp_versions (label)");
-
-  pgErpSchemaEnsured = true;
-}
-
 async function queryErpCatalogPostgres({ scope, brandId, modelId, codversion }) {
-  await ensureErpCatalogSchemaPostgres();
   const pool = getPgPool();
 
   if (scope === "brands") {

@@ -50,15 +50,8 @@ module.exports = async function userErpAppointmentsApi(req, res) {
 
   try {
     const db = getPool();
-    // Auto-create table on first use
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS erp_appointments (
-        id TEXT PRIMARY KEY, user_id TEXT NOT NULL, agent TEXT,
-        workshop_name TEXT, scheduled_at TIMESTAMPTZ NOT NULL,
-        type TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'scheduled',
-        notes TEXT, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
+    // `erp_appointments` la declara `migrations/0001`. Aquí se creaba «la
+    // primera vez que hiciera falta», en cada petición.
     const result = await db.query(
       `SELECT id, user_id, type, scheduled_at, status, notes, created_at, workshop_name
        FROM erp_appointments

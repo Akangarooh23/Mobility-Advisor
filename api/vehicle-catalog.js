@@ -219,37 +219,6 @@ function getPgPool() {
 
 let _pgCatalogSchemaEnsured = false;
 
-async function ensureCatalogSchemaPostgres() {
-  if (_pgCatalogSchemaEnsured) return;
-  const pool = getPgPool();
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_brands (
-      id         SERIAL       PRIMARY KEY,
-      name       VARCHAR(100) NOT NULL,
-      is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
-      sort_order INT          NOT NULL DEFAULT 0
-    )
-  `);
-  await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_brands_name
-    ON moveadvisor_vehicle_brands (name)
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_vehicle_models (
-      id         SERIAL       PRIMARY KEY,
-      brand_id   INT          NOT NULL REFERENCES moveadvisor_vehicle_brands(id),
-      name       VARCHAR(120) NOT NULL,
-      is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
-      sort_order INT          NOT NULL DEFAULT 0
-    )
-  `);
-  await pool.query(`
-    CREATE UNIQUE INDEX IF NOT EXISTS ix_moveadvisor_vehicle_models_brand_name
-    ON moveadvisor_vehicle_models (brand_id, name)
-  `);
-  _pgCatalogSchemaEnsured = true;
-}
-
 async function seedCatalogIfEmptyPostgres(defaultCatalogMap = {}) {
   const pool = getPgPool();
   const { rows } = await pool.query("SELECT COUNT(*)::int AS total FROM moveadvisor_vehicle_brands");
@@ -281,7 +250,6 @@ async function seedCatalogIfEmptyPostgres(defaultCatalogMap = {}) {
 }
 
 async function getCatalogFromPostgres(defaultCatalogMap = {}) {
-  await ensureCatalogSchemaPostgres();
   await seedCatalogIfEmptyPostgres(defaultCatalogMap);
   const pool = getPgPool();
 
@@ -539,7 +507,6 @@ function writeLocalCatalogMap(map = {}) {
 }
 
 async function applyPostgresAction(action, brand, model) {
-  await ensureCatalogSchemaPostgres();
   const pool = getPgPool();
   if (action === "upsert_brand") {
     await pool.query(`INSERT INTO moveadvisor_vehicle_brands (name, is_active) VALUES ($1, TRUE) ON CONFLICT (name) DO UPDATE SET is_active = TRUE`, [brand]);

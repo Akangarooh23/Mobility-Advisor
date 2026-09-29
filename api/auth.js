@@ -1083,93 +1083,7 @@ function deleteExpiredSessionsSqlcmd() {
 
 let _pgSchemaEnsured = false;
 
-async function ensurePostgresSchema() {
-  if (_pgSchemaEnsured) return;
-  const pool = getPgPool();
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_users (
-      id            VARCHAR(64)  PRIMARY KEY,
-      name          VARCHAR(120) NOT NULL,
-      email         VARCHAR(255) NOT NULL UNIQUE,
-      password_salt VARCHAR(64)  NOT NULL,
-      password_hash VARCHAR(200) NOT NULL,
-      created_at    TIMESTAMPTZ  NOT NULL,
-      last_login_at TIMESTAMPTZ  NOT NULL
-    )
-  `);
-  await pool.query(`
-    ALTER TABLE moveadvisor_users
-      ADD COLUMN IF NOT EXISTS apellidos            VARCHAR(160) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS phone                VARCHAR(30)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS company_name         VARCHAR(200) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS client_type          VARCHAR(20)  NOT NULL DEFAULT 'individual',
-      ADD COLUMN IF NOT EXISTS tax_id               VARCHAR(50)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS billing_address      TEXT         NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS iban                 VARCHAR(50)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS profile_updated_at   TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS plan_id              VARCHAR(30)  NOT NULL DEFAULT 'free',
-      ADD COLUMN IF NOT EXISTS plan_status          VARCHAR(30)  NOT NULL DEFAULT 'inactivo',
-      ADD COLUMN IF NOT EXISTS plan_updated_at      TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS stripe_customer_id       VARCHAR(64)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS stripe_subscription_id   VARCHAR(64)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS next_billing_date        TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS cancel_at_period_end     BOOLEAN      NOT NULL DEFAULT false,
-      ADD COLUMN IF NOT EXISTS consent_legal_at              TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_marketing_at          TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_experian_at           TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_marketing_email_at    TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_marketing_sms_at      TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_thirdparty_email_at   TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS consent_thirdparty_sms_at     TIMESTAMPTZ,
-      ADD COLUMN IF NOT EXISTS registration_ip          VARCHAR(64)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS registration_ua          TEXT         NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS utm_source               VARCHAR(200) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS utm_medium               VARCHAR(200) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS utm_campaign             VARCHAR(200) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS utm_content              VARCHAR(200) NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS affiliate_data           JSONB,
-      ADD COLUMN IF NOT EXISTS referer                  TEXT         NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS landing_url              TEXT         NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS language                 VARCHAR(20)  NOT NULL DEFAULT '',
-      ADD COLUMN IF NOT EXISTS consents_reviewed_at     TIMESTAMPTZ
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS moveadvisor_sessions (
-      id           VARCHAR(64)  PRIMARY KEY,
-      user_id      VARCHAR(64)  NOT NULL,
-      token_hash   VARCHAR(200) NOT NULL,
-      created_at   TIMESTAMPTZ  NOT NULL,
-      expires_at   TIMESTAMPTZ  NOT NULL,
-      last_seen_at TIMESTAMPTZ  NOT NULL,
-      user_agent   VARCHAR(255)
-    )
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_user_id
-    ON moveadvisor_sessions (user_id)
-  `);
-  await pool.query(`
-    CREATE INDEX IF NOT EXISTS ix_moveadvisor_sessions_expires_at
-    ON moveadvisor_sessions (expires_at)
-  `);
-  await pool.query(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE conname = 'fk_moveadvisor_sessions_user_id'
-      ) THEN
-        ALTER TABLE moveadvisor_sessions
-          ADD CONSTRAINT fk_moveadvisor_sessions_user_id
-          FOREIGN KEY (user_id) REFERENCES moveadvisor_users(id) ON DELETE CASCADE;
-      END IF;
-    END $$;
-  `);
-  _pgSchemaEnsured = true;
-}
-
 async function findUserByEmailPostgres(email) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
     `SELECT id, name, apellidos, phone, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
@@ -1185,7 +1099,6 @@ async function findUserByEmailPostgres(email) {
 }
 
 async function createUserPostgres(user) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(
     `INSERT INTO moveadvisor_users
@@ -1214,7 +1127,6 @@ async function createUserPostgres(user) {
 }
 
 async function findUserByIdPostgres(id) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
     `SELECT id, name, apellidos, phone, email, password_salt AS "passwordSalt", password_hash AS "passwordHash",
@@ -1226,7 +1138,6 @@ async function findUserByIdPostgres(id) {
 }
 
 async function updateLastLoginPostgres(id) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   const now = new Date().toISOString();
   await pool.query(`UPDATE moveadvisor_users SET last_login_at = $1 WHERE id = $2`, [now, id]);
@@ -1234,7 +1145,6 @@ async function updateLastLoginPostgres(id) {
 }
 
 async function createSessionPostgres(session) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(
     `INSERT INTO moveadvisor_sessions (id, user_id, token_hash, created_at, expires_at, last_seen_at, user_agent)
@@ -1244,7 +1154,6 @@ async function createSessionPostgres(session) {
 }
 
 async function findSessionByIdPostgres(id) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
     `SELECT id, user_id AS "userId", token_hash AS "tokenHash",
@@ -1257,13 +1166,11 @@ async function findSessionByIdPostgres(id) {
 }
 
 async function updateSessionLastSeenPostgres(id) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(`UPDATE moveadvisor_sessions SET last_seen_at = $1 WHERE id = $2`, [new Date().toISOString(), id]);
 }
 
 async function extendSessionExpiryPostgres(id, newExpiresAt) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(
     `UPDATE moveadvisor_sessions SET expires_at = $1, last_seen_at = $2 WHERE id = $3`,
@@ -1272,19 +1179,16 @@ async function extendSessionExpiryPostgres(id, newExpiresAt) {
 }
 
 async function deleteSessionByIdPostgres(id) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(`DELETE FROM moveadvisor_sessions WHERE id = $1`, [id]);
 }
 
 async function deleteExpiredSessionsPostgres() {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(`DELETE FROM moveadvisor_sessions WHERE expires_at <= NOW()`);
 }
 
 async function findValidResetPostgres({ userId, tokenHash }) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   const { rows } = await pool.query(
     `SELECT id FROM moveadvisor_sessions
@@ -1296,7 +1200,6 @@ async function findValidResetPostgres({ userId, tokenHash }) {
 }
 
 async function updateUserPasswordPostgres({ userId, passwordSalt, passwordHash }) {
-  await ensurePostgresSchema();
   const pool = getPgPool();
   await pool.query(
     `UPDATE moveadvisor_users SET password_salt = $1, password_hash = $2, last_login_at = $3 WHERE id = $4`,

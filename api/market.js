@@ -1,85 +1,72 @@
-const marketPriceHandler          = require("../lib/api/market-price-handler");
-const marketplaceVoHandler        = require("../lib/api/marketplace-vo-handler");
-const importOffersHandler         = require("../lib/api/import-offers-handler");
-const importLeadHandler           = require("../lib/api/import-lead-handler");
-const fianzaDevolucionHandler     = require("../lib/api/fianza-devolucion-handler");
-const fianzaConfirmarHandler      = require("../lib/api/fianza-confirmar-handler");
-const entregaDireccionHandler     = require("../lib/api/entrega-direccion-handler");
-const mandatoFirmadoHandler       = require("../lib/api/mandato-firmado-handler");
-const citaDelTallerHandler        = require("../lib/api/cita-del-taller-handler");
-const clausulaPrecioHandler       = require("../lib/api/clausula-precio-handler");
-const papelesDeLaVentaHandler     = require("../lib/api/papeles-de-la-venta-handler");
-const tasacionPdfHandler          = require("../lib/api/tasacion-pdf-handler");
-const marketplaceOgHandler        = require("../lib/api/marketplace-og-handler");
-const workshopsNearbyHandler      = require("../lib/api/workshops-nearby-handler");
-const workshopAvailabilityHandler = require("../lib/api/workshop-availability-handler");
-const vehicleModelPublicHandler = require("../lib/api/vehicle-model-public-handler");
-const workshopsEnrichHandler      = require("../lib/api/workshops-enrich-handler");
-const workshopsPhotoHandler       = require("../lib/api/workshops-photo-handler");
-const whatsappHandler             = require("../lib/api/whatsapp-handler");
-const erpAppointmentHandler        = require("../lib/api/erp-appointment-handler");
-const userErpAppointmentsHandler   = require("../lib/api/user-erp-appointments-handler");
-const conditionReportHandler       = require("../lib/api/condition-report-handler");
-const informeDeEstadoInternoHandler = require("../lib/api/informe-de-estado-interno-handler");
-// El catálogo entero en una lista, solo para la app: la web sigue con sus tres
-// buscadores y sus tres pantallas.
-const appCatalogoHandler           = require("../lib/api/app-catalogo-handler");
-const { aplicaCors } = require("../lib/cors");
+/**
+ * La puerta del mercado: 23 reglas de `vercel.json` entran por aquí.
+ *
+ * El reparto lo hace `lib/api/enrutador.js`, que es el mismo para las tres
+ * puertas. Aquí solo queda la tabla: qué ruta lleva a qué manejador, y qué
+ * trozo de URL vale por un `?route=` cuando no viene.
+ *
+ * Los manejadores se cargan al usarse, no al arrancar. Antes se requerían los
+ * 24 arriba del todo y eso eran 311 módulos y 313 ms en cada arranque en frío,
+ * los pidiera la petición o no.
+ */
+const { creaEnrutador } = require("../lib/api/enrutador");
 
-function resolveRoute(req) {
-  const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
-  if (explicitRoute) return explicitRoute;
-
-  const url = String(req.url || "").toLowerCase();
-  if (url.includes("market-price")) return "price";
-  if (url.includes("import-lead")) return "import-lead";
+/**
+ * Sin `?route=`, se mira la URL. El orden manda: gana el primero que encaja,
+ * igual que la cadena de `if` que había aquí. `import-lead` va antes que
+ * `import-offers` y eso no es casualidad.
+ */
+const ALIAS = [
+  ["market-price", "price"],
+  ["import-lead", "import-lead"],
   // La pide el ERP con el secreto compartido: la clave de Stripe vive aqui.
-  if (url.includes("fianza-devolucion")) return "fianza-devolucion";
-  if (url.includes("fianza-confirmar")) return "fianza-confirmar";
-  if (url.includes("entrega-direccion")) return "entrega-direccion";
-  if (url.includes("mandato-firmado")) return "mandato-firmado";
-  if (url.includes("cita-taller")) return "cita-taller";
-  if (url.includes("clausula-precio")) return "clausula-precio";
-  if (url.includes("papeles-venta")) return "papeles-venta";
-  if (url.includes("import-offers")) return "import";
-  if (url.includes("marketplace-vo")) return "vo";
-  if (url.includes("workshops-nearby")) return "nearby";
-  if (url.includes("workshop-availability")) return "availability";
-  if (url.includes("workshops-enrich")) return "enrich";
-  if (url.includes("workshops-photo")) return "photo";
-  return "";
-}
+  ["fianza-devolucion", "fianza-devolucion"],
+  ["fianza-confirmar", "fianza-confirmar"],
+  ["entrega-direccion", "entrega-direccion"],
+  ["mandato-firmado", "mandato-firmado"],
+  ["cita-taller", "cita-taller"],
+  ["clausula-precio", "clausula-precio"],
+  ["papeles-venta", "papeles-venta"],
+  ["import-offers", "import"],
+  ["marketplace-vo", "vo"],
+  ["workshops-nearby", "nearby"],
+  ["workshop-availability", "availability"],
+  ["workshops-enrich", "enrich"],
+  ["workshops-photo", "photo"],
+];
 
-module.exports = async function marketRouter(req, res) {
-  if (aplicaCors(req, res)) return undefined;
-
-  switch (resolveRoute(req)) {
-    case "price":       return marketPriceHandler(req, res);
-    case "vo":          return marketplaceVoHandler(req, res);
-    case "modelo-3d":   return vehicleModelPublicHandler(req, res);
-    case "import":      return importOffersHandler(req, res);
-    case "app-catalogo": return appCatalogoHandler(req, res);
-    case "import-lead": return importLeadHandler(req, res);
-    case "fianza-devolucion": return fianzaDevolucionHandler(req, res);
-    case "fianza-confirmar":  return fianzaConfirmarHandler(req, res);
-    case "entrega-direccion": return entregaDireccionHandler(req, res);
-    case "mandato-firmado": return mandatoFirmadoHandler(req, res);
-    case "cita-taller":    return citaDelTallerHandler(req, res);
-    case "clausula-precio": return clausulaPrecioHandler(req, res);
-    case "papeles-venta":   return papelesDeLaVentaHandler(req, res);
-    case "tasacion-pdf":   return tasacionPdfHandler(req, res);
-    case "og":          return marketplaceOgHandler(req, res);
-    case "nearby":      return workshopsNearbyHandler(req, res);
-    case "availability":return workshopAvailabilityHandler(req, res);
-    case "enrich":      return workshopsEnrichHandler(req, res);
-    case "photo":       return workshopsPhotoHandler(req, res);
-    case "whatsapp":    return whatsappHandler(req, res);
-    case "erp-appointment":       return erpAppointmentHandler(req, res);
-    case "user-erp-appointments": return userErpAppointmentsHandler(req, res);
-    case "condition-report":      return conditionReportHandler(req, res);
-    // Para el ERP, con el secreto compartido: ver el manejador.
-    case "informe-de-estado-interno": return informeDeEstadoInternoHandler(req, res);
-    default:
-      return res.status(404).json({ error: "Market route not found" });
-  }
+const RUTAS = {
+  price:       () => require("../lib/api/market-price-handler"),
+  vo:          () => require("../lib/api/marketplace-vo-handler"),
+  "modelo-3d": () => require("../lib/api/vehicle-model-public-handler"),
+  import:      () => require("../lib/api/import-offers-handler"),
+  // El catálogo entero en una lista, solo para la app: la web sigue con sus
+  // tres buscadores y sus tres pantallas.
+  "app-catalogo": () => require("../lib/api/app-catalogo-handler"),
+  "import-lead":  () => require("../lib/api/import-lead-handler"),
+  "fianza-devolucion": () => require("../lib/api/fianza-devolucion-handler"),
+  "fianza-confirmar":  () => require("../lib/api/fianza-confirmar-handler"),
+  "entrega-direccion": () => require("../lib/api/entrega-direccion-handler"),
+  "mandato-firmado":   () => require("../lib/api/mandato-firmado-handler"),
+  "cita-taller":       () => require("../lib/api/cita-del-taller-handler"),
+  "clausula-precio":   () => require("../lib/api/clausula-precio-handler"),
+  "papeles-venta":     () => require("../lib/api/papeles-de-la-venta-handler"),
+  "tasacion-pdf":      () => require("../lib/api/tasacion-pdf-handler"),
+  og:           () => require("../lib/api/marketplace-og-handler"),
+  nearby:       () => require("../lib/api/workshops-nearby-handler"),
+  availability: () => require("../lib/api/workshop-availability-handler"),
+  enrich:       () => require("../lib/api/workshops-enrich-handler"),
+  photo:        () => require("../lib/api/workshops-photo-handler"),
+  whatsapp:     () => require("../lib/api/whatsapp-handler"),
+  "erp-appointment":       () => require("../lib/api/erp-appointment-handler"),
+  "user-erp-appointments": () => require("../lib/api/user-erp-appointments-handler"),
+  "condition-report":      () => require("../lib/api/condition-report-handler"),
+  // Para el ERP, con el secreto compartido: ver el manejador.
+  "informe-de-estado-interno": () => require("../lib/api/informe-de-estado-interno-handler"),
 };
+
+module.exports = creaEnrutador({
+  rutas: RUTAS,
+  alias: ALIAS,
+  noEncontrada: "Market route not found",
+});

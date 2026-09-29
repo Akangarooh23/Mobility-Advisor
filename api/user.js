@@ -1,56 +1,65 @@
-const userSavedHandler = require("../lib/api/user-saved-handler");
-const userAlertsHandler = require("../lib/api/user-alerts-handler");
-const userPreferencesHandler = require("../lib/api/user-preferences-handler");
-const attachmentFileHandler = require("../lib/api/attachment-file-handler");
-const leadsHandler = require("../lib/api/leads-handler");
-const vehiclePublishHandler = require("../lib/api/vehicle-publish-handler");
-const viewingHandler = require("../lib/api/viewing-handler");
-const funnelEventHandler = require("../lib/api/funnel-event-handler");
-const cronAppointmentRemindersHandler = require("../lib/api/cron-appointment-reminders-handler");
-const cronVigilaScrapersHandler = require("../lib/api/cron-vigila-scrapers-handler");
-const cronFacetasBuscadorHandler = require("../lib/api/cron-facetas-buscador-handler");
-const cronConditionReportReadyHandler = require("../lib/api/cron-condition-report-ready-handler");
-const cronAlertCheckHandler = require("../lib/api/cron-alert-check-handler");
-const storagePresignHandler = require("../lib/api/storage-presign-handler");
-const pushDeviceHandler = require("../lib/api/push-device-handler");
-const papelDelCocheHandler = require("../lib/api/papel-del-coche-handler");
-const { aplicaCors } = require("../lib/cors");
+/**
+ * La puerta del usuario: su panel, sus papeles y las cinco tareas programadas.
+ *
+ * El reparto lo hace `lib/api/enrutador.js`, el mismo de las otras dos puertas.
+ * Aquí quedan la tabla de rutas, los alias y lo único propio de esta puerta:
+ * el interruptor de los crons.
+ */
+const { creaEnrutador } = require("../lib/api/enrutador");
 
 module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
 
-function resolveRoute(req) {
-  const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
-  if (explicitRoute) {
-    return explicitRoute;
-  }
+/** Sin `?route=`, se mira la URL. El orden manda: gana el primero que encaja. */
+const ALIAS = [
+  ["user-saved", "saved"],
+  ["user-alerts", "alerts"],
+  ["user-preferences", "preferences"],
+  ["attachment-file", "attachment-file"],
+  ["vehicle-publish", "vehicle-publish"],
+  ["leads", "leads"],
+  ["viewing-request", "viewing-request"],
+  ["viewing-propose", "viewing-propose"],
+  ["viewing-confirm", "viewing-confirm"],
+  ["viewing-get", "viewing-get"],
+  ["funnel-event", "funnel-event"],
+  ["cron-appointment-reminders", "cron-appointment-reminders"],
+  ["cron-alert-check", "cron-alert-check"],
+  ["cron-condition-report-ready", "cron-condition-report-ready"],
+  ["cron-vigila-scrapers", "cron-vigila-scrapers"],
+  ["cron-facetas-buscador", "cron-facetas-buscador"],
+  ["push-device", "push-device"],
+  ["papel-del-coche", "papel-del-coche"],
+];
 
-  const url = String(req.url || "").toLowerCase();
-  if (url.includes("user-saved")) return "saved";
-  if (url.includes("user-alerts")) return "alerts";
-  if (url.includes("user-preferences")) return "preferences";
-  if (url.includes("attachment-file")) return "attachment-file";
-  if (url.includes("vehicle-publish")) return "vehicle-publish";
-  if (url.includes("leads")) return "leads";
-  if (url.includes("viewing-request")) return "viewing-request";
-  if (url.includes("viewing-propose")) return "viewing-propose";
-  if (url.includes("viewing-confirm")) return "viewing-confirm";
-  if (url.includes("viewing-get"))     return "viewing-get";
-  if (url.includes("funnel-event"))    return "funnel-event";
-  if (url.includes("cron-appointment-reminders")) return "cron-appointment-reminders";
-  if (url.includes("cron-alert-check"))           return "cron-alert-check";
-  if (url.includes("cron-condition-report-ready")) return "cron-condition-report-ready";
-  if (url.includes("cron-vigila-scrapers"))        return "cron-vigila-scrapers";
-  if (url.includes("cron-facetas-buscador"))       return "cron-facetas-buscador";
-  if (url.includes("push-device"))                 return "push-device";
-  if (url.includes("papel-del-coche"))             return "papel-del-coche";
-  return "";
-}
+const RUTAS = {
+  saved:       () => require("../lib/api/user-saved-handler"),
+  alerts:      () => require("../lib/api/user-alerts-handler"),
+  preferences: () => require("../lib/api/user-preferences-handler"),
+  "attachment-file":  () => require("../lib/api/attachment-file-handler"),
+  "vehicle-publish":  () => require("../lib/api/vehicle-publish-handler"),
+  leads:              () => require("../lib/api/leads-handler"),
+  // Las cuatro etapas de una visita las atiende el mismo manejador: mira la
+  // ruta por dentro para saber en cuál está.
+  "viewing-request": () => require("../lib/api/viewing-handler"),
+  "viewing-propose": () => require("../lib/api/viewing-handler"),
+  "viewing-confirm": () => require("../lib/api/viewing-handler"),
+  "viewing-get":     () => require("../lib/api/viewing-handler"),
+  "funnel-event":    () => require("../lib/api/funnel-event-handler"),
+  "cron-appointment-reminders":  () => require("../lib/api/cron-appointment-reminders-handler"),
+  "cron-alert-check":            () => require("../lib/api/cron-alert-check-handler"),
+  "cron-condition-report-ready": () => require("../lib/api/cron-condition-report-ready-handler"),
+  "cron-facetas-buscador":       () => require("../lib/api/cron-facetas-buscador-handler"),
+  "cron-vigila-scrapers":        () => require("../lib/api/cron-vigila-scrapers-handler"),
+  "storage-presign": () => require("../lib/api/storage-presign-handler"),
+  "push-device":     () => require("../lib/api/push-device-handler"),
+  "papel-del-coche": () => require("../lib/api/papel-del-coche-handler"),
+};
 
-// Las tres tareas programadas están declaradas en vercel.json, y ese fichero
-// viaja con el repositorio: cualquier despliegue que lo lleve las ejecuta. Hoy
-// hay un solo proyecto, así que corren por omisión. El interruptor existe para
-// el día que haya un segundo despliegue contra la misma base — dos recordatorios
-// por cita y dos correos con el mismo informe—: allí se pone CRON_ACTIVO=0 y se
+// Las tareas programadas están declaradas en vercel.json, y ese fichero viaja
+// con el repositorio: cualquier despliegue que lo lleve las ejecuta. Hoy hay un
+// solo proyecto, así que corren por omisión. El interruptor existe para el día
+// que haya un segundo despliegue contra la misma base — dos recordatorios por
+// cita y dos correos con el mismo informe—: allí se pone CRON_ACTIVO=0 y se
 // calla.
 //
 // Apagado por omisión sería peor: al fusionar esta rama, producción se quedaría
@@ -63,52 +72,14 @@ const RUTAS_CRON = new Set([
   "cron-facetas-buscador",
 ]);
 
-module.exports = async function userRouter(req, res) {
-  if (aplicaCors(req, res)) return undefined;
-
-  const ruta = resolveRoute(req);
-
-  if (RUTAS_CRON.has(ruta) && process.env.CRON_ACTIVO === "0") {
-    return res.status(204).end();
-  }
-
-  switch (ruta) {
-    case "saved":
-      return userSavedHandler(req, res);
-    case "alerts":
-      return userAlertsHandler(req, res);
-    case "preferences":
-      return userPreferencesHandler(req, res);
-    case "attachment-file":
-      return attachmentFileHandler(req, res);
-    case "vehicle-publish":
-      return vehiclePublishHandler(req, res);
-    case "leads":
-      return leadsHandler(req, res);
-    case "viewing-request":
-    case "viewing-propose":
-    case "viewing-confirm":
-    case "viewing-get":
-      return viewingHandler(req, res);
-    case "funnel-event":
-      return funnelEventHandler(req, res);
-    case "cron-appointment-reminders":
-      return cronAppointmentRemindersHandler(req, res);
-    case "cron-alert-check":
-      return cronAlertCheckHandler(req, res);
-    case "cron-condition-report-ready":
-      return cronConditionReportReadyHandler(req, res);
-    case "cron-facetas-buscador":
-      return cronFacetasBuscadorHandler(req, res);
-    case "cron-vigila-scrapers":
-      return cronVigilaScrapersHandler(req, res);
-    case "storage-presign":
-      return storagePresignHandler(req, res);
-    case "push-device":
-      return pushDeviceHandler(req, res);
-    case "papel-del-coche":
-      return papelDelCocheHandler(req, res);
-    default:
-      return res.status(404).json({ error: "User route not found" });
-  }
-};
+module.exports = creaEnrutador({
+  rutas: RUTAS,
+  alias: ALIAS,
+  noEncontrada: "User route not found",
+  antesDeDespachar: (ruta, req, res) => {
+    if (RUTAS_CRON.has(ruta) && process.env.CRON_ACTIVO === "0") {
+      return res.status(204).end();
+    }
+    return undefined;
+  },
+});

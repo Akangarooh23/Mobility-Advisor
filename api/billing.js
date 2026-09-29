@@ -1,68 +1,41 @@
-const billingAccountHandler = require("../lib/api/billing-account-handler");
-const billingCheckoutHandler = require("../lib/api/billing-checkout-handler");
-const billingPortalHandler = require("../lib/api/billing-portal-handler");
-const invoicePdfHandler = require("../lib/api/invoice-pdf-handler");
-const { Pool } = require("pg");
-const { SSL_POSTGRES } = require("../lib/postgres-ssl");
-const { aplicaCors } = require("../lib/cors");
+/**
+ * La puerta de la facturación: la cuenta, el pago, el portal y las facturas.
+ *
+ * El reparto lo hace `lib/api/enrutador.js`, el mismo de las otras dos puertas.
+ *
+ * ── Lo que había y ya no está ──────────────────────────────────────────────
+ *
+ * El `resolveRoute` de este fichero devolvía `"webhook"` para las URLs que
+ * llevaran `billing-webhook`, y el `switch` no tenía ese caso: el webhook de
+ * Stripe vive en su propia función, `api/billing-webhook.js`, porque necesita
+ * el cuerpo en crudo para comprobar la firma. Así que esa rama caía al 404 sin
+ * decir nada.
+ *
+ * Se quita. Sin ella, esas URLs no resuelven ninguna ruta y caen al mismo 404
+ * con el mismo texto: el comportamiento es idéntico, solo que ahora no hay una
+ * línea que sugiera que el webhook se atiende aquí.
+ */
+const { creaEnrutador } = require("../lib/api/enrutador");
 
-let _pingPool = null;
-async function pingHandler(req, res) {
-  const hardTimeout = new Promise((resolve) =>
-    setTimeout(() => resolve({ timedOut: true }), 8000)
-  );
-  try {
-    if (!_pingPool) {
-      const cs = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-      if (!cs) return res.status(200).json({ ok: true, db: false });
-      _pingPool = new Pool({
-        connectionString: cs,
-        ssl: SSL_POSTGRES,
-        max: 1,
-        connectionTimeoutMillis: 7000,
-        idleTimeoutMillis: 10000,
-      });
-    }
-    const result = await Promise.race([
-      _pingPool.query("SELECT 1").then(() => ({ db: true })),
-      hardTimeout,
-    ]);
-    return res.status(200).json({ ok: true, db: result.db === true });
-  } catch {
-    return res.status(200).json({ ok: true, db: false });
-  }
-}
+/** Sin `?route=`, se mira la URL. El orden manda: gana el primero que encaja. */
+const ALIAS = [
+  ["billing-account", "account"],
+  ["billing-checkout", "checkout"],
+  ["billing-portal", "portal"],
+  ["invoice-pdf", "invoice-pdf"],
+];
 
-function resolveRoute(req) {
-  const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
-  if (explicitRoute) {
-    return explicitRoute;
-  }
-
-  const url = String(req.url || "").toLowerCase();
-  if (url.includes("billing-account")) return "account";
-  if (url.includes("billing-checkout")) return "checkout";
-  if (url.includes("billing-portal")) return "portal";
-  if (url.includes("billing-webhook")) return "webhook";
-  if (url.includes("invoice-pdf")) return "invoice-pdf";
-  return "";
-}
-
-module.exports = async function billingRouter(req, res) {
-  if (aplicaCors(req, res)) return undefined;
-
-  switch (resolveRoute(req)) {
-    case "ping":
-      return pingHandler(req, res);
-    case "account":
-      return billingAccountHandler(req, res);
-    case "checkout":
-      return billingCheckoutHandler(req, res);
-    case "portal":
-      return billingPortalHandler(req, res);
-    case "invoice-pdf":
-      return invoicePdfHandler(req, res);
-    default:
-      return res.status(404).json({ error: "Billing route not found" });
-  }
+const RUTAS = {
+  // Solo por `?route=ping`: no tiene alias y nunca lo tuvo.
+  ping:     () => require("../lib/api/billing-ping-handler"),
+  account:  () => require("../lib/api/billing-account-handler"),
+  checkout: () => require("../lib/api/billing-checkout-handler"),
+  portal:   () => require("../lib/api/billing-portal-handler"),
+  "invoice-pdf": () => require("../lib/api/invoice-pdf-handler"),
 };
+
+module.exports = creaEnrutador({
+  rutas: RUTAS,
+  alias: ALIAS,
+  noEncontrada: "Billing route not found",
+});

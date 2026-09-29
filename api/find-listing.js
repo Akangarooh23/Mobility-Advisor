@@ -6,6 +6,7 @@ const { laMedianaDeCada, ordenaPorCalidadPrecio } = require("../lib/lo-que-vale-
 const { loQueDeVerdadCumple, loQueSeLeDice } = require("../lib/lo-que-de-verdad-cumple");
 const { LAS_MARCAS_DE_CADA_FAMILIA } = require("../lib/las-marcas-que-quiere");
 const { elCerebroElige } = require("../lib/el-cerebro-elige");
+const { lasQueLaFichaNoDescarta } = require("../lib/la-ficha-dice-si-esta-danado");
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
@@ -4316,6 +4317,26 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         }).cumplen;
 
         rankedInventory = [...rankedInventory, ...cumplenLoDemas].slice(0, 20);
+      }
+
+      /*
+       * Y lo último: se mira la ficha de las que van a salir.
+       *
+       * El dato de daños solo está en la ficha de cada anuncio, y enriquecer
+       * el pool entero son seis meses —una petición por coche, 368.000 coches—
+       * y solo del 19% del mercado. Pero aquí no hay 368.000: hay tres o
+       * cuatro. Mirar esas son tres o cuatro peticiones.
+       *
+       * Solo sabemos leer la ficha de autoscout24. Una de coches.net sale sin
+       * comprobar, igual que antes; y si la ficha no contesta, también sale:
+       * «no he podido comprobarlo» no es «está dañado».
+       *
+       * Ver lib/la-ficha-dice-si-esta-danado.js.
+       */
+      const trasLaFicha = await lasQueLaFichaNoDescarta(rankedInventory);
+      if (trasLaFicha.danadas > 0) {
+        console.warn("[find-listing] la ficha declara danadas " + trasLaFicha.danadas + " de las que iban a salir");
+        rankedInventory = trasLaFicha.cumplen;
       }
 
       if (colado.descartadas > 0 && rankedInventory.length < TOP_LISTINGS_LIMIT) {

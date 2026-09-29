@@ -9,7 +9,6 @@ import {
 import {
   clearAuthUser,
   readAuthUser,
-  readCookieConsent,
   readMarketAlerts,
   readMarketAlertStatus,
   readQuestionnaireDraft,
@@ -39,8 +38,6 @@ export function useAppBootstrap({
   setQuestionnaireDraft,
   setCurrentUser,
   setIsUserLoggedIn,
-  setCookiePreferences,
-  setShowCookieGate,
   setAuthRequired,
   setAuthDialogMode,
   setShowConsentReview,
@@ -100,7 +97,6 @@ export function useAppBootstrap({
     setMarketAlertStatus(readMarketAlertStatus());
     setQuestionnaireDraft(readQuestionnaireDraft());
 
-    const storedConsent = readCookieConsent();
     setCurrentUser(savedAuthUser);
     setIsUserLoggedIn(Boolean(savedAuthUser?.email));
     /*
@@ -122,15 +118,10 @@ export function useAppBootstrap({
       setAuthDialogMode("login");
     }
 
-    if (storedConsent?.preferences) {
-      setCookiePreferences((prev) => ({
-        ...prev,
-        ...storedConsent.preferences,
-        necessary: true,
-      }));
-    }
-
-    setShowCookieGate(!storedConsent?.status);
+    /* Aquí se leía el consentimiento de cookies y se encendía el aviso. No
+       tenía que ver con arrancar la sesión ni con el catálogo: estaba aquí
+       porque era donde ya se leía `localStorage`. Ahora lo hace
+       `useAppPreferences`, que es quien tiene ese estado. */
 
     void (async () => {
       try {
@@ -216,7 +207,6 @@ export function useAppBootstrap({
       }
     })();
   }, [
-    setCookiePreferences,
     setCurrentUser,
     setIsUserLoggedIn,
     setSesionComprobada,
@@ -224,7 +214,6 @@ export function useAppBootstrap({
     setMarketAlerts,
     setQuestionnaireDraft,
     setSavedComparisons,
-    setShowCookieGate,
     setThemeMode,
     setUserAppointments,
     setUserMaintenances,

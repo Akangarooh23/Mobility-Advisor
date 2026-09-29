@@ -1849,8 +1849,6 @@ export default function App() {
   const [changePasswordError, setChangePasswordError] = useState("");
   const [changePasswordSuccess, setChangePasswordSuccess] = useState("");
   const [userDashboardPage, setUserDashboardPage] = useState("home");
-  const [showCookieGate, setShowCookieGate] = useState(false);
-  const [showCookieSettings, setShowCookieSettings] = useState(false);
   const [consentLegal, setConsentLegal] = useState(false);
   const [consentMarketingEmail, setConsentMarketingEmail] = useState(false);
   const [consentMarketingSms, setConsentMarketingSms] = useState(false);
@@ -1868,17 +1866,9 @@ export default function App() {
     return normalizeUiLanguage();
   });
   const activeLegalDocs = uiLanguage === "en" ? LEGAL_DOCUMENTS_EN : LEGAL_DOCUMENTS;
-  /* Las cuatro categorías salen marcadas de entrada, marketing incluida: es
-     decisión de producto. Conste que la guía de cookies de la AEPD —y la
-     sentencia Planet49— piden que las opcionales vengan sin marcar y que
-     rechazar cueste lo mismo que aceptar; dejarlo así es asumir ese riesgo, y
-     volver a `marketing: false` es cambiar esta línea. */
-  const [cookiePreferences, setCookiePreferences] = useState({
-    necessary: true,
-    analytics: true,
-    personalization: true,
-    marketing: true,
-  });
+  /* El aviso de cookies —si se enseña, qué hay marcado y qué se guarda— vive
+     en `useAppPreferences`. Estaba aquí, encendido desde `useAppBootstrap` y
+     apagado desde el hook: tres ficheros para una barra. */
   const quickValidationRef = useRef({});
   const resultRef = useRef(null);
 
@@ -2202,12 +2192,16 @@ export default function App() {
     openPublicPage(nextEntryMode);
   }, [openPublicPage, uiLanguage]);
 
-  const { saveCookieConsent } = useAppPreferences({
+  const {
+    showCookieGate,
+    showCookieSettings,
+    cookiePreferences,
+    alternarPreferencia,
+    alternarAjustes,
+    saveCookieConsent,
+  } = useAppPreferences({
     themeStorageKey: THEME_STORAGE_KEY,
     themeMode,
-    cookiePreferences,
-    setShowCookieGate,
-    setShowCookieSettings,
   });
 
   /**
@@ -2275,8 +2269,6 @@ export default function App() {
     setQuestionnaireDraft,
     setCurrentUser,
     setIsUserLoggedIn,
-    setCookiePreferences,
-    setShowCookieGate,
     setAuthRequired,
     setAuthDialogMode,
     setShowConsentReview,
@@ -6347,11 +6339,9 @@ export default function App() {
       {avisoCookiesAbierto && (
         <AvisoCookies
           preferencias={cookiePreferences}
-          onCambiarPreferencia={(clave) =>
-            setCookiePreferences((prev) => ({ ...prev, [clave]: !prev[clave] }))
-          }
+          onCambiarPreferencia={alternarPreferencia}
           mostrarAjustes={showCookieSettings}
-          onAlternarAjustes={() => setShowCookieSettings((prev) => !prev)}
+          onAlternarAjustes={alternarAjustes}
           onGuardar={saveCookieConsent}
         />
       )}

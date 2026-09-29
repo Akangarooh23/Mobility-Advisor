@@ -1336,7 +1336,7 @@ export default function PortalVoDetailPage({
                 {tieneInforme && (
                   <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
                     <ConditionReportDownload
-                      url={`/api/informe-publico/${encodeURIComponent(selectedPortalVoOffer.id)}/informe-de-estado.pdf`}
+                      url={rutaApi(`/api/informe-publico/${encodeURIComponent(selectedPortalVoOffer.id)}/informe-de-estado.pdf`)}
                       compacto
                     />
                   </div>

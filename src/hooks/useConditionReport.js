@@ -83,7 +83,7 @@ export function urlDeDescarga(vehicleId, sessionId) {
   const vid = texto(vehicleId);
   const sid = texto(sessionId);
   if (!vid || !sid) return "";
-  return `/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(sid)}`;
+  return rutaApi(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(sid)}`);
 }
 
 /** Raíz del modelo 3D de un expediente concreto. Ver `modelo3dBase`. */
@@ -91,7 +91,7 @@ export function baseDelModelo3d(vehicleId, sessionId) {
   const vid = texto(vehicleId);
   const sid = texto(sessionId);
   if (!vid || !sid) return "";
-  return `/api/informe-3d/${encodeURIComponent(vid)}/${encodeURIComponent(sid)}`;
+  return rutaApi(`/api/informe-3d/${encodeURIComponent(vid)}/${encodeURIComponent(sid)}`);
 }
 
 /** El panel es solo en español; el IDCar es bilingüe. De ahí el parámetro. */

@@ -56,7 +56,7 @@ const A_PELO = /fetch\(\s*(?:"|'|`)\/api\//;
  * `src` es una dirección, y una dirección necesita la base delante.
  */
 const DIRECCION_SIN_BASE =
-  /(?:[A-Za-z_$][\w$]*[Uu]rl|href|src|[Bb]ase)\s*[:=]\s*(?:[^;\n]*?\?\s*)?(?:"|'|`)\/api\//;
+  /(?:[\w$]*[Uu]rl|href|src|[\w$]*[Bb]ase)\s*[:=]\s*([^;\n]*?)(?:"|'|`)\/api\//g;
 
 /**
  * Una ruta guardada en una variable: `X = … "/api/…"`.
@@ -138,11 +138,21 @@ function revisaFuente(fuente, rel = "(fuente)") {
       );
     }
 
-    if (DIRECCION_SIN_BASE.test(linea)) {
+    /*
+     * Lo que hay entre el `=` y la ruta importa: `url={rutaApi(\`/api/…\`)}`
+     * está bien y `url={\`/api/…\`}` no, y entre los dos solo cambia eso. La
+     * primera versión de esta regla exigía que la comilla fuera justo detrás
+     * del `=`, y así se le escapó la de `PortalVoDetailPage`, que lleva una
+     * llave en medio por ser JSX.
+     */
+    DIRECCION_SIN_BASE.lastIndex = 0;
+    let direccion;
+    while ((direccion = DIRECCION_SIN_BASE.exec(linea)) !== null) {
+      if (direccion[1].includes("rutaApi(")) continue;
       fallos.push(
         `${rel}:${i + 1} arma una dirección de API sin base\n` +
         `      ${linea.trim()}\n` +
-        `      acabará en un href o en un src; envuélvela: rutaApi("/api/...")`
+        `      acabará en un href, un src o un fetch; envuélvela: rutaApi("/api/...")`
       );
     }
 

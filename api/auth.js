@@ -1474,11 +1474,7 @@ async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows
   const previousSession = parseSessionCookieFromRequest(req);
 
   if (previousSession?.sessionId) {
-    if (useMssql) {
-      await deleteSessionByIdMssql(previousSession.sessionId);
-    } else if (useSqlcmdWindows) {
-      deleteSessionByIdSqlcmd(previousSession.sessionId);
-    } else if (usePostgres) {
+    if (usePostgres) {
       await deleteSessionByIdPostgres(previousSession.sessionId);
     } else {
       deleteSessionByIdLocal(previousSession.sessionId);
@@ -1499,11 +1495,7 @@ async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows
     userAgent: normalizeText(req?.headers?.["user-agent"] || "").slice(0, 255),
   };
 
-  if (useMssql) {
-    await createSessionMssql(session);
-  } else if (useSqlcmdWindows) {
-    createSessionSqlcmd(session);
-  } else if (usePostgres) {
+  if (usePostgres) {
     await createSessionPostgres(session);
   } else {
     createSessionLocal(session);
@@ -1571,11 +1563,7 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres
   const expiresAtMs = Date.parse(session.expiresAt);
 
   if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now) {
-    if (useMssql) {
-      await deleteSessionByIdMssql(session.id);
-    } else if (useSqlcmdWindows) {
-      deleteSessionByIdSqlcmd(session.id);
-    } else if (usePostgres) {
+    if (usePostgres) {
       await deleteSessionByIdPostgres(session.id);
     } else {
       deleteSessionByIdLocal(session.id);
@@ -1603,10 +1591,6 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres
   const newExpiresAt = getSessionExpiryIso();
   if (usePostgres) {
     await extendSessionExpiryPostgres(session.id, newExpiresAt);
-  } else if (useMssql) {
-    await updateSessionLastSeenMssql(session.id);
-  } else if (useSqlcmdWindows) {
-    updateSessionLastSeenSqlcmd(session.id);
   } else {
     updateSessionLastSeenLocal(session.id);
   }
@@ -1619,16 +1603,6 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres
 
 async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres }) {
   if (!shouldRunSessionCleanup()) {
-    return;
-  }
-
-  if (useMssql) {
-    await deleteExpiredSessionsMssql();
-    return;
-  }
-
-  if (useSqlcmdWindows) {
-    deleteExpiredSessionsSqlcmd();
     return;
   }
 
@@ -1750,11 +1724,7 @@ async function _authHandlerInner(req, res) {
     const parsedSession = parseSessionCookieFromRequest(req);
 
     if (parsedSession?.sessionId) {
-      if (useMssql) {
-        await deleteSessionByIdMssql(parsedSession.sessionId);
-      } else if (useSqlcmdWindows) {
-        deleteSessionByIdSqlcmd(parsedSession.sessionId);
-      } else if (usePostgres) {
+      if (usePostgres) {
         await deleteSessionByIdPostgres(parsedSession.sessionId);
       } else {
         deleteSessionByIdLocal(parsedSession.sessionId);
@@ -1916,11 +1886,7 @@ async function _authHandlerInner(req, res) {
     const newSalt = crypto.randomBytes(16).toString("hex");
     const newHash = hashPassword(newPassword, newSalt);
 
-    if (useMssql) {
-      await updateUserPasswordMssql({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
-    } else if (useSqlcmdWindows) {
-      updateUserPasswordSqlcmd({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
-    } else if (usePostgres) {
+    if (usePostgres) {
       await updateUserPasswordPostgres({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
     } else {
       updateUserPasswordLocal({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
@@ -2051,11 +2017,7 @@ async function _authHandlerInner(req, res) {
       const resetTokenHash = hashSessionToken(resetCode);
       const resetSession = buildPasswordResetSession({ userId: user.id, tokenHash: resetTokenHash });
 
-      if (useMssql) {
-        await createSessionMssql(resetSession);
-      } else if (useSqlcmdWindows) {
-        createSessionSqlcmd(resetSession);
-      } else if (usePostgres) {
+      if (usePostgres) {
         await createSessionPostgres(resetSession);
       } else {
         createSessionLocal(resetSession);
@@ -2185,13 +2147,7 @@ async function _authHandlerInner(req, res) {
     const newSalt = crypto.randomBytes(16).toString("hex");
     const newHash = hashPassword(newPassword, newSalt);
 
-    if (useMssql) {
-      await updateUserPasswordMssql({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
-      await deleteSessionByIdMssql(resetSessionId);
-    } else if (useSqlcmdWindows) {
-      updateUserPasswordSqlcmd({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
-      deleteSessionByIdSqlcmd(resetSessionId);
-    } else if (usePostgres) {
+    if (usePostgres) {
       await updateUserPasswordPostgres({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
       await deleteSessionByIdPostgres(resetSessionId);
     } else {

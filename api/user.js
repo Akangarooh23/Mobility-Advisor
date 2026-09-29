@@ -5,9 +5,25 @@
  * Aquí quedan la tabla de rutas, los alias y lo único propio de esta puerta:
  * el interruptor de los crons.
  */
+/*
+ * Aquí había esto, y no hacía nada:
+ *
+ *     module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
+ *
+ * Dos veces nada, de hecho. Primero porque estaba antes de la asignación del
+ * enrutador, y `module.exports = ...` reemplaza el objeto entero: al terminar
+ * de cargarse el fichero, `module.exports.config` era `undefined`.
+ *
+ * Y segundo porque, aunque hubiera estado bien puesta, tampoco. Esa forma
+ * -`config.api.bodyParser`- es de las rutas de API de Next.js, y esto no es
+ * Next.js: son funciones sueltas de Vercel sobre Create React App. El tope del
+ * cuerpo de una función lo pone la plataforma y no se sube desde el código.
+ *
+ * Lo que de verdad resuelve el problema ya está hecho y está aquí al lado: los
+ * ficheros grandes no viajan en el cuerpo de la petición. Se pide una URL
+ * firmada por `storage-presign` y el navegador sube directo al depósito.
+ */
 const { creaEnrutador } = require("../lib/api/enrutador");
-
-module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
 
 /** Sin `?route=`, se mira la URL. El orden manda: gana el primero que encaja. */
 const ALIAS = [

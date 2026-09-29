@@ -32,6 +32,7 @@ import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useCitaDeServicio } from "./hooks/useCitaDeServicio";
 import { useElFlujoDeVenta } from "./hooks/useElFlujoDeVenta";
 import { useElConsejero } from "./hooks/useElConsejero";
+import { useRevisionDeConsentimientos } from "./hooks/useRevisionDeConsentimientos";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1858,13 +1859,17 @@ export default function App() {
   const [consentMarketingSms, setConsentMarketingSms] = useState(false);
   const [consentThirdPartyEmail, setConsentThirdPartyEmail] = useState(false);
   const [consentThirdPartySms, setConsentThirdPartySms] = useState(false);
-  const [showConsentReview, setShowConsentReview] = useState(false);
-  const [consentReviewLegal, setConsentReviewLegal] = useState(false);
-  const [consentReviewMarketingEmail, setConsentReviewMarketingEmail] = useState(false);
-  const [consentReviewMarketingSms, setConsentReviewMarketingSms] = useState(false);
-  const [consentReviewThirdPartyEmail, setConsentReviewThirdPartyEmail] = useState(false);
-  const [consentReviewThirdPartySms, setConsentReviewThirdPartySms] = useState(false);
-  const [consentReviewLoading, setConsentReviewLoading] = useState(false);
+  const {
+    abierta: revisionAbierta,
+    abre: abreLaRevision,
+    guardando: revisionGuardando,
+    elegido: revisionElegido,
+    alterna: alternaConsentimiento,
+    guardaLoElegido: guardaLosConsentimientos,
+    continuarSinAceptar,
+  } = useRevisionDeConsentimientos({
+    alRecibirUsuario: (usuario) => { writeAuthUser(usuario); setCurrentUser(usuario); },
+  });
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
     return normalizeUiLanguage();
@@ -2237,7 +2242,6 @@ export default function App() {
     setIsUserLoggedIn,
     setAuthRequired,
     setAuthDialogMode,
-    setShowConsentReview,
   });
 
   useEffect(() => {
@@ -3140,7 +3144,7 @@ export default function App() {
       }
       // Show consent review modal for users who haven't accepted T&C (never reviewed or previously rejected)
       if (mode === "login" && !nextUser.consentLegalAt) {
-        setShowConsentReview(true);
+        abreLaRevision();
       }
 
       const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
@@ -3171,6 +3175,7 @@ export default function App() {
       setAuthLoading(false);
     }
   }, [
+    abreLaRevision,
     authDialogMode,
     authForm,
     authRecoveryCode,
@@ -6060,7 +6065,7 @@ export default function App() {
       )}
 
       {/* ── Consent review modal for existing users ── */}
-      {showConsentReview && (
+      {revisionAbierta && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--blanco)", borderRadius: 20, padding: "32px 28px", maxWidth: 480, width: "100%", border: "1px solid var(--gris-200)" }}>
             <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--gris-600)", marginBottom: 10 }}>Actualización de políticas</p>
@@ -6070,7 +6075,7 @@ export default function App() {
             <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
               {/* Checkbox 1 — T&C obligatorio */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewLegal} onChange={(e) => setConsentReviewLegal(e.target.checked)}
+                <input type="checkbox" checked={revisionElegido.legal} onChange={() => alternaConsentimiento("legal")}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
                   He leído y acepto{" "}
@@ -6083,7 +6088,7 @@ export default function App() {
 
               {/* Checkbox 2a — marketing email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewMarketingEmail} onChange={(e) => setConsentReviewMarketingEmail(e.target.checked)}
+                <input type="checkbox" checked={revisionElegido.marketingEmail} onChange={() => alternaConsentimiento("marketingEmail")}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
                   Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>email</strong> conforme a la{" "}
@@ -6093,7 +6098,7 @@ export default function App() {
 
               {/* Checkbox 2b — marketing SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewMarketingSms} onChange={(e) => setConsentReviewMarketingSms(e.target.checked)}
+                <input type="checkbox" checked={revisionElegido.marketingSms} onChange={() => alternaConsentimiento("marketingSms")}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
                   Acepto comunicaciones comerciales por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> conforme a la{" "}
@@ -6103,7 +6108,7 @@ export default function App() {
 
               {/* Checkbox 3a — Experian email */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewThirdPartyEmail} onChange={(e) => setConsentReviewThirdPartyEmail(e.target.checked)}
+                <input type="checkbox" checked={revisionElegido.thirdPartyEmail} onChange={() => alternaConsentimiento("thirdPartyEmail")}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
                   Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>email</strong> de terceros conforme a las{" "}
@@ -6115,7 +6120,7 @@ export default function App() {
 
               {/* Checkbox 3b — Experian SMS */}
               <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
-                <input type="checkbox" checked={consentReviewThirdPartySms} onChange={(e) => setConsentReviewThirdPartySms(e.target.checked)}
+                <input type="checkbox" checked={revisionElegido.thirdPartySms} onChange={() => alternaConsentimiento("thirdPartySms")}
                   style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
                   Acepto comunicaciones por <strong style={{ color: "var(--gris-600)" }}>SMS</strong> de terceros conforme a las{" "}
@@ -6128,64 +6133,18 @@ export default function App() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
-                disabled={consentReviewLoading}
-                onClick={async () => {
-                  setConsentReviewLoading(true);
-                  try {
-                    let landing = {};
-                    try { landing = JSON.parse(window.localStorage.getItem("ma.landing") || "{}"); } catch {}
-                    const { data } = await postAuthJson({
-                      action: "save_consents",
-                      consentLegal: consentReviewLegal,
-                      consentMarketingEmail: consentReviewMarketingEmail,
-                      consentMarketingSms: consentReviewMarketingSms,
-                      consentThirdPartyEmail: consentReviewThirdPartyEmail,
-                      consentThirdPartySms: consentReviewThirdPartySms,
-                      language: landing.language || navigator.language || "",
-                      utmSource: landing.utms?.utm_source || "",
-                      utmMedium: landing.utms?.utm_medium || "",
-                      utmCampaign: landing.utms?.utm_campaign || "",
-                      utmContent: landing.utms?.utm_content || "",
-                      referer: landing.referer || "",
-                      landingUrl: landing.landingUrl || "",
-                      affiliateData: landing.affiliateData || null,
-                    });
-                    if (data?.user) { writeAuthUser(data.user); setCurrentUser(data.user); }
-                  } catch {}
-                  setShowConsentReview(false);
-                  setConsentReviewLoading(false);
-                }}
-                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "var(--marca)", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: consentReviewLoading ? 0.6 : 1 }}
+                disabled={revisionGuardando}
+                onClick={guardaLosConsentimientos}
+                style={{ width: "100%", padding: "12px", borderRadius: 10, background: "var(--marca)", color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", opacity: revisionGuardando ? 0.6 : 1 }}
               >
-                {consentReviewLoading ? "Guardando…" : "Guardar selección y continuar"}
+                {revisionGuardando ? "Guardando…" : "Guardar selección y continuar"}
               </button>
+              {/* Manda cinco noes y NO recoge el usuario que devuelve el servidor: asi
+                  `consentLegalAt` sigue vacio y el aviso vuelve a salir en el siguiente
+                  acceso, que es lo que tiene que pasarle a quien no ha aceptado. */}
               <button
-                disabled={consentReviewLoading}
-                onClick={async () => {
-                  setConsentReviewLoading(true);
-                  try {
-                    let landing = {};
-                    try { landing = JSON.parse(window.localStorage.getItem("ma.landing") || "{}"); } catch {}
-                    await postAuthJson({
-                      action: "save_consents",
-                      consentLegal: false,
-                      consentMarketingEmail: false,
-                      consentMarketingSms: false,
-                      consentThirdPartyEmail: false,
-                      consentThirdPartySms: false,
-                      language: landing.language || navigator.language || "",
-                      utmSource: landing.utms?.utm_source || "",
-                      utmMedium: landing.utms?.utm_medium || "",
-                      utmCampaign: landing.utms?.utm_campaign || "",
-                      utmContent: landing.utms?.utm_content || "",
-                      referer: landing.referer || "",
-                      landingUrl: landing.landingUrl || "",
-                      affiliateData: landing.affiliateData || null,
-                    });
-                  } catch {}
-                  setShowConsentReview(false);
-                  setConsentReviewLoading(false);
-                }}
+                disabled={revisionGuardando}
+                onClick={continuarSinAceptar}
                 style={{ width: "100%", padding: "10px", borderRadius: 10, background: "transparent", color: "var(--gris-500)", fontWeight: 500, fontSize: 13, border: "1px solid var(--gris-300)", cursor: "pointer" }}
               >
                 Continuar sin aceptar

@@ -179,7 +179,14 @@ misma base, cada uno con su propio límite. Neon tiene un tope, y cuando se toca
 se ve como «faltan conexiones»: se ve como el 500 que dio el ERP el 24 de
 septiembre, cuando su pool se rindió a los 5 segundos esperando una libre.
 
-### 2.4 🟠 Dos maneras de saber quién llama
+### 2.4 🟡 Dos maneras de saber quién llama
+
+> **Corrección, tras mirarlo de cerca.** Esto estaba en rojo en la primera
+> versión de este informe, dando a entender que unos sitios se fiaban del correo
+> que llega en la petición. **No es así**: comprobados los once, ninguno acepta
+> el correo de la URL ni del cuerpo; todos usan solo el de la sesión. Lo que hay
+> es duplicación de la regla, no un agujero. Baja a amarillo.
+
 
 Existe `lib/api/identidad.js`, con `identidadDeLaPeticion()`. Lo usan **19**
 ficheros.
@@ -272,50 +279,65 @@ mirar solo el camino, no la query. Va en el plan (§3).
 Ordenada por relación entre lo que arregla y lo que arriesga. La red de pruebas
 —**1.454 pruebas en verde en 7 segundos**— es lo que hace viable todo esto.
 
-### Ya hecho
+### Ya hecho (29 de septiembre de 2026)
 
 **0. Juntar el reparto de rutas y cargar los manejadores al usarse.** §4.
+De 313 ms y 311 módulos por arranque en frío a 4 ms y 3.
+
+**1. Un solo cliente de Postgres.** De **49** a uno, con dos excepciones que
+llevan el motivo escrito. Ocho de ellos abrían un `Pool` nuevo **en cada
+llamada** —`viewingStore` cinco veces por petición—. Con trinquete:
+`lib/un-solo-cliente-de-postgres.test.js`.
+
+**2. Que el esquema tenga un solo dueño.** Cruzado lo que el código crea en
+caliente contra la base y contra `migrations/`: 31 tablas ya declaradas, 2 que
+existían en producción sin migración, 6 que no existían en ninguna parte. La
+migración `0013` las declara todas. Con trinquete:
+`lib/el-esquema-tiene-un-dueno.test.js`.
+
+Por ahí apareció que **descargar una factura en PDF estaba roto en producción**
+(`column i.rectifica_numero does not exist`), porque esas columnas solo las
+creaba un camino que nunca se había ejecutado. Arreglado y comprobado.
+
+**3. Las comparaciones guardadas y las preferencias, a Postgres.** Eran las dos
+únicas rutas sin alternativa a SQL Server, y contestaban 200 con la lista vacía.
+Las tres tablas de Postgres ya existían, con cero filas: no había funcionado
+nunca.
+
+**4. Las franjas de visita en la app**, que hacían cuatro `fetch` sin
+`API_BASE`, y la regla de `comprueba-rutas-api` que se equivocaba en las dos
+direcciones a la vez.
 
 ### Siguiente, por orden
 
-**1. Un solo cliente de Postgres.** *(bajo riesgo, alto retorno)*
+**5. Quitar el DDL redundante de las peticiones.** *(riesgo bajo ahora)*
 
-Un `lib/postgres.js` que exporte un pool único con su `max` declarado, y sustituir
-las 29 copias de `getPool()`. Es mecánico y cada sustitución es comprobable. Quita
-el riesgo de agotar conexiones y deja un único sitio donde ajustar tiempos.
+Ya no es peligroso: el trinquete garantiza que las migraciones declaran todo, así
+que el `CREATE TABLE IF NOT EXISTS` de los manejadores es redundante y se puede
+quitar almacén a almacén. Son 224 sentencias en 25 ficheros, `billingStore` con
+78 y `api/auth` con 37.
 
-**2. Que el esquema tenga un solo dueño.** *(riesgo medio, retorno muy alto)*
+**6. Terminar de unificar la identidad.** *(riesgo bajo, cosmético)*
 
-Las 12 migraciones ya son la fuente buena. El trabajo es, por almacén:
+Llevar los ficheros que quedan de `getSessionUserFromRequest` a
+`identidadDeLaPeticion`, y quitar el `?.` para que una avería suene como una
+avería en vez de como una sesión caducada. No corre prisa: ninguno se fía del
+correo de la petición.
 
-1. comprobar que la migración de base describe lo mismo que el DDL en caliente;
-2. quitar el DDL del camino de la petición;
-3. dejar una prueba que falle si alguien vuelve a meter un `CREATE TABLE` en un
-   manejador.
+**7. Decidir qué queda del almacén de SQL Server.** *(decisión, no código)*
 
-Ese último punto es el que lo hace permanente. Sin él, vuelve.
+Ya solo lo usa `billingStore`, y allí sí hay camino de Postgres al lado: SQL
+Server es una alternativa que solo se enciende con `AUTH_PROVIDER`. Son 2.618
+líneas que lanzan `sqlcmd.exe` de forma bloqueante. Borrarlas es una decisión,
+no una urgencia.
 
-**3. Terminar la migración de la identidad.** *(riesgo medio)*
-
-Llevar los 13 ficheros de `getSessionUserFromRequest` a `identidadDeLaPeticion`,
-uno a uno, y quitar el `?.` al final para que una avería suene como una avería.
-
-**4. Decidir qué pasa con el almacén de SQL Server.** *(decisión, no código)*
-
-Dos salidas honradas:
-- **llevar «comparaciones guardadas» y «preferencias» a Postgres** —son dos tablas
-  pequeñas— y borrar las 2.618 líneas;
-- o **quitar esas dos funciones de la interfaz** mientras no existan.
-
-Lo que no puede quedarse es contestar 200 con la lista vacía.
-
-**5. Partir `find-listing.js` y `analyze.js`.** *(riesgo bajo, trabajo largo)*
+**8. Partir `find-listing.js` y `analyze.js`.** *(riesgo bajo, trabajo largo)*
 
 Sacar a `lib/` lo que ya es dominio —el buscador externo, el emparejado, las
 medianas— y dejar en `api/` la función que orquesta. Se puede hacer pieza a pieza,
 y cada pieza que sale gana pruebas propias.
 
-**6. Poner un router en la web y partir `App.js`.** *(el más caro)*
+**9. Poner un router en la web y partir `App.js`.** *(el más caro)*
 
 No se hace de una sentada. El camino es sacar bloques de estado del componente a
 hooks propios (`useAdvisorAnswers`, `useVehicleDetail`), que ya es el patrón de los

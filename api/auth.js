@@ -1207,7 +1207,7 @@ async function _authHandlerInner(req, res) {
   const language = normalizeText(body.language).slice(0, 20);
 
   if (!action) {
-    return res.status(400).json({ error: "Debes indicar la acciÃ³n de auth." });
+    return res.status(400).json({ error: "Debes indicar la acción de auth." });
   }
 
   if (action === "logout") {
@@ -1222,7 +1222,7 @@ async function _authHandlerInner(req, res) {
     }
 
     clearSessionCookie(res);
-    return res.status(200).json({ ok: true, message: "SesiÃ³n cerrada." });
+    return res.status(200).json({ ok: true, message: "Sesión cerrada." });
   }
 
   /*
@@ -1349,28 +1349,28 @@ async function _authHandlerInner(req, res) {
     const newPassword = String(body.newPassword || body.password || "");
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: "Debes indicar contraseÃ±a actual y nueva contraseÃ±a." });
+      return res.status(400).json({ error: "Debes indicar contraseña actual y nueva contraseña." });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
+      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres." });
     }
 
     if (currentPassword === newPassword) {
-      return res.status(400).json({ error: "La nueva contraseÃ±a no puede ser igual a la anterior." });
+      return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la anterior." });
     }
 
     const sessionPayload = await resolveSessionUser({ req, usePostgres });
     if (!sessionPayload?.user?.id) {
       clearSessionCookie(res);
-      return res.status(401).json({ error: "Tu sesiÃ³n ha caducado. Inicia sesiÃ³n de nuevo." });
+      return res.status(401).json({ error: "Tu sesión ha caducado. Inicia sesión de nuevo." });
     }
 
     const sessionUser = mapDbUser(sessionPayload.user);
     const expectedCurrentHash = hashPassword(currentPassword, sessionUser.passwordSalt || "");
 
     if (expectedCurrentHash !== sessionUser.passwordHash) {
-      return res.status(401).json({ error: "La contraseÃ±a actual no es correcta." });
+      return res.status(401).json({ error: "La contraseña actual no es correcta." });
     }
 
     const newSalt = crypto.randomBytes(16).toString("hex");
@@ -1397,7 +1397,7 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({
       ok: true,
       user: sanitizeUser(normalizedUser),
-      message: "ContraseÃ±a actualizada correctamente.",
+      message: "Contraseña actualizada correctamente.",
       session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
@@ -1438,7 +1438,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(retryAfterSeconds));
       return res.status(429).json({
-        error: "Demasiadas solicitudes. Espera un momento e intÃ©ntalo de nuevo.",
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
       });
     }
 
@@ -1457,7 +1457,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(ipRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiadas solicitudes. Espera un momento e intÃ©ntalo de nuevo.",
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
       });
     }
 
@@ -1476,14 +1476,14 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(emailRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiadas solicitudes. Espera un momento e intÃ©ntalo de nuevo.",
+        error: "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
       });
     }
 
     if (!isValidEmail(email)) {
       return res.status(200).json({
         ok: true,
-        message: "Si el correo existe, recibirÃ¡s instrucciones para recuperar tu contraseÃ±a.",
+        message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña.",
       });
     }
 
@@ -1507,7 +1507,7 @@ async function _authHandlerInner(req, res) {
 
       return res.status(200).json({
         ok: true,
-        message: "Si el correo existe, recibirÃ¡s instrucciones para recuperar tu contraseÃ±a.",
+        message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña.",
         ...(String(process.env.AUTH_EXPOSE_RESET_CODE || "false").toLowerCase() === "true"
           ? { debugResetCode: resetCode }
           : {}),
@@ -1516,7 +1516,7 @@ async function _authHandlerInner(req, res) {
 
     return res.status(200).json({
       ok: true,
-      message: "Si el correo existe, recibirÃ¡s instrucciones para recuperar tu contraseÃ±a.",
+      message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña.",
     });
   }
 
@@ -1536,7 +1536,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(retryAfterSeconds));
       return res.status(429).json({
-        error: "Demasiados intentos de recuperaciÃ³n. Espera un momento e intÃ©ntalo de nuevo.",
+        error: "Demasiados intentos de recuperación. Espera un momento e inténtalo de nuevo.",
       });
     }
 
@@ -1555,7 +1555,7 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(resetIpRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiados intentos de recuperaciÃ³n. Espera un momento e intÃ©ntalo de nuevo.",
+        error: "Demasiados intentos de recuperación. Espera un momento e inténtalo de nuevo.",
       });
     }
 
@@ -1574,16 +1574,16 @@ async function _authHandlerInner(req, res) {
       });
       res.setHeader("Retry-After", String(Math.max(resetEmailRate.retryAfterSeconds, backoff.retryAfterSeconds)));
       return res.status(429).json({
-        error: "Demasiados intentos de recuperaciÃ³n. Espera un momento e intÃ©ntalo de nuevo.",
+        error: "Demasiados intentos de recuperación. Espera un momento e inténtalo de nuevo.",
       });
     }
 
     if (!isValidEmail(email) || !resetCode) {
-      return res.status(400).json({ error: "Debes indicar correo y cÃ³digo de recuperaciÃ³n." });
+      return res.status(400).json({ error: "Debes indicar correo y código de recuperación." });
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
+      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres." });
     }
 
     const foundUser = usePostgres
@@ -1597,7 +1597,7 @@ async function _authHandlerInner(req, res) {
         email: maskEmail(email),
         ip: maskIp(clientIp),
       });
-      return res.status(400).json({ error: "CÃ³digo o correo no vÃ¡lidos." });
+      return res.status(400).json({ error: "Código o correo no válidos." });
     }
 
     const user = mapDbUser(foundUser);
@@ -1613,7 +1613,7 @@ async function _authHandlerInner(req, res) {
         email: maskEmail(email),
         ip: maskIp(clientIp),
       });
-      return res.status(400).json({ error: "CÃ³digo o correo no vÃ¡lidos." });
+      return res.status(400).json({ error: "Código o correo no válidos." });
     }
 
     const newSalt = crypto.randomBytes(16).toString("hex");
@@ -1651,7 +1651,7 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({
       ok: true,
       user: sanitizeUser(normalizedUser),
-      message: "ContraseÃ±a actualizada correctamente.",
+      message: "Contraseña actualizada correctamente.",
       session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
@@ -1664,11 +1664,11 @@ async function _authHandlerInner(req, res) {
     }
 
     if (!isValidEmail(email)) {
-      return res.status(400).json({ error: "Introduce un correo electrÃ³nico vÃ¡lido." });
+      return res.status(400).json({ error: "Introduce un correo electrónico válido." });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: "La contraseÃ±a debe tener al menos 6 caracteres." });
+      return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres." });
     }
 
     const existingUser = usePostgres
@@ -1832,12 +1832,12 @@ async function _authHandlerInner(req, res) {
     return res.status(200).json({
       ok: true,
       user: sanitizeUser(loggedUser),
-      message: `SesiÃ³n iniciada para ${email}.`,
+      message: `Sesión iniciada para ${email}.`,
       session: laSesionQueSeDevuelve(req, createdSession),
     });
   }
 
-  return res.status(400).json({ error: "AcciÃ³n de auth no soportada." });
+  return res.status(400).json({ error: "Acción de auth no soportada." });
 }
 
 authHandler.getSecurityStatusSnapshot = function getSecurityStatusSnapshot() {

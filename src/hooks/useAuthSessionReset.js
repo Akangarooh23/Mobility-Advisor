@@ -11,11 +11,7 @@ export function useAuthSessionReset({
   setAuthError,
   setAuthLoading,
   setPendingPlanCheckoutId,
-  setShowChangePasswordForm,
-  setChangePasswordForm,
-  setChangePasswordError,
-  setChangePasswordSuccess,
-  setChangePasswordLoading,
+  olvidaElCambioDeContrasena,
   setAuthForm,
 }) {
   const resetLoggedUser = useCallback(() => {
@@ -29,11 +25,7 @@ export function useAuthSessionReset({
     setAuthError("");
     setAuthLoading(false);
     setPendingPlanCheckoutId("");
-    setShowChangePasswordForm(false);
-    setChangePasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setChangePasswordError("");
-    setChangePasswordSuccess("");
-    setChangePasswordLoading(false);
+    olvidaElCambioDeContrasena();
     setAuthForm({ name: "", email: "", password: "" });
   }, [
     setAuthDialogMode,
@@ -43,13 +35,9 @@ export function useAuthSessionReset({
     setAuthRecoveryCode,
     setAuthRecoveryFeedback,
     setAuthRecoveryMode,
-    setChangePasswordError,
-    setChangePasswordForm,
-    setChangePasswordLoading,
-    setChangePasswordSuccess,
+    olvidaElCambioDeContrasena,
     setCurrentUser,
     setPendingPlanCheckoutId,
-    setShowChangePasswordForm,
   ]);
 
   return {

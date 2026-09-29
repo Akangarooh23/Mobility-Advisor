@@ -35,6 +35,7 @@ import { useElFlujoDeVenta } from "./hooks/useElFlujoDeVenta";
 import { useElConsejero } from "./hooks/useElConsejero";
 import { useRevisionDeConsentimientos } from "./hooks/useRevisionDeConsentimientos";
 import { useLosConsentimientosDelRegistro } from "./hooks/useLosConsentimientosDelRegistro";
+import { useElCambioDeContrasena } from "./hooks/useElCambioDeContrasena";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1854,15 +1855,21 @@ export default function App() {
   const [clientType, setClientType] = useState("individual");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
-  const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
-  const [changePasswordForm, setChangePasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+  /* Los cinco del cambio de contrasena viven en `useElCambioDeContrasena`, con
+     las cuatro comprobaciones que deciden si se llega a llamar al servidor. */
+  const {
+    abierto: cambioAbierto,
+    formulario: cambioFormulario,
+    guardando: cambioGuardando,
+    fallo: cambioFallo,
+    hecho: cambioHecho,
+    alterna: alternaElCambio,
+    escribe: escribeEnElCambio,
+    manda: submitChangePassword,
+    olvidaTodo: olvidaElCambioDeContrasena,
+  } = useElCambioDeContrasena({
+    alRecibirUsuario: (usuario) => { writeAuthUser(usuario); setCurrentUser(usuario); },
   });
-  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
-  const [changePasswordError, setChangePasswordError] = useState("");
-  const [changePasswordSuccess, setChangePasswordSuccess] = useState("");
   const [userDashboardPage, setUserDashboardPage] = useState("home");
   /* Los cinco del registro viven en `useLosConsentimientosDelRegistro`, con la
      regla de que quitar el legal quita los otros cuatro y con las siete fechas
@@ -2740,69 +2747,9 @@ export default function App() {
     setAuthError,
     setAuthLoading,
     setPendingPlanCheckoutId,
-    setShowChangePasswordForm,
-    setChangePasswordForm,
-    setChangePasswordError,
-    setChangePasswordSuccess,
-    setChangePasswordLoading,
+    olvidaElCambioDeContrasena,
     setAuthForm,
   });
-
-  const submitChangePassword = useCallback(async (event) => {
-    event?.preventDefault?.();
-
-    const currentPassword = String(changePasswordForm.currentPassword || "");
-    const newPassword = String(changePasswordForm.newPassword || "");
-    const confirmPassword = String(changePasswordForm.confirmPassword || "");
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      setChangePasswordError("Completa los tres campos de contraseña.");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setChangePasswordError("La nueva contraseña debe tener al menos 6 caracteres.");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setChangePasswordError("La confirmación no coincide con la nueva contraseña.");
-      return;
-    }
-
-    if (newPassword === currentPassword) {
-      setChangePasswordError("La nueva contraseña no puede ser igual a la actual.");
-      return;
-    }
-
-    setChangePasswordLoading(true);
-    setChangePasswordError("");
-    setChangePasswordSuccess("");
-
-    try {
-      const { data } = await postAuthJson({
-        action: "change_password",
-        currentPassword,
-        newPassword,
-      });
-
-      if (data?.user?.email) {
-        writeAuthUser(data.user);
-        setCurrentUser(data.user);
-      }
-
-      setChangePasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setShowChangePasswordForm(false);
-      setChangePasswordSuccess(data?.message || "Contraseña actualizada correctamente.");
-      if (typeof window !== "undefined") {
-        window.setTimeout(() => setChangePasswordSuccess(""), 2600);
-      }
-    } catch (error) {
-      setChangePasswordError(error?.message || "No se pudo actualizar la contraseña.");
-    } finally {
-      setChangePasswordLoading(false);
-    }
-  }, [changePasswordForm]);
 
   const submitAuthForm = useCallback(async (event) => {
     event?.preventDefault?.();
@@ -5192,11 +5139,7 @@ export default function App() {
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gris-50)" }}>Seguridad de cuenta</div>
                     <button
                       type="button"
-                      onClick={() => {
-                        setShowChangePasswordForm((prev) => !prev);
-                        setChangePasswordError("");
-                        setChangePasswordSuccess("");
-                      }}
+                      onClick={alternaElCambio}
                       style={{
                         background: "rgba(255,196,0,0.1)",
                         border: "1px solid rgba(207,207,200,0.18)",
@@ -5208,49 +5151,49 @@ export default function App() {
                         cursor: "pointer",
                       }}
                     >
-                      {showChangePasswordForm ? "Cancelar" : "Cambiar contraseña"}
+                      {cambioAbierto ? "Cancelar" : "Cambiar contraseña"}
                     </button>
                   </div>
 
-                  {changePasswordSuccess && (
+                  {cambioHecho && (
                     <div style={{ fontSize: 11, color: "#86efac", fontWeight: 700, marginBottom: 8 }}>
-                      {changePasswordSuccess}
+                      {cambioHecho}
                     </div>
                   )}
 
-                  {showChangePasswordForm ? (
+                  {cambioAbierto ? (
                     <form onSubmit={submitChangePassword} style={{ display: "grid", gap: 8 }}>
                       <input
                         type="password"
-                        value={changePasswordForm.currentPassword}
-                        onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))}
+                        value={cambioFormulario.currentPassword}
+                        onChange={(event) => escribeEnElCambio("currentPassword", event.target.value)}
                         placeholder="Contraseña actual"
                         style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
-                        value={changePasswordForm.newPassword}
-                        onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))}
+                        value={cambioFormulario.newPassword}
+                        onChange={(event) => escribeEnElCambio("newPassword", event.target.value)}
                         placeholder="Nueva contraseña (mínimo 6 caracteres)"
                         style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
                       <input
                         type="password"
-                        value={changePasswordForm.confirmPassword}
-                        onChange={(event) => setChangePasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                        value={cambioFormulario.confirmPassword}
+                        onChange={(event) => escribeEnElCambio("confirmPassword", event.target.value)}
                         placeholder="Confirmar nueva contraseña"
                         style={{ background: "var(--gris-900)", color: "var(--gris-50)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, padding: "9px 11px", fontSize: 12 }}
                       />
 
-                      {changePasswordError && (
+                      {cambioFallo && (
                         <div style={{ fontSize: 11, color: "#fca5a5", fontWeight: 700 }}>
-                          {changePasswordError}
+                          {cambioFallo}
                         </div>
                       )}
 
                       <button
                         type="submit"
-                        disabled={changePasswordLoading}
+                        disabled={cambioGuardando}
                         style={{
                           justifySelf: "start",
                           background: "linear-gradient(135deg,var(--gris-700),var(--gris-900))",
@@ -5260,11 +5203,11 @@ export default function App() {
                           padding: "8px 12px",
                           fontSize: 12,
                           fontWeight: 700,
-                          cursor: changePasswordLoading ? "progress" : "pointer",
-                          opacity: changePasswordLoading ? 0.78 : 1,
+                          cursor: cambioGuardando ? "progress" : "pointer",
+                          opacity: cambioGuardando ? 0.78 : 1,
                         }}
                       >
-                        {changePasswordLoading ? "Guardando..." : "Guardar contraseña"}
+                        {cambioGuardando ? "Guardando..." : "Guardar contraseña"}
                       </button>
                     </form>
                   ) : (

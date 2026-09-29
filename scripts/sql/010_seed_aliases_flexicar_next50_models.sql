@@ -32,7 +32,7 @@ VALUES
   ('Omoda', 'Suv', 'Suv', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=autoscout24
   ('Opel', 'Astra GTC', 'Astra GTC', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=autohero
   ('Opel', 'Meriva', 'Meriva', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=autohero
-  ('Peugeot', '3008 HÃ­brido Enchufable', '3008 HÃ­brido Enchufable', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=flexicar
+  ('Peugeot', '3008 Híbrido Enchufable', '3008 Híbrido Enchufable', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=flexicar
   ('Peugeot', 'ion', 'ion', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=flexicar
   ('Polestar', '2', '2', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=flexicar
   ('Porsche', 'Boxster', 'Boxster', 'auto-flexicar-candidate-010', TRUE), -- offers=1; portals=flexicar

@@ -13,12 +13,11 @@ import ResolvedOfferImage from "./components/offers/ResolvedOfferImage";
 import CampanaAvisos from "./components/CampanaAvisos";
 import {
   createInitialDecisionAnswers,
-  createInitialSellAnswers,
   useAdvisorController,
 } from "./hooks/useAdvisorController";
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
-import { useDecisionResetState, useSellResetState } from "./hooks/useDecisionSellResets";
+import { useDecisionResetState } from "./hooks/useDecisionSellResets";
 import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
@@ -32,6 +31,7 @@ import { useAuthSessionReset } from "./hooks/useAuthSessionReset";
 import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useCitaDeServicio } from "./hooks/useCitaDeServicio";
+import { useElFlujoDeVenta } from "./hooks/useElFlujoDeVenta";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1708,7 +1708,19 @@ export default function App() {
     olvidaElBorrador,
   } = useCitaDeServicio();
   const [advisorContext, setAdvisorContext] = useState(null); // null | "buy" | "renting"
-  const [sellFlowType, setSellFlowType] = useState(""); // "certificate" | "report" | ""
+  const {
+    sellFlowType, setSellFlowType,
+    sellAnswers, setSellAnswers,
+    sellAiResult, setSellAiResult,
+    sellLoading, setSellLoading,
+    sellError, setSellError,
+    sellListingResult, setSellListingResult,
+    sellListingLoading, setSellListingLoading,
+    sellListingError, setSellListingError,
+    sellMarketSnapshot, setSellMarketSnapshot,
+    sellMarketSnapshotLoading, setSellMarketSnapshotLoading,
+    sellMarketSnapshotError, setSellMarketSnapshotError,
+  } = useElFlujoDeVenta();
   const [step, setStep] = useState(-1);
   const [answers, setAnswers] = useState({ perfil: "particular" });
   const [multiSelected, setMultiSelected] = useState([]);
@@ -1721,7 +1733,6 @@ export default function App() {
   const [error, setError] = useState(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
   const [decisionAnswers, setDecisionAnswers] = useState(createInitialDecisionAnswers);
-  const [sellAnswers, setSellAnswers] = useState(createInitialSellAnswers);
   const [selectedValuationVehicleSummary, setSelectedValuationVehicleSummary] = useState(null);
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
@@ -1778,15 +1789,6 @@ export default function App() {
   const [decisionMarketRefreshNonce, setDecisionMarketRefreshNonce] = useState(0);
   const [decisionMarketExcludeUrls, setDecisionMarketExcludeUrls] = useState([]);
   const [decisionMarketExcludeTitles, setDecisionMarketExcludeTitles] = useState([]);
-  const [sellAiResult, setSellAiResult] = useState(null);
-  const [sellLoading, setSellLoading] = useState(false);
-  const [sellError, setSellError] = useState(null);
-  const [sellListingResult, setSellListingResult] = useState(null);
-  const [sellListingLoading, setSellListingLoading] = useState(false);
-  const [sellListingError, setSellListingError] = useState(null);
-  const [sellMarketSnapshot, setSellMarketSnapshot] = useState(null);
-  const [sellMarketSnapshotLoading, setSellMarketSnapshotLoading] = useState(false);
-  const [sellMarketSnapshotError, setSellMarketSnapshotError] = useState("");
   const [savedComparisons, setSavedComparisons] = useState([]);
   /* Los seis del panel viven en `useUserMobilitySync`, que es quien los trae. */
   // Cuántas veces hay que volver a pedir los datos del usuario. Se sube al
@@ -2646,17 +2648,8 @@ export default function App() {
     setDecisionListingLoading,
   });
 
-  useSellResetState({
-    sellAnswers,
-    setSellAiResult,
-    setSellError,
-    setSellListingResult,
-    setSellListingError,
-    setSellListingLoading,
-    setSellMarketSnapshot,
-    setSellMarketSnapshotError,
-    setSellMarketSnapshotLoading,
-  });
+  /* La regla «si cambian las respuestas, los resultados dejan de valer» vive
+     ahora dentro de `useElFlujoDeVenta`, con el estado que gobierna. */
 
   const resetListingDiscovery = useCallback(() => {
     setListingFilters({ company: "", budget: "", income: "", location: "", priceRange: "", minPrice: null, maxPrice: null });
@@ -2754,7 +2747,7 @@ export default function App() {
     setSellAnswers((prev) => ({ ...prev, sellerType: particular ? "particular" : "profesional" }));
     setEntryMode("sell");
     setStep(-1);
-  }, [isUserLoggedIn, openAuthDialog]);
+  }, [isUserLoggedIn, openAuthDialog, setSellAnswers, setSellFlowType]);
 
   /**
    * Las columnas del pie.
@@ -4569,7 +4562,7 @@ export default function App() {
     setSelectedIdCarVehicleId("");
     setSelectedIdCarOpenEditor(false);
     restartBase();
-  }, [restartBase]);
+  }, [restartBase, setSellFlowType]);
 
   const resolveCatalogModelsByBrand = useCallback(
     (rawBrand) => {

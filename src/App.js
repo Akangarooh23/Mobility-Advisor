@@ -17,7 +17,6 @@ import {
 } from "./hooks/useAdvisorController";
 import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
-import { useDecisionResetState } from "./hooks/useDecisionSellResets";
 import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useListingDiscoveryMemory } from "./hooks/useListingDiscoveryMemory";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
@@ -32,6 +31,7 @@ import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useAppPreferences } from "./hooks/useAppPreferences";
 import { useCitaDeServicio } from "./hooks/useCitaDeServicio";
 import { useElFlujoDeVenta } from "./hooks/useElFlujoDeVenta";
+import { useElConsejero } from "./hooks/useElConsejero";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1732,7 +1732,22 @@ export default function App() {
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [error, setError] = useState(null);
   const [apiKeyMissing, setApiKeyMissing] = useState(false);
-  const [decisionAnswers, setDecisionAnswers] = useState(createInitialDecisionAnswers);
+  const {
+    decisionAnswers, setDecisionAnswers,
+    decisionAiResult, setDecisionAiResult,
+    decisionLoading, setDecisionLoading,
+    decisionError, setDecisionError,
+    decisionListingResult, setDecisionListingResult,
+    decisionListingLoading, setDecisionListingLoading,
+    decisionListingError, setDecisionListingError,
+    decisionMarketListings, setDecisionMarketListings,
+    decisionMarketLoading, setDecisionMarketLoading,
+    decisionMarketError, setDecisionMarketError,
+    decisionMarketInsight, setDecisionMarketInsight,
+    decisionMarketRefreshNonce, setDecisionMarketRefreshNonce,
+    decisionMarketExcludeUrls, setDecisionMarketExcludeUrls,
+    decisionMarketExcludeTitles, setDecisionMarketExcludeTitles,
+  } = useElConsejero();
   const [selectedValuationVehicleSummary, setSelectedValuationVehicleSummary] = useState(null);
   const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
@@ -1776,19 +1791,6 @@ export default function App() {
   // Lo que cuenta la busqueda cuando salen menos ofertas de las esperadas.
   const [listingInsight, setListingInsight] = useState(null);
   const [quickValidationAnswers, setQuickValidationAnswers] = useState({});
-  const [decisionAiResult, setDecisionAiResult] = useState(null);
-  const [decisionLoading, setDecisionLoading] = useState(false);
-  const [decisionError, setDecisionError] = useState(null);
-  const [decisionListingResult, setDecisionListingResult] = useState(null);
-  const [decisionListingLoading, setDecisionListingLoading] = useState(false);
-  const [decisionListingError, setDecisionListingError] = useState(null);
-  const [decisionMarketListings, setDecisionMarketListings] = useState([]);
-  const [decisionMarketLoading, setDecisionMarketLoading] = useState(false);
-  const [decisionMarketError, setDecisionMarketError] = useState(null);
-  const [decisionMarketInsight, setDecisionMarketInsight] = useState(null);
-  const [decisionMarketRefreshNonce, setDecisionMarketRefreshNonce] = useState(0);
-  const [decisionMarketExcludeUrls, setDecisionMarketExcludeUrls] = useState([]);
-  const [decisionMarketExcludeTitles, setDecisionMarketExcludeTitles] = useState([]);
   const [savedComparisons, setSavedComparisons] = useState([]);
   /* Los seis del panel viven en `useUserMobilitySync`, que es quien los trae. */
   // Cuántas veces hay que volver a pedir los datos del usuario. Se sube al
@@ -2639,14 +2641,8 @@ export default function App() {
     setQuestionnaireDraft,
   });
 
-  useDecisionResetState({
-    decisionAnswers,
-    setDecisionAiResult,
-    setDecisionError,
-    setDecisionListingResult,
-    setDecisionListingError,
-    setDecisionListingLoading,
-  });
+  /* La regla «si cambian las respuestas, lo calculado se tira» vive ahora
+     dentro de `useElConsejero`, con el estado que gobierna. */
 
   /* La regla «si cambian las respuestas, los resultados dejan de valer» vive
      ahora dentro de `useElFlujoDeVenta`, con el estado que gobierna. */
@@ -4142,13 +4138,22 @@ export default function App() {
       isMounted = false;
       window.clearTimeout(timeoutId);
     };
-  }, [decisionAiResult, decisionAnswers, decisionMarketRefreshNonce, decisionMarketExcludeUrls, decisionMarketExcludeTitles]);
+  }, [
+    decisionAiResult, decisionAnswers, decisionMarketRefreshNonce,
+    decisionMarketExcludeUrls, decisionMarketExcludeTitles,
+    // Los `set...` vienen de `useElConsejero`. Son estables -salen de
+    // `useState`- pero ESLint no puede saberlo a traves de un hook propio, y
+    // callarle el aviso cuesta mas que enumerarlos.
+    setDecisionMarketError, setDecisionMarketExcludeTitles, setDecisionMarketExcludeUrls,
+    setDecisionMarketInsight, setDecisionMarketListings, setDecisionMarketLoading,
+    setDecisionMarketRefreshNonce,
+  ]);
 
   const recalculateDecisionMarketOffers = useCallback(() => {
     setDecisionMarketExcludeUrls([]);
     setDecisionMarketExcludeTitles([]);
     setDecisionMarketRefreshNonce(Date.now());
-  }, []);
+  }, [setDecisionMarketExcludeTitles, setDecisionMarketExcludeUrls, setDecisionMarketRefreshNonce]);
 
   const searchSellComparableListing = async () => {
     if (!(sellAnswers.brand && sellAnswers.model)) {

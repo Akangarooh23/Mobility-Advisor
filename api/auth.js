@@ -9,10 +9,6 @@ const { aplicaCors } = require("../lib/cors");
 const FRENO = require("../lib/freno");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
-function getMssqlModule() {
-  return require("mssql");
-}
-
 // Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL â€” map it early
 if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
   process.env.POSTGRES_URL = process.env.DATABASE_URL;
@@ -587,22 +583,44 @@ function runSecurityMaintenance() {
   cleanupBackoffBucket(resetConfirmIpBackoff);
 }
 
-let mssqlPoolPromise = null;
 let _pgPool = null;
 
 function getPgPool() {
   return elPoolObligatorio();
 }
 
+/** Los nombres que ya no llevan a ninguna parte. */
+const PROVEEDORES_RETIRADOS = new Set([
+  "mssql", "sqlserver", "sqlcmd-windows", "windows", "mssql-windows",
+]);
+
+/**
+ * Con qué base trabaja el login: `postgres` o `local`.
+ *
+ * ── Por qué un aviso y no un silencio ─────────────────────────────────────
+ *
+ * Aquí había dos proveedores más, `mssql` y `sqlcmd-windows`, con su código
+ * detrás: unas seiscientas líneas que hablaban con SQL Server. Se han quitado
+ * porque no podían ejecutarse —no hay SQL Server en ninguna parte, `sqlcmd` no
+ * existe en el PATH ni en Vercel, y los usuarios llevan tiempo en Postgres—.
+ *
+ * Lo que no se podía dejar es que `AUTH_PROVIDER=mssql` siguiera colándose.
+ * Devolvería un proveedor que ya no atiende nadie, `usePostgres` sería falso y
+ * el login acabaría leyendo el fichero JSON de usuarios de desarrollo: nadie
+ * podría entrar y no habría ni un error que lo explicara.
+ *
+ * Así que si alguien lo pone, se dice en voz alta y se sigue por Postgres, que
+ * es donde están los usuarios de verdad.
+ */
 function getAuthProvider() {
   const provider = normalizeText(process.env.AUTH_PROVIDER).toLowerCase();
 
-  if (["mssql", "sqlserver"].includes(provider)) {
-    return "mssql";
-  }
-
-  if (["sqlcmd-windows", "windows", "mssql-windows"].includes(provider)) {
-    return "sqlcmd-windows";
+  if (PROVEEDORES_RETIRADOS.has(provider)) {
+    console.warn(
+      `[auth] AUTH_PROVIDER=${provider} ya no existe: el login solo habla con ` +
+        "Postgres. Se usa Postgres. Quita esa variable o ponla a 'postgres'."
+    );
+    return "postgres";
   }
 
   if (["postgres", "postgresql", "neon", "vercel-postgres"].includes(provider)) {
@@ -613,471 +631,23 @@ function getAuthProvider() {
     return "postgres";
   }
 
-  if (normalizeText(process.env.MSSQL_SERVER)) {
-    return "mssql";
-  }
-
   return "local";
-}
-
-function shouldUseMssql() {
-  return getAuthProvider() === "mssql";
-}
-
-function shouldUseSqlcmdWindows() {
-  return getAuthProvider() === "sqlcmd-windows";
 }
 
 function shouldUsePostgres() {
   return getAuthProvider() === "postgres";
 }
 
-function getMssqlConfig() {
-  const server = normalizeText(process.env.MSSQL_SERVER);
-  const database = normalizeText(process.env.MSSQL_DATABASE);
-  const user = normalizeText(process.env.MSSQL_USER);
-  const password = normalizeText(process.env.MSSQL_PASSWORD);
-
-  if (!server || !database || !user || !password) {
-    throw new Error("Falta configurar MSSQL_SERVER, MSSQL_DATABASE, MSSQL_USER o MSSQL_PASSWORD.");
-  }
-
-  const port = Number(process.env.MSSQL_PORT || 1433);
-  const encrypt = String(process.env.MSSQL_ENCRYPT || "true").toLowerCase() !== "false";
-  const trustServerCertificate = String(process.env.MSSQL_TRUST_SERVER_CERTIFICATE || "true").toLowerCase() !== "false";
-
-  return {
-    server,
-    database,
-    user,
-    password,
-    port: Number.isFinite(port) ? port : 1433,
-    options: {
-      encrypt,
-      trustServerCertificate,
-    },
-    pool: {
-      max: 5,
-      min: 0,
-      idleTimeoutMillis: 30000,
-    },
-  };
-}
-
-async function getMssqlPool() {
-  if (!mssqlPoolPromise) {
-    const sql = getMssqlModule();
-    mssqlPoolPromise = sql.connect(getMssqlConfig());
-  }
-
-  return mssqlPoolPromise;
-}
-
-async function ensureMssqlSchema() {
-  const pool = await getMssqlPool();
-
-  await pool.request().query(`
-    IF OBJECT_ID(N'dbo.MoveAdvisorUsers', N'U') IS NULL
-    BEGIN
-      CREATE TABLE dbo.MoveAdvisorUsers (
-        Id NVARCHAR(64) NOT NULL PRIMARY KEY,
-        Name NVARCHAR(120) NOT NULL,
-        Email NVARCHAR(255) NOT NULL UNIQUE,
-        PasswordSalt NVARCHAR(64) NOT NULL,
-        PasswordHash NVARCHAR(200) NOT NULL,
-        CreatedAt DATETIME2 NOT NULL,
-        LastLoginAt DATETIME2 NOT NULL
-      );
-
-      CREATE UNIQUE INDEX IX_MoveAdvisorUsers_Email ON dbo.MoveAdvisorUsers (Email);
-    END
-
-    IF OBJECT_ID(N'dbo.MoveAdvisorSessions', N'U') IS NULL
-    BEGIN
-      CREATE TABLE dbo.MoveAdvisorSessions (
-        Id NVARCHAR(64) NOT NULL PRIMARY KEY,
-        UserId NVARCHAR(64) NOT NULL,
-        TokenHash NVARCHAR(200) NOT NULL,
-        CreatedAt DATETIME2 NOT NULL,
-        ExpiresAt DATETIME2 NOT NULL,
-        LastSeenAt DATETIME2 NOT NULL,
-        UserAgent NVARCHAR(255) NULL
-      );
-
-      CREATE INDEX IX_MoveAdvisorSessions_UserId ON dbo.MoveAdvisorSessions (UserId);
-      CREATE INDEX IX_MoveAdvisorSessions_ExpiresAt ON dbo.MoveAdvisorSessions (ExpiresAt);
-    END
-  `);
-}
-
-async function findUserByEmailMssql(email) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-  const result = await pool
-    .request()
-    .input("email", sql.NVarChar(255), email)
-    .query(`
-      SELECT TOP 1 Id, Name, Email, PasswordSalt, PasswordHash, CreatedAt, LastLoginAt
-      FROM dbo.MoveAdvisorUsers
-      WHERE Email = @email
-    `);
-
-  return result.recordset?.[0] || null;
-}
-
-async function createUserMssql(user) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-
-  await pool
-    .request()
-    .input("id", sql.NVarChar(64), user.id)
-    .input("name", sql.NVarChar(120), user.name)
-    .input("email", sql.NVarChar(255), user.email)
-    .input("passwordSalt", sql.NVarChar(64), user.passwordSalt)
-    .input("passwordHash", sql.NVarChar(200), user.passwordHash)
-    .input("createdAt", sql.DateTime2, new Date(user.createdAt))
-    .input("lastLoginAt", sql.DateTime2, new Date(user.lastLoginAt))
-    .query(`
-      INSERT INTO dbo.MoveAdvisorUsers (Id, Name, Email, PasswordSalt, PasswordHash, CreatedAt, LastLoginAt)
-      VALUES (@id, @name, @email, @passwordSalt, @passwordHash, @createdAt, @lastLoginAt)
-    `);
-
-  return findUserByEmailMssql(user.email);
-}
-
-async function findUserByIdMssql(id) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-  const result = await pool
-    .request()
-    .input("id", sql.NVarChar(64), id)
-    .query(`
-      SELECT TOP 1 Id, Name, Email, PasswordSalt, PasswordHash, CreatedAt, LastLoginAt
-      FROM dbo.MoveAdvisorUsers
-      WHERE Id = @id
-    `);
-
-  return result.recordset?.[0] || null;
-}
-
-async function updateLastLoginMssql(id) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-  const now = new Date();
-
-  await pool
-    .request()
-    .input("id", sql.NVarChar(64), id)
-    .input("lastLoginAt", sql.DateTime2, now)
-    .query(`
-      UPDATE dbo.MoveAdvisorUsers
-      SET LastLoginAt = @lastLoginAt
-      WHERE Id = @id
-    `);
-
-  return now.toISOString();
-}
-
-async function createSessionMssql(session) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-
-  await pool
-    .request()
-    .input("id", sql.NVarChar(64), session.id)
-    .input("userId", sql.NVarChar(64), session.userId)
-    .input("tokenHash", sql.NVarChar(200), session.tokenHash)
-    .input("createdAt", sql.DateTime2, new Date(session.createdAt))
-    .input("expiresAt", sql.DateTime2, new Date(session.expiresAt))
-    .input("lastSeenAt", sql.DateTime2, new Date(session.lastSeenAt))
-    .input("userAgent", sql.NVarChar(255), session.userAgent || null)
-    .query(`
-      INSERT INTO dbo.MoveAdvisorSessions (Id, UserId, TokenHash, CreatedAt, ExpiresAt, LastSeenAt, UserAgent)
-      VALUES (@id, @userId, @tokenHash, @createdAt, @expiresAt, @lastSeenAt, @userAgent)
-    `);
-}
-
-async function findSessionByIdMssql(id) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-  const result = await pool
-    .request()
-    .input("id", sql.NVarChar(64), id)
-    .query(`
-      SELECT TOP 1 Id, UserId, TokenHash, CreatedAt, ExpiresAt, LastSeenAt, UserAgent
-      FROM dbo.MoveAdvisorSessions
-      WHERE Id = @id
-    `);
-
-  return result.recordset?.[0] || null;
-}
-
-async function updateSessionLastSeenMssql(id) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-  const now = new Date();
-
-  await pool
-    .request()
-    .input("id", sql.NVarChar(64), id)
-    .input("lastSeenAt", sql.DateTime2, now)
-    .query(`
-      UPDATE dbo.MoveAdvisorSessions
-      SET LastSeenAt = @lastSeenAt
-      WHERE Id = @id
-    `);
-}
-
-async function deleteSessionByIdMssql(id) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-
-  await pool
-    .request()
-    .input("id", sql.NVarChar(64), id)
-    .query("DELETE FROM dbo.MoveAdvisorSessions WHERE Id = @id");
-}
-
-async function deleteExpiredSessionsMssql() {
-  await ensureMssqlSchema();
-  const pool = await getMssqlPool();
-
-  await pool.request().query(`
-    DELETE FROM dbo.MoveAdvisorSessions
-    WHERE ExpiresAt <= SYSUTCDATETIME()
-  `);
-}
-
-function escapeSqlValue(value) {
-  return String(value || "").replace(/'/g, "''");
-}
-
-function getSqlcmdPath() {
-  return normalizeText(process.env.SQLCMD_PATH) || "sqlcmd";
-}
-
-function getSqlcmdConnectionArgs(database) {
-  const server = normalizeText(process.env.MSSQL_SERVER) || "localhost\\SQLEXPRESS";
-  const dbName = normalizeText(database) || normalizeText(process.env.MSSQL_DATABASE) || "Mobilityadvisor";
-
-  return ["-S", server, "-d", dbName, "-E", "-b", "-y", "0"];
-}
-
-function runSqlcmd(query, { database } = {}) {
-  const args = [...getSqlcmdConnectionArgs(database), "-Q", query];
-
-  try {
-    return execFileSync(getSqlcmdPath(), args, { encoding: "utf8" });
-  } catch (error) {
-    const stderr = normalizeText(error?.stderr || "");
-    const stdout = normalizeText(error?.stdout || "");
-    throw new Error(stderr || stdout || "Error ejecutando sqlcmd con autenticaciÃ³n de Windows.");
-  }
-}
-
-function parseSqlcmdJsonOutput(rawOutput = "") {
-  const output = String(rawOutput || "");
-  const firstJsonChar = output.search(/[\[{]/);
-
-  if (firstJsonChar === -1) {
-    return null;
-  }
-
-  const jsonStart = output[firstJsonChar];
-  const jsonEnd = jsonStart === "[" ? "]" : "}";
-  const lastJsonChar = output.lastIndexOf(jsonEnd);
-
-  if (lastJsonChar === -1 || lastJsonChar < firstJsonChar) {
-    return null;
-  }
-
-  const jsonChunk = output.slice(firstJsonChar, lastJsonChar + 1).trim();
-
-  try {
-    return JSON.parse(jsonChunk);
-  } catch {
-    return null;
-  }
-}
-
-function ensureSqlcmdSchema() {
-  runSqlcmd(`
-    IF OBJECT_ID(N'dbo.MoveAdvisorUsers', N'U') IS NULL
-    BEGIN
-      CREATE TABLE dbo.MoveAdvisorUsers (
-        Id NVARCHAR(64) NOT NULL PRIMARY KEY,
-        Name NVARCHAR(120) NOT NULL,
-        Email NVARCHAR(255) NOT NULL UNIQUE,
-        PasswordSalt NVARCHAR(64) NOT NULL,
-        PasswordHash NVARCHAR(200) NOT NULL,
-        CreatedAt DATETIME2 NOT NULL,
-        LastLoginAt DATETIME2 NOT NULL
-      );
-
-      CREATE UNIQUE INDEX IX_MoveAdvisorUsers_Email ON dbo.MoveAdvisorUsers (Email);
-    END
-
-    IF OBJECT_ID(N'dbo.MoveAdvisorSessions', N'U') IS NULL
-    BEGIN
-      CREATE TABLE dbo.MoveAdvisorSessions (
-        Id NVARCHAR(64) NOT NULL PRIMARY KEY,
-        UserId NVARCHAR(64) NOT NULL,
-        TokenHash NVARCHAR(200) NOT NULL,
-        CreatedAt DATETIME2 NOT NULL,
-        ExpiresAt DATETIME2 NOT NULL,
-        LastSeenAt DATETIME2 NOT NULL,
-        UserAgent NVARCHAR(255) NULL
-      );
-
-      CREATE INDEX IX_MoveAdvisorSessions_UserId ON dbo.MoveAdvisorSessions (UserId);
-      CREATE INDEX IX_MoveAdvisorSessions_ExpiresAt ON dbo.MoveAdvisorSessions (ExpiresAt);
-    END
-  `);
-}
-
-function findUserByEmailSqlcmd(email) {
-  ensureSqlcmdSchema();
-  const safeEmail = escapeSqlValue(email);
-  const output = runSqlcmd(`
-    SELECT TOP 1
-      Id AS id,
-      Name AS name,
-      Email AS email,
-      PasswordSalt AS passwordSalt,
-      PasswordHash AS passwordHash,
-      CreatedAt AS createdAt,
-      LastLoginAt AS lastLoginAt
-    FROM dbo.MoveAdvisorUsers
-    WHERE Email = N'${safeEmail}'
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
-  `);
-
-  return parseSqlcmdJsonOutput(output);
-}
-
-function createUserSqlcmd(user) {
-  ensureSqlcmdSchema();
-
-  runSqlcmd(`
-    INSERT INTO dbo.MoveAdvisorUsers (Id, Name, Email, PasswordSalt, PasswordHash, CreatedAt, LastLoginAt)
-    VALUES (
-      N'${escapeSqlValue(user.id)}',
-      N'${escapeSqlValue(user.name)}',
-      N'${escapeSqlValue(user.email)}',
-      N'${escapeSqlValue(user.passwordSalt)}',
-      N'${escapeSqlValue(user.passwordHash)}',
-      '${escapeSqlValue(user.createdAt)}',
-      '${escapeSqlValue(user.lastLoginAt)}'
-    );
-  `);
-
-  return findUserByEmailSqlcmd(user.email) || user;
-}
-
-function findUserByIdSqlcmd(id) {
-  ensureSqlcmdSchema();
-  const output = runSqlcmd(`
-    SELECT TOP 1
-      Id AS id,
-      Name AS name,
-      Email AS email,
-      PasswordSalt AS passwordSalt,
-      PasswordHash AS passwordHash,
-      CreatedAt AS createdAt,
-      LastLoginAt AS lastLoginAt
-    FROM dbo.MoveAdvisorUsers
-    WHERE Id = N'${escapeSqlValue(id)}'
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
-  `);
-
-  return parseSqlcmdJsonOutput(output);
-}
-
-function updateLastLoginSqlcmd(id) {
-  ensureSqlcmdSchema();
-  const now = new Date().toISOString();
-
-  runSqlcmd(`
-    UPDATE dbo.MoveAdvisorUsers
-    SET LastLoginAt = '${escapeSqlValue(now)}'
-    WHERE Id = N'${escapeSqlValue(id)}';
-  `);
-
-  return now;
-}
-
-function createSessionSqlcmd(session) {
-  ensureSqlcmdSchema();
-
-  runSqlcmd(`
-    INSERT INTO dbo.MoveAdvisorSessions (Id, UserId, TokenHash, CreatedAt, ExpiresAt, LastSeenAt, UserAgent)
-    VALUES (
-      N'${escapeSqlValue(session.id)}',
-      N'${escapeSqlValue(session.userId)}',
-      N'${escapeSqlValue(session.tokenHash)}',
-      '${escapeSqlValue(session.createdAt)}',
-      '${escapeSqlValue(session.expiresAt)}',
-      '${escapeSqlValue(session.lastSeenAt)}',
-      ${session.userAgent ? `N'${escapeSqlValue(session.userAgent)}'` : "NULL"}
-    );
-  `);
-}
-
-function findSessionByIdSqlcmd(id) {
-  ensureSqlcmdSchema();
-  const output = runSqlcmd(`
-    SELECT TOP 1
-      Id AS id,
-      UserId AS userId,
-      TokenHash AS tokenHash,
-      CreatedAt AS createdAt,
-      ExpiresAt AS expiresAt,
-      LastSeenAt AS lastSeenAt,
-      UserAgent AS userAgent
-    FROM dbo.MoveAdvisorSessions
-    WHERE Id = N'${escapeSqlValue(id)}'
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
-  `);
-
-  return parseSqlcmdJsonOutput(output);
-}
-
-function updateSessionLastSeenSqlcmd(id) {
-  ensureSqlcmdSchema();
-
-  runSqlcmd(`
-    UPDATE dbo.MoveAdvisorSessions
-    SET LastSeenAt = '${escapeSqlValue(new Date().toISOString())}'
-    WHERE Id = N'${escapeSqlValue(id)}';
-  `);
-}
-
-function deleteSessionByIdSqlcmd(id) {
-  ensureSqlcmdSchema();
-
-  runSqlcmd(`
-    DELETE FROM dbo.MoveAdvisorSessions
-    WHERE Id = N'${escapeSqlValue(id)}';
-  `);
-}
-
-function deleteExpiredSessionsSqlcmd() {
-  ensureSqlcmdSchema();
-
-  runSqlcmd(`
-    DELETE FROM dbo.MoveAdvisorSessions
-    WHERE ExpiresAt <= SYSUTCDATETIME();
-  `);
-}
+/*
+ * Aquí estaba `escapeSqlValue`, que era esto:
+ *
+ *     String(value || "").replace(/'/g, "''")
+ *
+ * Escapar comillas a mano para pegar el valor dentro del SQL. Se ha quedado
+ * sin usar al irse el camino de SQL Server, y se va con él: lo que queda
+ * manda los valores como parámetros, que es lo que hace que no haga falta
+ * escapar nada.
+ */
 
 // â”€â”€â”€ PostgreSQL (Neon / Vercel Postgres) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -1367,44 +937,6 @@ function buildPasswordResetSession({ userId, tokenHash }) {
   };
 }
 
-async function findValidResetMssql({ userId, tokenHash }) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-  const result = await pool
-    .request()
-    .input("userId", sql.NVarChar(64), userId)
-    .input("tokenHash", sql.NVarChar(200), tokenHash)
-    .query(`
-      SELECT TOP 1 Id
-      FROM dbo.MoveAdvisorSessions
-      WHERE UserId = @userId
-        AND TokenHash = @tokenHash
-        AND UserAgent = N'RESET'
-        AND ExpiresAt > SYSUTCDATETIME()
-      ORDER BY CreatedAt DESC
-    `);
-
-  return normalizeText(result.recordset?.[0]?.Id || "");
-}
-
-function findValidResetSqlcmd({ userId, tokenHash }) {
-  ensureSqlcmdSchema();
-  const output = runSqlcmd(`
-    SELECT TOP 1 Id AS id
-    FROM dbo.MoveAdvisorSessions
-    WHERE UserId = N'${escapeSqlValue(userId)}'
-      AND TokenHash = N'${escapeSqlValue(tokenHash)}'
-      AND UserAgent = N'RESET'
-      AND ExpiresAt > SYSUTCDATETIME()
-    ORDER BY CreatedAt DESC
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER;
-  `);
-
-  const parsed = parseSqlcmdJsonOutput(output);
-  return normalizeText(parsed?.id);
-}
-
 function findValidResetLocal({ userId, tokenHash }) {
   const nowMs = Date.now();
   const db = readSessionsDb();
@@ -1423,38 +955,6 @@ function findValidResetLocal({ userId, tokenHash }) {
   return normalizeText(match?.id);
 }
 
-async function updateUserPasswordMssql({ userId, passwordSalt, passwordHash }) {
-  await ensureMssqlSchema();
-  const sql = getMssqlModule();
-  const pool = await getMssqlPool();
-
-  await pool
-    .request()
-    .input("userId", sql.NVarChar(64), userId)
-    .input("passwordSalt", sql.NVarChar(64), passwordSalt)
-    .input("passwordHash", sql.NVarChar(200), passwordHash)
-    .input("lastLoginAt", sql.DateTime2, new Date())
-    .query(`
-      UPDATE dbo.MoveAdvisorUsers
-      SET PasswordSalt = @passwordSalt,
-          PasswordHash = @passwordHash,
-          LastLoginAt = @lastLoginAt
-      WHERE Id = @userId
-    `);
-}
-
-function updateUserPasswordSqlcmd({ userId, passwordSalt, passwordHash }) {
-  ensureSqlcmdSchema();
-
-  runSqlcmd(`
-    UPDATE dbo.MoveAdvisorUsers
-    SET PasswordSalt = N'${escapeSqlValue(passwordSalt)}',
-        PasswordHash = N'${escapeSqlValue(passwordHash)}',
-        LastLoginAt = SYSUTCDATETIME()
-    WHERE Id = N'${escapeSqlValue(userId)}';
-  `);
-}
-
 function updateUserPasswordLocal({ userId, passwordSalt, passwordHash }) {
   const db = readUsersDb();
   const idx = db.users.findIndex((item) => normalizeText(item?.id) === normalizeText(userId));
@@ -1470,7 +970,7 @@ function updateUserPasswordLocal({ userId, passwordSalt, passwordHash }) {
   }
 }
 
-async function createSessionForUser({ req, res, user, useMssql, useSqlcmdWindows, usePostgres }) {
+async function createSessionForUser({ req, res, user, usePostgres }) {
   const previousSession = parseSessionCookieFromRequest(req);
 
   if (previousSession?.sessionId) {
@@ -1533,18 +1033,14 @@ function laSesionQueSeDevuelve(req, session) {
   };
 }
 
-async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres }) {
+async function resolveSessionUser({ req, usePostgres }) {
   const parsedSession = parseSessionCookieFromRequest(req);
 
   if (!parsedSession) {
     return null;
   }
 
-  const sessionRecord = useMssql
-    ? await findSessionByIdMssql(parsedSession.sessionId)
-    : useSqlcmdWindows
-    ? findSessionByIdSqlcmd(parsedSession.sessionId)
-    : usePostgres
+  const sessionRecord = usePostgres
     ? await findSessionByIdPostgres(parsedSession.sessionId)
     : findSessionByIdLocal(parsedSession.sessionId);
 
@@ -1575,11 +1071,7 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres
     return null;
   }
 
-  const foundUser = useMssql
-    ? await findUserByIdMssql(session.userId)
-    : useSqlcmdWindows
-    ? findUserByIdSqlcmd(session.userId)
-    : usePostgres
+  const foundUser = usePostgres
     ? await findUserByIdPostgres(session.userId)
     : findUserByIdLocal(session.userId);
 
@@ -1601,7 +1093,7 @@ async function resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres
   };
 }
 
-async function cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres }) {
+async function cleanupExpiredSessions({ usePostgres }) {
   if (!shouldRunSessionCleanup()) {
     return;
   }
@@ -1633,14 +1125,12 @@ async function authHandler(req, res) {
 }
 
 async function _authHandlerInner(req, res) {
-  const useMssql = shouldUseMssql();
-  const useSqlcmdWindows = shouldUseSqlcmdWindows();
   const usePostgres = shouldUsePostgres();
-  const db = useMssql || useSqlcmdWindows || usePostgres ? null : readUsersDb();
+  const db = usePostgres ? null : readUsersDb();
 
   runSecurityMaintenance();
   try {
-    await cleanupExpiredSessions({ useMssql, useSqlcmdWindows, usePostgres });
+    await cleanupExpiredSessions({ usePostgres });
   } catch (err) {
     // Non-blocking maintenance: do not fail auth bootstrap when cleanup cannot run.
     console.error("[MoveAdvisor] session cleanup failed:", err);
@@ -1656,7 +1146,7 @@ async function _authHandlerInner(req, res) {
 
     let sessionPayload = null;
     try {
-      sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+      sessionPayload = await resolveSessionUser({ req, usePostgres });
     } catch (err) {
       console.error("[MoveAdvisor] resolveSessionUser failed:", err);
       clearSessionCookie(res);
@@ -1870,7 +1360,7 @@ async function _authHandlerInner(req, res) {
       return res.status(400).json({ error: "La nueva contraseÃ±a no puede ser igual a la anterior." });
     }
 
-    const sessionPayload = await resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+    const sessionPayload = await resolveSessionUser({ req, usePostgres });
     if (!sessionPayload?.user?.id) {
       clearSessionCookie(res);
       return res.status(401).json({ error: "Tu sesiÃ³n ha caducado. Inicia sesiÃ³n de nuevo." });
@@ -1892,11 +1382,7 @@ async function _authHandlerInner(req, res) {
       updateUserPasswordLocal({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
     }
 
-    const refreshedUser = useMssql
-      ? await findUserByIdMssql(sessionUser.id)
-      : useSqlcmdWindows
-      ? findUserByIdSqlcmd(sessionUser.id)
-      : usePostgres
+    const refreshedUser = usePostgres
       ? await findUserByIdPostgres(sessionUser.id)
       : findUserByIdLocal(sessionUser.id);
     const normalizedUser = mapDbUser(refreshedUser || sessionUser);
@@ -1905,8 +1391,6 @@ async function _authHandlerInner(req, res) {
       req,
       res,
       user: normalizedUser,
-      useMssql,
-      useSqlcmdWindows,
       usePostgres,
     });
 
@@ -2003,11 +1487,7 @@ async function _authHandlerInner(req, res) {
       });
     }
 
-    const foundUser = useMssql
-      ? await findUserByEmailMssql(email)
-      : useSqlcmdWindows
-      ? findUserByEmailSqlcmd(email)
-      : usePostgres
+    const foundUser = usePostgres
       ? await findUserByEmailPostgres(email)
       : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
 
@@ -2106,11 +1586,7 @@ async function _authHandlerInner(req, res) {
       return res.status(400).json({ error: "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
     }
 
-    const foundUser = useMssql
-      ? await findUserByEmailMssql(email)
-      : useSqlcmdWindows
-      ? findUserByEmailSqlcmd(email)
-      : usePostgres
+    const foundUser = usePostgres
       ? await findUserByEmailPostgres(email)
       : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
 
@@ -2126,11 +1602,7 @@ async function _authHandlerInner(req, res) {
 
     const user = mapDbUser(foundUser);
     const resetTokenHash = hashSessionToken(resetCode);
-    const resetSessionId = useMssql
-      ? await findValidResetMssql({ userId: user.id, tokenHash: resetTokenHash })
-      : useSqlcmdWindows
-      ? findValidResetSqlcmd({ userId: user.id, tokenHash: resetTokenHash })
-      : usePostgres
+    const resetSessionId = usePostgres
       ? await findValidResetPostgres({ userId: user.id, tokenHash: resetTokenHash })
       : findValidResetLocal({ userId: user.id, tokenHash: resetTokenHash });
 
@@ -2155,11 +1627,7 @@ async function _authHandlerInner(req, res) {
       deleteSessionByIdLocal(resetSessionId);
     }
 
-    const refreshedUser = useMssql
-      ? await findUserByIdMssql(user.id)
-      : useSqlcmdWindows
-      ? findUserByIdSqlcmd(user.id)
-      : usePostgres
+    const refreshedUser = usePostgres
       ? await findUserByIdPostgres(user.id)
       : findUserByIdLocal(user.id);
     const normalizedUser = mapDbUser(refreshedUser || user);
@@ -2168,8 +1636,6 @@ async function _authHandlerInner(req, res) {
       req,
       res,
       user: normalizedUser,
-      useMssql,
-      useSqlcmdWindows,
       usePostgres,
     });
 
@@ -2205,11 +1671,7 @@ async function _authHandlerInner(req, res) {
       return res.status(400).json({ error: "La contraseÃ±a debe tener al menos 6 caracteres." });
     }
 
-    const existingUser = useMssql
-      ? await findUserByEmailMssql(email)
-      : useSqlcmdWindows
-      ? findUserByEmailSqlcmd(email)
-      : usePostgres
+    const existingUser = usePostgres
       ? await findUserByEmailPostgres(email)
       : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
     if (existingUser) {
@@ -2249,11 +1711,7 @@ async function _authHandlerInner(req, res) {
       language,
     };
 
-    const savedUser = useMssql
-      ? await createUserMssql(user)
-      : useSqlcmdWindows
-      ? createUserSqlcmd(user)
-      : usePostgres
+    const savedUser = usePostgres
       ? await createUserPostgres(user)
       : (() => {
           db.users.unshift(user);
@@ -2266,8 +1724,6 @@ async function _authHandlerInner(req, res) {
       req,
       res,
       user: normalizedSavedUser,
-      useMssql,
-      useSqlcmdWindows,
       usePostgres,
     });
 
@@ -2312,11 +1768,7 @@ async function _authHandlerInner(req, res) {
       });
     }
 
-    const foundUser = useMssql
-      ? await findUserByEmailMssql(email)
-      : useSqlcmdWindows
-      ? findUserByEmailSqlcmd(email)
-      : usePostgres
+    const foundUser = usePostgres
       ? await findUserByEmailPostgres(email)
       : db.users.find((item) => normalizeText(item?.email).toLowerCase() === email);
 
@@ -2348,11 +1800,7 @@ async function _authHandlerInner(req, res) {
     // nadie frenado después de entrar bien.
     await FRENO.suelta(frenoPool, "login", email);
 
-    const now = useMssql
-      ? await updateLastLoginMssql(user.id)
-      : useSqlcmdWindows
-      ? updateLastLoginSqlcmd(user.id)
-      : usePostgres
+    const now = usePostgres
       ? await updateLastLoginPostgres(user.id)
       : (() => {
           const nowValue = new Date().toISOString();
@@ -2378,8 +1826,6 @@ async function _authHandlerInner(req, res) {
       req,
       res,
       user: loggedUser,
-      useMssql,
-      useSqlcmdWindows,
       usePostgres,
     });
 
@@ -2408,11 +1854,9 @@ authHandler.isSecurityStatusEnabled = function isSecurityStatusEnabled() {
 };
 
 authHandler.getSessionUserFromRequest = async function getSessionUserFromRequest(req) {
-  const useMssql = shouldUseMssql();
-  const useSqlcmdWindows = shouldUseSqlcmdWindows();
   const usePostgres = shouldUsePostgres();
 
-  return resolveSessionUser({ req, useMssql, useSqlcmdWindows, usePostgres });
+  return resolveSessionUser({ req, usePostgres });
 };
 
 module.exports = authHandler;

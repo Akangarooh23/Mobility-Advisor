@@ -19,6 +19,7 @@ import { useAppBootstrap } from "./hooks/useAppBootstrap";
 import { useDashboardNavigation } from "./hooks/useDashboardNavigation";
 import { useListingBootstrap } from "./hooks/useListingBootstrap";
 import { useLaBusquedaDeOfertas } from "./hooks/useLaBusquedaDeOfertas";
+import { useElMercadoVo, MARKETPLACE_PAGE_SIZE } from "./hooks/useElMercadoVo";
 import { useListingQuickValidationRefresh } from "./hooks/useListingQuickValidationRefresh";
 import { useQuestionnaireDraftPersistence } from "./hooks/useQuestionnaireDraftPersistence";
 import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisualSync";
@@ -62,7 +63,6 @@ import {
 } from "./utils/advisorResults";
 import {
   deleteUserAlertJson,
-  getMarketplaceVoJson,
   getSellMarketSnapshotJson,
   postAlertEmailDigestJson,
   postAppointmentAddJson,
@@ -1750,10 +1750,29 @@ export default function App() {
     decisionMarketExcludeTitles, setDecisionMarketExcludeTitles,
   } = useElConsejero();
   const [selectedValuationVehicleSummary, setSelectedValuationVehicleSummary] = useState(null);
-  const [portalVoFilters, setPortalVoFilters] = useState({ ...INITIAL_PORTAL_VO_FILTERS });
+  /*
+   * Quien esta mirando. Vive aqui arriba, y no con el resto de la sesion, porque
+   * `useElMercadoVo` lo necesita para decir quien ve el catalogo.
+   */
+  const [currentUser, setCurrentUser] = useState(null);
+  /* Los nueve del mercado de VO viven en `useElMercadoVo`, con la funcion que
+     pide una pagina y los tres efectos que la piden. */
+  const {
+    portalVoFilters, setPortalVoFilters,
+    portalVoModalityMode,
+    portalVoOffersLive, setPortalVoOffersLive,
+    marketplaceVoPage,
+    marketplaceVoTotal,
+    marketplaceVoLoading,
+    marketplaceVoUnavailable,
+    reservedVoUrls,
+    reservedMarketplaceIds,
+    goToMarketplacePage,
+    handleMarketplaceModalityChange,
+    empiezaSinFiltros,
+    metePorDelante,
+  } = useElMercadoVo({ entryMode, currentUser });
   const [selectedPortalVoOfferId, setSelectedPortalVoOfferId] = useState(null);
-  const [reservedVoUrls, setReservedVoUrls] = useState(new Set());
-  const [reservedMarketplaceIds, setReservedMarketplaceIds] = useState(new Set());
   const [vehicleDetailOffer, setVehicleDetailOffer] = useState(null);
   const [vehicleDetailBackTarget, setVehicleDetailBackTarget] = useState("decision");
   /* Los siete de la busqueda de ofertas viven en `useLaBusquedaDeOfertas`,
@@ -1800,17 +1819,7 @@ export default function App() {
   const recargaMovilidad = useCallback(() => setRefrescosMovilidad((n) => n + 1), []);
   const [marketAlerts, setMarketAlerts] = useState([]);
   const [marketAlertStatus, setMarketAlertStatus] = useState({});
-  // Infinite scroll state for marketplace offers
-  const [portalVoOffersLive, setPortalVoOffersLive] = useState([]);
-  const [marketplaceVoPage, setMarketplaceVoPage] = useState(0);
   const [marketplaceInitialTab, setMarketplaceInitialTab] = useState("concesionarios");
-  const [marketplaceVoTotal, setMarketplaceVoTotal] = useState(0);
-  const [marketplaceVoLoading, setMarketplaceVoLoading] = useState(false);
-  // "No hay ofertas" y "no he podido cargarlas" son cosas distintas y hasta
-  // ahora se pintaban igual: lista vacía. Con la base caída, la web invitaba a
-  // crear una alerta para coches que sí existían.
-  const [marketplaceVoUnavailable, setMarketplaceVoUnavailable] = useState(false);
-  const [portalVoModalityMode, setPortalVoModalityMode] = useState("compra");
   const { marketBrandsCatalog, matchedModelsByBrand, marketCatalogSource } = useMarketCatalog(portalVoOffersLive);
   const [questionnaireDraft, setQuestionnaireDraft] = useState(null);
   const [saveFeedback, setSaveFeedback] = useState("");
@@ -1832,7 +1841,8 @@ export default function App() {
   const [authRequired, setAuthRequired] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  /* `currentUser` se declara mas arriba: `useElMercadoVo` lo necesita para
+     decir quien esta mirando el catalogo. */
   const [authDialogMode, setAuthDialogMode] = useState("");
   const [authRecoveryMode, setAuthRecoveryMode] = useState("none");
   const [authRecoveryCode, setAuthRecoveryCode] = useState("");
@@ -2296,10 +2306,7 @@ export default function App() {
                 window.history.replaceState(window.history.state, "", `/marketplace-vo/${encodeURIComponent(offer.id)}${window.location.search}`);
               } catch {}
             }
-            setPortalVoOffersLive((prev) => {
-              const exists = prev.some((o) => o.id === offer.id);
-              return exists ? prev : [offer, ...prev];
-            });
+            metePorDelante(offer);
             setSelectedPortalVoOfferId(offer.id);
             setEntryMode("portalVoDetail");
             setStep(-1);
@@ -2310,7 +2317,7 @@ export default function App() {
               .then((d) => {
                 const imp = d?.offer;
                 if (d?.ok && imp?.id) {
-                  setPortalVoOffersLive((prev) => prev.some((o) => o.id === imp.id) ? prev : [imp, ...prev]);
+                  metePorDelante(imp);
                   setSelectedPortalVoOfferId(imp.id);
                   setEntryMode("portalVoDetail");
                   setStep(-1);
@@ -2375,7 +2382,7 @@ export default function App() {
     applyRouteFromPath();
     window.addEventListener("popstate", applyRouteFromPath);
     return () => window.removeEventListener("popstate", applyRouteFromPath);
-  }, [portalVoOffersLive, syncBrowserPath]);
+  }, [portalVoOffersLive, syncBrowserPath, metePorDelante]);
 
   useEffect(() => {
     if (typeof document === "undefined" || typeof window === "undefined") {
@@ -2435,88 +2442,6 @@ export default function App() {
   const currentStep = activeSteps[step];
   const totalSteps = activeSteps.length;
   const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
-
-  // Infinite scroll: fetch offers page by page
-  const MARKETPLACE_PAGE_SIZE = 15;
-  const fetchMarketplaceVoPage = useCallback(async (page = 0, filters = portalVoFilters, modality = portalVoModalityMode) => {
-    setMarketplaceVoLoading(true);
-    try {
-      const offset = page * MARKETPLACE_PAGE_SIZE;
-      const params = { offset, limit: MARKETPLACE_PAGE_SIZE, ...filters, modalityMode: modality, exclude_seller_type: 'concesionario,importador' };
-      const { data } = await getMarketplaceVoJson(params);
-      const apiOffers = Array.isArray(data?.offers) ? data.offers : [];
-      const source = String(data?.source || "").toLowerCase();
-      const isDedicatedSource = source === "postgres-marketplace-table";
-      if (isDedicatedSource) {
-        setPortalVoOffersLive(apiOffers);
-        setMarketplaceVoTotal(Number(data?.totalUniverse || apiOffers.length));
-        setMarketplaceVoUnavailable(false);
-      } else if (page === 0) {
-        setPortalVoOffersLive([]);
-        setMarketplaceVoTotal(0);
-        // Llegar aquí ya significaba que algo había fallado — el `source` no
-        // era el bueno — pero se pintaba igual que una búsqueda sin resultados.
-        setMarketplaceVoUnavailable(true);
-      }
-    } catch {
-      if (page === 0) {
-        setPortalVoOffersLive([]);
-        setMarketplaceVoTotal(0);
-        setMarketplaceVoUnavailable(true);
-      }
-    } finally {
-      setMarketplaceVoLoading(false);
-    }
-  }, [portalVoFilters, portalVoModalityMode]);
-
-  // Reset to page 0 and fetch on filter change or entry
-  useEffect(() => {
-    if (entryMode === "portalVo") {
-      setMarketplaceVoPage(0);
-      fetchMarketplaceVoPage(0, portalVoFilters);
-      trackFunnelEvent({
-        event_type: "marketplace_view",
-        user_id:    currentUser?.id    || null,
-        user_email: currentUser?.email || null,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entryMode, portalVoFilters]);
-
-  // Fetch reserved marketplace VO URLs when entering the marketplace or a detail page
-  useEffect(() => {
-    if (entryMode !== "portalVo" && entryMode !== "portalVoDetail") return;
-    fetch(rutaApi("/api/leads?reserved=1"))
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.ok) {
-          if (Array.isArray(d.reservedUrls)) setReservedVoUrls(new Set(d.reservedUrls));
-          if (Array.isArray(d.reservedMarketplaceIds)) setReservedMarketplaceIds(new Set(d.reservedMarketplaceIds));
-        }
-      })
-      .catch(() => {});
-  }, [entryMode]);
-
-  // Refetch when the user returns to the marketplace tab (e.g. after editing in ERP)
-  useEffect(() => {
-    if (entryMode !== "portalVo") return;
-    const onFocus = () => fetchMarketplaceVoPage(marketplaceVoPage, portalVoFilters);
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [entryMode, marketplaceVoPage, portalVoFilters, fetchMarketplaceVoPage]);
-
-  const goToMarketplacePage = useCallback((page) => {
-    if (marketplaceVoLoading) return;
-    setMarketplaceVoPage(page);
-    fetchMarketplaceVoPage(page, portalVoFilters, portalVoModalityMode);
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [marketplaceVoLoading, fetchMarketplaceVoPage, portalVoFilters, portalVoModalityMode]);
-
-  const handleMarketplaceModalityChange = useCallback((newModality) => {
-    setPortalVoModalityMode(newModality);
-    setMarketplaceVoPage(0);
-    fetchMarketplaceVoPage(0, portalVoFilters, newModality);
-  }, [fetchMarketplaceVoPage, portalVoFilters]);
 
   const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
     marketAlerts,
@@ -3440,7 +3365,9 @@ export default function App() {
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [syncBrowserPath]);
+    // `setPortalVoFilters` viene de `useElMercadoVo`. Es estable -sale de
+    // `useState`- pero ESLint no puede saberlo a traves de un hook propio.
+  }, [syncBrowserPath, setPortalVoFilters]);
 
   const getSavedComparisonHref = useCallback(
     (item) =>
@@ -6450,7 +6377,7 @@ export default function App() {
             }
             setEntryMode("portalVo");
             setStep(-1);
-            setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS });
+            empiezaSinFiltros();
           }}
           onOpenPlans={() => {
             if (typeof window !== "undefined") {
@@ -7287,7 +7214,7 @@ export default function App() {
           portalVoBrands={portalVoBrands}
           portalVoModels={portalVoModels}
           onUpdateBrandFilter={(brand) => setPortalVoFilters((prev) => ({ ...prev, brand, model: "" }))}
-          onResetFilters={() => setPortalVoFilters({ ...INITIAL_PORTAL_VO_FILTERS })}
+          onResetFilters={empiezaSinFiltros}
           onCreateAlert={createMarketAlert}
           featuredPortalVoOffers={featuredPortalVoOffers}
           filteredPortalVoOffers={filteredPortalVoOffers}

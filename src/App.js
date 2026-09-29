@@ -34,6 +34,7 @@ import { useCitaDeServicio } from "./hooks/useCitaDeServicio";
 import { useElFlujoDeVenta } from "./hooks/useElFlujoDeVenta";
 import { useElConsejero } from "./hooks/useElConsejero";
 import { useRevisionDeConsentimientos } from "./hooks/useRevisionDeConsentimientos";
+import { useLosConsentimientosDelRegistro } from "./hooks/useLosConsentimientosDelRegistro";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1863,11 +1864,19 @@ export default function App() {
   const [changePasswordError, setChangePasswordError] = useState("");
   const [changePasswordSuccess, setChangePasswordSuccess] = useState("");
   const [userDashboardPage, setUserDashboardPage] = useState("home");
-  const [consentLegal, setConsentLegal] = useState(false);
-  const [consentMarketingEmail, setConsentMarketingEmail] = useState(false);
-  const [consentMarketingSms, setConsentMarketingSms] = useState(false);
-  const [consentThirdPartyEmail, setConsentThirdPartyEmail] = useState(false);
-  const [consentThirdPartySms, setConsentThirdPartySms] = useState(false);
+  /* Los cinco del registro viven en `useLosConsentimientosDelRegistro`, con la
+     regla de que quitar el legal quita los otros cuatro y con las siete fechas
+     que salen de los cinco sies. */
+  const {
+    elegido: consentimientos,
+    estanLosCinco,
+    alterna: alternaConsentimientoDelRegistro,
+    alternaLosCinco,
+    sellos: sellosDelConsentimiento,
+    empiezaSinNada,
+    aceptaLasCondiciones,
+    aceptaPublicidad,
+  } = useLosConsentimientosDelRegistro();
   const {
     abierta: revisionAbierta,
     abre: abreLaRevision,
@@ -2918,7 +2927,7 @@ export default function App() {
 
     const mode = authDialogMode === "register" ? "register" : "login";
 
-    if (showCookieGate && mode === "register" && !consentLegal) {
+    if (showCookieGate && mode === "register" && !aceptaLasCondiciones) {
       setAuthError("Debes aceptar las Condiciones Generales y la Política de Privacidad para continuar.");
       return;
     }
@@ -2935,14 +2944,8 @@ export default function App() {
     };
 
     if (mode === "register") {
-      const now = new Date().toISOString();
-      if (consentLegal)            payload.consentLegalAt            = now;
-      if (consentMarketingEmail)   payload.consentMarketingEmailAt   = now;
-      if (consentMarketingSms)     payload.consentMarketingSmsAt     = now;
-      if (consentThirdPartyEmail)  payload.consentThirdPartyEmailAt  = now;
-      if (consentThirdPartySms)    payload.consentThirdPartySmsAt    = now;
-      if (consentMarketingEmail || consentMarketingSms) payload.consentMarketingAt = now;
-      if (consentThirdPartyEmail || consentThirdPartySms) payload.consentExperianAt = now;
+      // Una fecha por cada si, mas las dos agregadas que lee el ERP.
+      Object.assign(payload, sellosDelConsentimiento());
       try {
         const stored = window.localStorage.getItem("ma.landing");
         if (stored) {
@@ -3043,12 +3046,8 @@ export default function App() {
       setAuthTargetEntryMode("");
       setAuthForm({ name: "", email: nextUser.email, password: "" });
       if (showCookieGate && mode === "register") {
-        saveCookieConsent((consentMarketingEmail || consentMarketingSms) ? "all" : "necessary");
-        setConsentLegal(false);
-        setConsentMarketingEmail(false);
-        setConsentMarketingSms(false);
-        setConsentThirdPartyEmail(false);
-        setConsentThirdPartySms(false);
+        saveCookieConsent(aceptaPublicidad ? "all" : "necessary");
+        empiezaSinNada();
       }
       // Show consent review modal for users who haven't accepted T&C (never reviewed or previously rejected)
       if (mode === "login" && !nextUser.consentLegalAt) {
@@ -3090,12 +3089,12 @@ export default function App() {
     authRecoveryMode,
     authTargetEntryMode,
     authTargetPage,
-    consentLegal,
     clientType,
-    consentMarketingEmail,
-    consentMarketingSms,
-    consentThirdPartyEmail,
-    consentThirdPartySms,
+    // Salen de `useLosConsentimientosDelRegistro`. Eran cinco estados sueltos.
+    aceptaLasCondiciones,
+    aceptaPublicidad,
+    empiezaSinNada,
+    sellosDelConsentimiento,
     entryMode,
     pendingPlanCheckoutId,
     saveCookieConsent,
@@ -5756,24 +5755,17 @@ export default function App() {
                   {/* Master toggle */}
                   <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
                     <div
-                      onClick={() => {
-                        const allOn = consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms;
-                        setConsentLegal(!allOn);
-                        setConsentMarketingEmail(!allOn);
-                        setConsentMarketingSms(!allOn);
-                        setConsentThirdPartyEmail(!allOn);
-                        setConsentThirdPartySms(!allOn);
-                      }}
+                      onClick={alternaLosCinco}
                       style={{
                         width: 36, height: 20, borderRadius: 999, flexShrink: 0, cursor: "pointer",
-                        background: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? "var(--marca)" : "var(--gris-300)",
+                        background: estanLosCinco ? "var(--marca)" : "var(--gris-300)",
                         position: "relative", transition: "background 0.2s",
                       }}
                     >
                       <div style={{
                         width: 14, height: 14, borderRadius: "50%", background: "#fff",
                         position: "absolute", top: 3,
-                        left: consentLegal && consentMarketingEmail && consentMarketingSms && consentThirdPartyEmail && consentThirdPartySms ? 19 : 3,
+                        left: estanLosCinco ? 19 : 3,
                         transition: "left 0.2s",
                       }} />
                     </div>
@@ -5786,14 +5778,8 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentLegal}
-                      onChange={(e) => {
-                        setConsentLegal(e.target.checked);
-                        if (!e.target.checked) {
-                          setConsentMarketingEmail(false); setConsentMarketingSms(false);
-                          setConsentThirdPartyEmail(false); setConsentThirdPartySms(false);
-                        }
-                      }}
+                      checked={consentimientos.legal}
+                      onChange={() => alternaConsentimientoDelRegistro("legal")}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-600)", lineHeight: 1.6 }}>
@@ -5816,8 +5802,8 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentMarketingEmail}
-                      onChange={(e) => setConsentMarketingEmail(e.target.checked)}
+                      checked={consentimientos.marketingEmail}
+                      onChange={() => alternaConsentimientoDelRegistro("marketingEmail")}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
@@ -5834,8 +5820,8 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentMarketingSms}
-                      onChange={(e) => setConsentMarketingSms(e.target.checked)}
+                      checked={consentimientos.marketingSms}
+                      onChange={() => alternaConsentimientoDelRegistro("marketingSms")}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
@@ -5852,8 +5838,8 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentThirdPartyEmail}
-                      onChange={(e) => setConsentThirdPartyEmail(e.target.checked)}
+                      checked={consentimientos.thirdPartyEmail}
+                      onChange={() => alternaConsentimientoDelRegistro("thirdPartyEmail")}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>
@@ -5875,8 +5861,8 @@ export default function App() {
                   <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", paddingLeft: 4 }}>
                     <input
                       type="checkbox"
-                      checked={consentThirdPartySms}
-                      onChange={(e) => setConsentThirdPartySms(e.target.checked)}
+                      checked={consentimientos.thirdPartySms}
+                      onChange={() => alternaConsentimientoDelRegistro("thirdPartySms")}
                       style={{ marginTop: 3, accentColor: "var(--marca)", width: 14, height: 14, flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, color: "var(--gris-500)", lineHeight: 1.6 }}>

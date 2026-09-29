@@ -1,0 +1,32 @@
+-- El desplegable de provincias, con 53 entradas en vez de 3.520.
+--
+-- `mmo_facetas` alimentaba el desplegable desde `o.province`, que es lo que
+-- escribe cada portal: 3.520 valores para 52 provincias. «MADRID» y «Madrid»
+-- eran dos opciones distintas, «LAS ROZAS» y «PATERNA» aparecían como si
+-- fueran provincias, y «Coruña, A» estaba en la C.
+--
+-- La vista pasa a leer `o.provincia`, la columna normalizada que escribe
+-- scripts/normaliza-provincias.js. Ver migrations/0010 y lib/las-provincias.js.
+--
+-- ── Por qué un DROP y no un CREATE OR REPLACE ──────────────────────────────
+--
+-- Postgres no admite CREATE OR REPLACE sobre una vista materializada, y
+-- lib/facetas-del-buscador.js la crea con CREATE MATERIALIZED VIEW IF NOT
+-- EXISTS: mientras exista, cambiar el fichero no cambia nada. Hay que tirarla
+-- para que `prepara()` la vuelva a crear con la definición nueva.
+--
+-- ── Qué pasa entre el DROP y el refresco ───────────────────────────────────
+--
+-- Los desplegables se quedan vacíos. No es grave -el buscador sigue
+-- funcionando, solo que sin sugerencias- pero conviene no dejarlo así:
+-- después de aplicar esto hay que lanzar
+--
+--     npm run refresca-facetas
+--
+-- o esperar a la tarea programada, que las rehace cada hora.
+--
+-- El índice único se va con la vista y lo vuelve a crear `prepara()`. Hace
+-- falta: sin él, el refresco CONCURRENTLY no es posible, y sin CONCURRENTLY la
+-- vista se bloquea durante los tres minutos que tarda en rehacerse.
+
+DROP MATERIALIZED VIEW IF EXISTS mmo_facetas;

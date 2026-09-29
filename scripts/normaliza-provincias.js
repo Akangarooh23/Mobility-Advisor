@@ -67,15 +67,15 @@
 const fs = require("fs");
 const path = require("path");
 const { Client } = require("pg");
-const { laProvincia, PROVINCIAS } = require("../lib/las-provincias");
+const { laProvincia, PROVINCIAS, SIN_ESPECIFICAR } = require("../lib/las-provincias");
 
 const RAIZ = path.join(__dirname, "..");
 const env = fs.readFileSync(path.join(RAIZ, ".env.local"), "utf8");
 const DB_URL = (env.match(/^DATABASE_URL=(.*)$/m) || [])[1].trim().replace(/^["']|["']$/g, "");
 const APLICA = process.argv.includes("--aplica");
 
-/** Lo que se escribe cuando se ha mirado y no se puede saber. Ver la cabecera. */
-const GENERICO = "Sin especificar";
+/** Lo que se escribe cuando se ha mirado y no se puede saber. Definido en la librería. */
+const GENERICO = SIN_ESPECIFICAR;
 
 /** Las columnas que se miran, en orden. `location` no está a propósito. */
 const CAPAS = ["province", "city"];

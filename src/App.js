@@ -1825,8 +1825,6 @@ export default function App() {
   const [sesionComprobada, setSesionComprobada] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
-  const [showHeaderPlansNav, setShowHeaderPlansNav] = useState(false);
-  const [showHeaderMoreNav, setShowHeaderMoreNav] = useState(false);
   const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [authDialogMode, setAuthDialogMode] = useState("");
@@ -1960,8 +1958,6 @@ export default function App() {
   }, []);
 
   const openPublicPage = useCallback((nextEntryMode = null, historyMode = "push") => {
-    setShowHeaderPlansNav(false);
-    setShowHeaderMoreNav(false);
     setShowHeaderMobileNav(false);
     setEntryMode(nextEntryMode);
     setStep(-1);
@@ -1974,8 +1970,6 @@ export default function App() {
 
   const openInternalLandingFlow = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
-    setShowHeaderPlansNav(false);
-    setShowHeaderMoreNav(false);
     setShowAuthMenu(false);
     setShowUserPanel(false);
     setEntryMode(nextEntryMode);
@@ -1989,22 +1983,16 @@ export default function App() {
 
   const goToPublicHeaderPage = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
-    setShowHeaderPlansNav(false);
-    setShowHeaderMoreNav(false);
     openPublicPage(nextEntryMode);
   }, [openPublicPage]);
 
   const goToHomeHeaderPage = useCallback(() => {
     setShowHeaderMobileNav(false);
-    setShowHeaderPlansNav(false);
-    setShowHeaderMoreNav(false);
     openPublicPage(null);
   }, [openPublicPage]);
 
   const goToAboutHeaderPage = useCallback(() => {
     setShowHeaderMobileNav(false);
-    setShowHeaderPlansNav(false);
-    setShowHeaderMoreNav(false);
     openPublicPage("aboutCarswise");
   }, [openPublicPage]);
 
@@ -2014,8 +2002,6 @@ export default function App() {
     }
 
     setShowHeaderMobileNav(false);
-    setShowHeaderPlansNav(false);
-    setShowHeaderMoreNav(false);
     openPublicPage("plans");
   }, [openPublicPage]);
 
@@ -2122,29 +2108,9 @@ export default function App() {
     },
   ], [goToHomeHeaderPage, openInternalLandingFlow, openPublicPage, openPlansSection, uiLanguage]);
 
-  const headerPlansNavItems = useMemo(() => [
-    {
-      key: "plans-overview",
-      label: uiLanguage === "en" ? "Plans overview" : "Resumen de planes",
-      onClick: () => openPlansSection("planes"),
-    },
-    {
-      key: "plans-services",
-      label: uiLanguage === "en" ? "Services" : "Servicios",
-      onClick: () => openPlansSection("premium"),
-    },
-    {
-      key: "plans-compare",
-      label: uiLanguage === "en" ? "Compare" : "Comparar",
-      onClick: () => openPlansSection("comparar"),
-    },
-    {
-      key: "plans-faq",
-      label: "FAQ",
-      onClick: () => openPlansSection("faq"),
-    },
-  ], [openPlansSection, uiLanguage]);
-
+  /* Aquí estaba `headerPlansNavItems`, las cinco secciones del desplegable de
+     «Planes». Ese desplegable no se podía abrir: ningún elemento de la
+     cabecera lo abría, así que su condición era siempre falsa. Se fue con él. */
   const headerMoreNavItems = useMemo(() => [
     {
       key: "about",
@@ -5077,117 +5043,11 @@ export default function App() {
                   <div key={item.key} style={{ position: "relative" }}>
                     <button
                       type="button"
-                      className={`cw-header-nav-link${isActive || showHeaderPlansNav ? " is-active" : ""}`}
+                      className={`cw-header-nav-link${isActive ? " is-active" : ""}`}
                       onClick={item.onClick}
-                      aria-haspopup="menu"
-                      aria-expanded={showHeaderPlansNav}
                     >
                       {item.label}
                     </button>
-
-                    {showHeaderPlansNav && (
-                      <div
-                        role="menu"
-                        aria-label="Secciones de planes"
-                        style={{
-                          position: "absolute",
-                          top: "calc(100% + 8px)",
-                          right: 0,
-                          minWidth: 210,
-                          background: "rgba(255,255,255,0.98)",
-                          border: "1px solid rgba(150,150,143,0.34)",
-                          borderRadius: 12,
-                          boxShadow: "0 12px 30px rgba(17,17,17,0.16)",
-                          padding: 8,
-                          zIndex: 140,
-                          display: "grid",
-                          gap: 6,
-                        }}
-                      >
-                        {headerPlansNavItems.map((plansItem) => (
-                          <button
-                            key={plansItem.key}
-                            type="button"
-                            role="menuitem"
-                            onClick={plansItem.onClick}
-                            style={{
-                              width: "100%",
-                              textAlign: "left",
-                              border: "1px solid rgba(150,150,143,0.28)",
-                              borderRadius: 10,
-                              background: "var(--blanco)",
-                              color: "var(--gris-900)",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              padding: "8px 10px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {plansItem.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              if (item.key === "more") {
-                return (
-                  <div key={item.key} style={{ position: "relative" }}>
-                    <button
-                      type="button"
-                      className={`cw-header-nav-link${isActive || showHeaderMoreNav ? " is-active" : ""}`}
-                      onClick={item.onClick}
-                      aria-haspopup="menu"
-                      aria-expanded={showHeaderMoreNav}
-                    >
-                      {item.label}
-                    </button>
-
-                    {showHeaderMoreNav && (
-                      <div
-                        role="menu"
-                        aria-label="Mas opciones"
-                        style={{
-                          position: "absolute",
-                          top: "calc(100% + 8px)",
-                          right: 0,
-                          minWidth: 190,
-                          background: "rgba(255,255,255,0.98)",
-                          border: "1px solid rgba(150,150,143,0.34)",
-                          borderRadius: 12,
-                          boxShadow: "0 12px 30px rgba(17,17,17,0.16)",
-                          padding: 8,
-                          zIndex: 140,
-                          display: "grid",
-                          gap: 6,
-                        }}
-                      >
-                        {headerMoreNavItems.map((moreItem) => (
-                          <button
-                            key={moreItem.key}
-                            type="button"
-                            role="menuitem"
-                            onClick={moreItem.onClick}
-                            style={{
-                              width: "100%",
-                              textAlign: "left",
-                              border: "1px solid rgba(150,150,143,0.28)",
-                              borderRadius: 10,
-                              background: "var(--blanco)",
-                              color: "var(--gris-900)",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              padding: "8px 10px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            {moreItem.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 );
               }
@@ -5700,7 +5560,6 @@ export default function App() {
             type="button"
             className="cw-header-mobile-toggle"
             onClick={() => {
-              setShowHeaderMoreNav(false);
               setShowHeaderMobileNav((prev) => !prev);
             }}
             aria-expanded={showHeaderMobileNav}

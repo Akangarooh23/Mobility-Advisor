@@ -36,6 +36,7 @@ import { useElConsejero } from "./hooks/useElConsejero";
 import { useRevisionDeConsentimientos } from "./hooks/useRevisionDeConsentimientos";
 import { useLosConsentimientosDelRegistro } from "./hooks/useLosConsentimientosDelRegistro";
 import { useElCambioDeContrasena } from "./hooks/useElCambioDeContrasena";
+import { useLaRecuperacionDeLaCuenta } from "./hooks/useLaRecuperacionDeLaCuenta";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1497,6 +1498,23 @@ function readMarketplaceVoIdFromPath(pathname = "") {
   try { return decodeURIComponent(segment); } catch { return segment; }
 }
 
+/*
+ * El formulario de acceso vacio, con SUS SEIS CLAVES.
+ *
+ * Estaba escrito de tres maneras distintas: seis claves al arrancar, cinco al
+ * terminar de recuperar la contrasena y tres al entrar o al salir. Las que
+ * faltan quedan en `undefined`, y un `value={undefined}` convierte un campo
+ * controlado en no controlado a mitad de vida.
+ */
+export const FORMULARIO_DE_ACCESO_VACIO = {
+  name: "",
+  apellidos: "",
+  phone: "",
+  email: "",
+  password: "",
+  company_name: "",
+};
+
 function getPublicPathForEntryMode(entryMode = "") {
   return PUBLIC_ROUTE_BY_ENTRY_MODE[entryMode] || "/";
 }
@@ -1846,12 +1864,21 @@ export default function App() {
   /* `currentUser` se declara mas arriba: `useElMercadoVo` lo necesita para
      decir quien esta mirando el catalogo. */
   const [authDialogMode, setAuthDialogMode] = useState("");
-  const [authRecoveryMode, setAuthRecoveryMode] = useState("none");
-  const [authRecoveryCode, setAuthRecoveryCode] = useState("");
-  const [authRecoveryFeedback, setAuthRecoveryFeedback] = useState("");
+  /* Los tres de recuperar la cuenta viven en `useLaRecuperacionDeLaCuenta`. El
+     reinicio de los tres estaba escrito cinco veces en tres ficheros. */
+  const {
+    paso: authRecoveryMode,
+    codigo: authRecoveryCode,
+    aviso: authRecoveryFeedback,
+    escribeElCodigo,
+    vuelveAlAcceso,
+    empiezaARecuperar,
+    pideQueEscribaElCodigo,
+    olvidaElAviso,
+  } = useLaRecuperacionDeLaCuenta();
   const [authTargetPage, setAuthTargetPage] = useState("home");
   const [authTargetEntryMode, setAuthTargetEntryMode] = useState("");
-  const [authForm, setAuthForm] = useState({ name: "", apellidos: "", phone: "", email: "", password: "", company_name: "" });
+  const [authForm, setAuthForm] = useState(FORMULARIO_DE_ACCESO_VACIO);
   const [clientType, setClientType] = useState("individual");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
@@ -2619,9 +2646,7 @@ export default function App() {
   const { openAuthDialog, closeAuthDialog } = useAuthDialogControls({
     currentUserEmail,
     setAuthDialogMode,
-    setAuthRecoveryMode,
-    setAuthRecoveryCode,
-    setAuthRecoveryFeedback,
+    vuelveAlAcceso,
     setAuthTargetPage,
     setAuthTargetEntryMode,
     setAuthError,
@@ -2741,15 +2766,129 @@ export default function App() {
   const { resetLoggedUser } = useAuthSessionReset({
     setCurrentUser,
     setAuthDialogMode,
-    setAuthRecoveryMode,
-    setAuthRecoveryCode,
-    setAuthRecoveryFeedback,
+    vuelveAlAcceso,
     setAuthError,
     setAuthLoading,
     setPendingPlanCheckoutId,
     olvidaElCambioDeContrasena,
     setAuthForm,
   });
+
+  /**
+   * Ya esta dentro: se guarda quien es y se le lleva a donde iba.
+   *
+   * ## Por que existe
+   *
+   * Estaba escrito DOS VECES, casi igual: una al entrar o registrarse y otra al
+   * terminar de recuperar la contrasena. Cincuenta lineas cada copia. Y no
+   * coincidian:
+   *
+   *   · la copia de recuperacion **no tenia la rama de «quedate donde estas»**,
+   *     asi que quien recuperaba la contrasena mirando la ficha de un coche
+   *     acababa en el panel en vez de volver al coche;
+   *   · y **no llamaba a `trackFunnelEvent`**, asi que un acceso hecho por
+   *     recuperacion no se contaba en ningun sitio: el embudo contaba de menos
+   *     sin que nadie lo supiera;
+   *   · y las dos vaciaban `authForm` con distinta forma -tres claves una,
+   *     cinco la otra- cuando el estado tiene seis.
+   *
+   * Se unifican a la version de entrar, que es la que tenia los comentarios que
+   * explican cada rama y por tanto la que alguien mantuvo. Las tres diferencias
+   * se resuelven a favor de esa, y eso cambia dos comportamientos de la
+   * recuperacion: ahora se vuelve a donde se estaba, y ahora se cuenta.
+   *
+   * @param nextUser     quien acaba de entrar, tal como lo devuelve el servidor
+   * @param motivo       "register" | "login" | "recuperacion"
+   * @param aviso        lo que se le dice, si el servidor no dijo nada
+   */
+  const yaEstaDentro = useCallback((nextUser, { motivo, aviso }) => {
+    const nextTargetEntryMode = normalizeText(authTargetEntryMode);
+
+    writeAuthUser(nextUser);
+    setCurrentUser(nextUser);
+    setIsUserLoggedIn(true);
+    setStep(-1);
+
+    if (nextTargetEntryMode) {
+      // Use the canonical public path for this mode (e.g. /marketplace-vo for portalVo)
+      // so applyRouteFromPath doesn't misread "/" and reset entryMode to null.
+      setEntryMode(nextTargetEntryMode);
+      syncBrowserPath(getPublicPathForEntryMode(nextTargetEntryMode), "replace");
+    } else if (entryMode && entryMode !== "userDashboard") {
+      /*
+       * Estaba en una pagina publica -la ficha de un coche, el mercado- cuando se
+       * le pidio entrar: el modo y la direccion ya son los buenos, se queda ahi.
+       *
+       * Esta rama le faltaba a la copia de recuperacion.
+       */
+    } else if (authTargetPage && authTargetPage !== "home") {
+      // Explicit non-home dashboard target from a specific flow (plans, etc.)
+      setEntryMode("userDashboard");
+      setUserDashboardPage(authTargetPage);
+      syncBrowserPath(getUserDashboardPath(authTargetPage), "replace");
+    }
+    // else: entro desde la portada, se queda en la portada.
+
+    setShowAuthMenu(false);
+    setShowUserPanel(false);
+
+    /*
+     * Y se cuenta. Recuperar la contrasena tambien termina en una sesion
+     * iniciada, asi que se cuenta como tal: no se inventa un tipo nuevo de
+     * evento para no cambiarle la forma a lo que ya hay guardado.
+     */
+    trackFunnelEvent({
+      event_type: motivo === "register" ? "register" : "login",
+      user_id:    nextUser.id    || null,
+      user_email: nextUser.email || null,
+    });
+
+    setSaveFeedback(aviso);
+    setAuthDialogMode("");
+    setAuthRequired(false);
+    setAuthTargetEntryMode("");
+    /*
+     * Y se cierra la recuperacion, si es de donde venia.
+     *
+     * Esto estaba en la copia de recuperacion y no en la de entrar -donde no
+     * hacia falta, porque ya estaba en "none". Al unificar a la de entrar se
+     * habria quedado en "confirm" hasta la siguiente vez que se abriera el
+     * dialogo, que es cuando otro de los cinco reinicios lo limpiaba.
+     */
+    vuelveAlAcceso();
+    /*
+     * Las seis claves, no tres ni cinco. Escribir menos deja las que falten en
+     * `undefined`, y un `value={undefined}` convierte un campo controlado en no
+     * controlado a mitad de vida.
+     */
+    setAuthForm({ ...FORMULARIO_DE_ACCESO_VACIO, email: nextUser.email });
+
+    const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
+
+    if (nextPendingPlanId) {
+      if (typeof window !== "undefined") {
+        window.setTimeout(() => {
+          void startSubscriptionCheckout(nextPendingPlanId, {
+            skipAuth: true,
+            customerEmail: nextUser.email,
+          });
+        }, 120);
+      } else {
+        void startSubscriptionCheckout(nextPendingPlanId, {
+          skipAuth: true,
+          customerEmail: nextUser.email,
+        });
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => setSaveFeedback(""), 2200);
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+    }
+  }, [
+    authTargetEntryMode, authTargetPage, entryMode, pendingPlanCheckoutId,
+    startSubscriptionCheckout, syncBrowserPath, vuelveAlAcceso,
+  ]);
 
   const submitAuthForm = useCallback(async (event) => {
     event?.preventDefault?.();
@@ -2764,7 +2903,7 @@ export default function App() {
 
       setAuthLoading(true);
       setAuthError("");
-      setAuthRecoveryFeedback("");
+      olvidaElAviso();
 
       try {
         const { data } = await postAuthJson({
@@ -2775,8 +2914,7 @@ export default function App() {
         const recoveryMessage = data?.message || "Revisa tu correo y escribe el código de recuperación.";
         const debugResetCode = normalizeText(data?.debugResetCode || "").toUpperCase();
 
-        setAuthRecoveryMode("confirm");
-        setAuthRecoveryFeedback(
+        pideQueEscribaElCodigo(
           debugResetCode
             ? `${recoveryMessage} Código (modo local): ${debugResetCode}`
             : recoveryMessage
@@ -2802,7 +2940,7 @@ export default function App() {
 
       setAuthLoading(true);
       setAuthError("");
-      setAuthRecoveryFeedback("");
+      olvidaElAviso();
 
       try {
         const { data } = await postAuthJson({
@@ -2812,57 +2950,15 @@ export default function App() {
           newPassword,
         });
         const nextUser = data?.user;
-        const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
         if (!nextUser?.email) {
           throw new Error("No se pudo completar el cambio de contraseña.");
         }
 
-        writeAuthUser(nextUser);
-        setCurrentUser(nextUser);
-        setIsUserLoggedIn(true);
-        setStep(-1);
-        if (nextTargetEntryMode) {
-          setEntryMode(nextTargetEntryMode);
-          syncBrowserPath(getPublicPathForEntryMode(nextTargetEntryMode), "replace");
-        } else if (authTargetPage && authTargetPage !== "home") {
-          setEntryMode("userDashboard");
-          setUserDashboardPage(authTargetPage);
-          syncBrowserPath(getUserDashboardPath(authTargetPage), "replace");
-        }
-        // else: stay on home page
-        setShowAuthMenu(false);
-        setShowUserPanel(false);
-        setSaveFeedback(data?.message || "Contraseña actualizada y sesión iniciada.");
-        setAuthDialogMode("");
-        setAuthRequired(false);
-        setAuthRecoveryMode("none");
-        setAuthRecoveryCode("");
-        setAuthTargetEntryMode("");
-        setAuthForm({ name: "", apellidos: "", phone: "", email: nextUser.email, password: "" });
-
-        const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
-
-        if (nextPendingPlanId) {
-          if (typeof window !== "undefined") {
-            window.setTimeout(() => {
-              void startSubscriptionCheckout(nextPendingPlanId, {
-                skipAuth: true,
-                customerEmail: nextUser.email,
-              });
-            }, 120);
-          } else {
-            void startSubscriptionCheckout(nextPendingPlanId, {
-              skipAuth: true,
-              customerEmail: nextUser.email,
-            });
-          }
-        }
-
-        if (typeof window !== "undefined") {
-          window.setTimeout(() => setSaveFeedback(""), 2200);
-          window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-        }
+        yaEstaDentro(nextUser, {
+          motivo: "recuperacion",
+          aviso: data?.message || "Contraseña actualizada y sesión iniciada.",
+        });
       } catch (error) {
         setAuthError(error?.message || "No se pudo restablecer la contraseña.");
       } finally {
@@ -2944,7 +3040,6 @@ export default function App() {
 
     try {
       const { response, data } = await postAuthJson(payload);
-      const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
       if (!response.ok || data?.ok === false) {
         throw new Error(data?.details || data?.error || "No se pudo completar el acceso.");
@@ -2956,72 +3051,21 @@ export default function App() {
         throw new Error(data?.details || data?.error || "No se pudo recuperar el usuario autenticado.");
       }
 
-      writeAuthUser(nextUser);
-      setCurrentUser(nextUser);
-      setIsUserLoggedIn(true);
-      setStep(-1);
-      if (nextTargetEntryMode) {
-        setEntryMode(nextTargetEntryMode);
-        // Use the canonical public path for this mode (e.g. /marketplace-vo for portalVo)
-        // so applyRouteFromPath doesn't misread "/" and reset entryMode to null.
-        syncBrowserPath(getPublicPathForEntryMode(nextTargetEntryMode), "replace");
-      } else if (entryMode && entryMode !== "userDashboard") {
-        // User was on a public page (offer detail, marketplace…) when auth was
-        // required by bootstrap — entryMode and URL are already correct, stay there.
-      } else if (authTargetPage && authTargetPage !== "home") {
-        // Explicit non-home dashboard target from a specific flow (plans, etc.)
-        setEntryMode("userDashboard");
-        setUserDashboardPage(authTargetPage);
-        syncBrowserPath(getUserDashboardPath(authTargetPage), "replace");
-      }
-      // else: user logged in from home page — stay on home, no redirect
-      setShowAuthMenu(false);
-      setShowUserPanel(false);
-      trackFunnelEvent({
-        event_type: mode === "register" ? "register" : "login",
-        user_id:    nextUser.id    || null,
-        user_email: nextUser.email || null,
+      yaEstaDentro(nextUser, {
+        motivo: mode,
+        aviso: data?.message || (mode === "register"
+          ? `Cuenta creada para ${nextUser.email}.`
+          : `Sesión iniciada para ${nextUser.email}.`),
       });
-      setSaveFeedback(
-        data?.message ||
-          (mode === "register"
-            ? `Cuenta creada para ${nextUser.email}.`
-            : `Sesión iniciada para ${nextUser.email}.`)
-      );
-      setAuthDialogMode("");
-      setAuthRequired(false);
-      setAuthTargetEntryMode("");
-      setAuthForm({ name: "", email: nextUser.email, password: "" });
+
       if (showCookieGate && mode === "register") {
         saveCookieConsent(aceptaPublicidad ? "all" : "necessary");
         empiezaSinNada();
       }
-      // Show consent review modal for users who haven't accepted T&C (never reviewed or previously rejected)
+      /* Y si nunca acepto las condiciones, se le pregunta. Solo al entrar:
+         al registrarse las acaba de contestar en el propio formulario. */
       if (mode === "login" && !nextUser.consentLegalAt) {
         abreLaRevision();
-      }
-
-      const nextPendingPlanId = normalizeText(pendingPlanCheckoutId).toLowerCase();
-
-      if (nextPendingPlanId) {
-        if (typeof window !== "undefined") {
-          window.setTimeout(() => {
-            void startSubscriptionCheckout(nextPendingPlanId, {
-              skipAuth: true,
-              customerEmail: nextUser.email,
-            });
-          }, 120);
-        } else {
-          void startSubscriptionCheckout(nextPendingPlanId, {
-            skipAuth: true,
-            customerEmail: nextUser.email,
-          });
-        }
-      }
-
-      if (typeof window !== "undefined") {
-        window.setTimeout(() => setSaveFeedback(""), 2200);
-        window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
       }
     } catch (error) {
       setAuthError(error?.message || "No se pudo completar el acceso.");
@@ -3034,20 +3078,20 @@ export default function App() {
     authForm,
     authRecoveryCode,
     authRecoveryMode,
-    authTargetEntryMode,
-    authTargetPage,
+    // Salen de `useLaRecuperacionDeLaCuenta`.
+    olvidaElAviso,
+    pideQueEscribaElCodigo,
     clientType,
+    // A donde se va despues de entrar lo sabe `yaEstaDentro`, que se lleva sus
+    // seis dependencias con ella: el destino, el plan pendiente y la direccion.
+    yaEstaDentro,
     // Salen de `useLosConsentimientosDelRegistro`. Eran cinco estados sueltos.
     aceptaLasCondiciones,
     aceptaPublicidad,
     empiezaSinNada,
     sellosDelConsentimiento,
-    entryMode,
-    pendingPlanCheckoutId,
     saveCookieConsent,
     showCookieGate,
-    startSubscriptionCheckout,
-    syncBrowserPath,
   ]);
 
   const createMarketAlert = async (filters = {}) => {
@@ -5673,7 +5717,7 @@ export default function App() {
                   <input
                     type="text"
                     value={authRecoveryCode}
-                    onChange={(event) => setAuthRecoveryCode(event.target.value)}
+                    onChange={(event) => escribeElCodigo(event.target.value)}
                     placeholder="Ejemplo: A1B2C3D4"
                     style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                   />
@@ -5830,9 +5874,7 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     if (authRecoveryMode !== "none") {
-                      setAuthRecoveryMode("none");
-                      setAuthRecoveryCode("");
-                      setAuthRecoveryFeedback("");
+                      vuelveAlAcceso();
                       setAuthError("");
                       return;
                     }
@@ -5860,9 +5902,7 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setAuthRecoveryMode("request");
-                      setAuthRecoveryCode("");
-                      setAuthRecoveryFeedback("");
+                      empiezaARecuperar();
                       setAuthError("");
                     }}
                     style={{

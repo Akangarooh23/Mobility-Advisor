@@ -3,9 +3,7 @@ import { useCallback } from "react";
 export function useAuthDialogControls({
   currentUserEmail,
   setAuthDialogMode,
-  setAuthRecoveryMode,
-  setAuthRecoveryCode,
-  setAuthRecoveryFeedback,
+  vuelveAlAcceso,
   setAuthTargetPage,
   setAuthTargetEntryMode,
   setAuthError,
@@ -17,9 +15,7 @@ export function useAuthDialogControls({
 }) {
   const openAuthDialog = useCallback((mode = "login", options = {}) => {
     setAuthDialogMode(mode === "register" ? "register" : "login");
-    setAuthRecoveryMode("none");
-    setAuthRecoveryCode("");
-    setAuthRecoveryFeedback("");
+    vuelveAlAcceso();
     setAuthTargetPage(options?.routePage || "home");
     setAuthTargetEntryMode(options?.entryMode || "");
     setAuthError("");
@@ -37,9 +33,7 @@ export function useAuthDialogControls({
     setAuthDialogMode,
     setAuthError,
     setAuthForm,
-    setAuthRecoveryCode,
-    setAuthRecoveryFeedback,
-    setAuthRecoveryMode,
+    vuelveAlAcceso,
     setAuthTargetEntryMode,
     setAuthTargetPage,
     setShowAuthMenu,
@@ -48,9 +42,7 @@ export function useAuthDialogControls({
 
   const closeAuthDialog = useCallback(() => {
     setAuthDialogMode("");
-    setAuthRecoveryMode("none");
-    setAuthRecoveryCode("");
-    setAuthRecoveryFeedback("");
+    vuelveAlAcceso();
     setAuthTargetEntryMode("");
     setPendingPlanCheckoutId("");
     setAuthError("");
@@ -68,9 +60,7 @@ export function useAuthDialogControls({
     setAuthError,
     setAuthForm,
     setAuthLoading,
-    setAuthRecoveryCode,
-    setAuthRecoveryFeedback,
-    setAuthRecoveryMode,
+    vuelveAlAcceso,
     setAuthTargetEntryMode,
     setPendingPlanCheckoutId,
   ]);

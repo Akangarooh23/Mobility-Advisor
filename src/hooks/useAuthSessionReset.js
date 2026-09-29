@@ -5,9 +5,7 @@ import { clearAuthUser } from "../utils/storage";
 export function useAuthSessionReset({
   setCurrentUser,
   setAuthDialogMode,
-  setAuthRecoveryMode,
-  setAuthRecoveryCode,
-  setAuthRecoveryFeedback,
+  vuelveAlAcceso,
   setAuthError,
   setAuthLoading,
   setPendingPlanCheckoutId,
@@ -19,9 +17,7 @@ export function useAuthSessionReset({
     clearAuthUser();
     setCurrentUser(null);
     setAuthDialogMode("");
-    setAuthRecoveryMode("none");
-    setAuthRecoveryCode("");
-    setAuthRecoveryFeedback("");
+    vuelveAlAcceso();
     setAuthError("");
     setAuthLoading(false);
     setPendingPlanCheckoutId("");
@@ -32,9 +28,7 @@ export function useAuthSessionReset({
     setAuthError,
     setAuthForm,
     setAuthLoading,
-    setAuthRecoveryCode,
-    setAuthRecoveryFeedback,
-    setAuthRecoveryMode,
+    vuelveAlAcceso,
     olvidaElCambioDeContrasena,
     setCurrentUser,
     setPendingPlanCheckoutId,

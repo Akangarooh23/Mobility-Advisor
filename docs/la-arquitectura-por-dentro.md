@@ -116,11 +116,18 @@ Lo que sí está bien: las 84 páginas se cargan con `lazy()`, y hay una capa de
 cliente API (`src/utils/apiClient.js`) **con una prueba que la vigila**. De las 35
 llamadas `fetch` de `src/`, **cero** escriben la ruta a pelo. Eso está resuelto.
 
-> **Hoy esa prueba está en rojo**, y no por el refactor:
-> `src/components/LoQueTeFaltaDelEncargo.js:58` declara
-> `ruta = "/api/mandato-firmado"` como valor por defecto, sin `API_BASE` delante.
-> Dentro del APK eso resuelve contra `https://localhost` y no hay nada ahí. Es una
-> línea y cambia comportamiento en la app, por eso no la he tocado.
+> **Corrección de lo que puse aquí al escribir este informe.** Dije que la prueba
+> estaba en rojo por `LoQueTeFaltaDelEncargo.js:58`, que declara
+> `ruta = "/api/mandato-firmado"`, y que eso estaba roto dentro del APK. **Era
+> falso**: esa ruta se usa como `fetch(rutaApi(ruta))`, así que lleva la base y
+> funciona. Lo que estaba mal era la regla del comprobador.
+>
+> Al arreglarla apareció lo de verdad, que la regla anterior **no veía**:
+> `src/components/AvailabilityEditor.js` hacía
+> `const API = apiBase || "/api/visit-availability"` y de ahí salían cuatro
+> `fetch` sin base — y ninguno de los cuatro sitios que montan ese componente
+> pasa `apiBase`. Dentro del APK, poner franjas de visita fallaba sin decir por
+> qué. Arreglado, con la regla reescrita y una prueba que fija las dos formas.
 
 ### 2.2 🔴 Dos esquemas de base de datos a la vez
 

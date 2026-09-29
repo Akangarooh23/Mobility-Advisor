@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { rutaApi } from "../utils/apiClient";
 
 function fmtDate(iso) {
   return new Date(iso).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
@@ -81,7 +82,17 @@ function generateSlots(selectedDays, timeStart, timeEnd, period) {
 }
 
 export default function AvailabilityEditor({ offerId, source, onSlotsChange, apiBase }) {
-  const API = apiBase || "/api/visit-availability";
+  /*
+   * La base tiene que ir delante, y aquí no iba.
+   *
+   * De este valor salen las cuatro llamadas del editor, y ninguno de los cuatro
+   * sitios que montan el componente pasa `apiBase`: siempre se usaba el de
+   * reserva. En el navegador da igual -`API_BASE` es cadena vacía y el string
+   * sale idéntico-, pero dentro del APK `/api/visit-availability` resuelve
+   * contra `https://localhost`, donde no hay nada, y poner franjas de visita
+   * fallaba sin decir por qué.
+   */
+  const API = apiBase || rutaApi("/api/visit-availability");
 
   const [slots, setSlots]       = useState([]);
   const [loading, setLoading]   = useState(true);

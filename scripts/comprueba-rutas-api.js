@@ -39,8 +39,35 @@ const EL_QUE_PUEDE = path.join("src", "utils", "apiClient.js");
 /** Una llamada con la ruta escrita a pelo: `fetch("/api/…")`. */
 const A_PELO = /fetch\(\s*(?:"|'|`)\/api\//;
 
-/** Una constante de ruta sin la base delante: `= "/api/…"`. */
-const CONSTANTE_SIN_BASE = /=\s*(?:"|')\/api\//;
+/**
+ * Una ruta guardada en una variable: `X = … "/api/…"`.
+ *
+ * Captura el nombre, porque por sí solo el literal no dice nada: lo que
+ * importa es si alguien lo mete en un `fetch` tal cual o lo pasa antes por
+ * `rutaApi()`.
+ *
+ * El `[^;\n]*?` del medio es para los de reserva -`apiBase || "/api/…"`-, que
+ * es justo la forma que se le escapaba a la regla anterior.
+ */
+const GUARDA_RUTA = /([A-Za-z_$][\w$]*)\s*=\s*([^;\n]*?)(?:"|'|`)\/api\//g;
+
+/**
+ * ¿Se usa ese nombre dentro de un `fetch(...)`?
+ *
+ * No se analiza el código de verdad: se mira un trozo detrás de cada `fetch(`,
+ * que es suficiente para `fetch(API, …)` y para `` fetch(`${API}?x=1`) ``, que
+ * son las dos formas que hay en el repositorio.
+ */
+function llegaAUnFetch(fuente, nombre) {
+  const suyo = new RegExp(`\\b${nombre}\\b`);
+  let desde = 0;
+  for (;;) {
+    const i = fuente.indexOf("fetch(", desde);
+    if (i < 0) return false;
+    if (suyo.test(fuente.slice(i, i + 200))) return true;
+    desde = i + 6;
+  }
+}
 
 function recorre(directorio, encontrados = []) {
   for (const entrada of fs.readdirSync(directorio, { withFileTypes: true })) {
@@ -62,15 +89,22 @@ function recorre(directorio, encontrados = []) {
   return encontrados;
 }
 
-const fallos = [];
-let revisados = 0;
-
-for (const fichero of recorre(DIRECTORIO)) {
-  const rel = path.relative(RAIZ, fichero);
-  if (rel === EL_QUE_PUEDE) continue;
-
-  revisados += 1;
-  const lineas = fs.readFileSync(fichero, "utf8").split("\n");
+/**
+ * Lo que se le reprocha a un fichero, si algo.
+ *
+ * Está aparte para poder probarlo con fuentes de mentira en
+ * `lib/rutas-api-vigilan-lo-que-deben.test.js`. Una prueba que decide si el
+ * resto compila tiene que estar probada ella misma: la versión anterior de
+ * esta regla se equivocaba en las dos direcciones y nadie se enteró hasta que
+ * la bloqueó.
+ *
+ * @param {string} fuente  el fichero entero
+ * @param {string} rel     su ruta, solo para el mensaje
+ * @returns {string[]}     los reproches, vacío si no hay
+ */
+function revisaFuente(fuente, rel = "(fuente)") {
+  const fallos = [];
+  const lineas = fuente.split("\n");
 
   lineas.forEach((linea, i) => {
     // Un comentario que enseñe la ruta es documentación, no una llamada.
@@ -85,13 +119,66 @@ for (const fichero of recorre(DIRECTORIO)) {
       );
     }
 
-    if (CONSTANTE_SIN_BASE.test(linea)) {
+    /*
+     * Una ruta guardada en una variable solo es un problema si acaba en un
+     * `fetch` sin pasar por `rutaApi()`.
+     *
+     * Antes esto se miraba línea a línea: cualquier `= "/api/…"` fallaba.
+     * Eso se equivocaba en las dos direcciones a la vez, y las dos están
+     * comprobadas en `comprueba-rutas-api.test.js`:
+     *
+     *   · daba por mala `ruta = "/api/mandato-firmado"` en
+     *     LoQueTeFaltaDelEncargo, que se pasa por `rutaApi(ruta)` al usarla y
+     *     por tanto está bien;
+     *   · y dejaba pasar `const API = apiBase || "/api/visit-availability"`
+     *     en AvailabilityEditor, que iba a cuatro `fetch` sin base y rompía
+     *     las franjas de visita dentro del APK — que es exactamente lo que
+     *     esta prueba existe para impedir.
+     *
+     * Una prueba que grita donde no hay nada y calla donde sí lo hay acaba
+     * desactivada, y con razón.
+     */
+    GUARDA_RUTA.lastIndex = 0;
+    let encaje;
+    while ((encaje = GUARDA_RUTA.exec(linea)) !== null) {
+      const [, nombre, entremedias] = encaje;
+
+      // Ya se envuelve aquí mismo.
+      if (entremedias.includes("rutaApi(")) continue;
+      // O se envuelve donde se usa.
+      if (new RegExp(`rutaApi\\(\\s*${nombre}\\b`).test(fuente)) continue;
+      // Y si nunca llega a un fetch, no es una URL y no es asunto de esto.
+      if (!llegaAUnFetch(fuente, nombre)) continue;
+
       fallos.push(
-        `${rel}:${i + 1} define una ruta de API sin API_BASE delante\n` +
-        `      ${linea.trim()}`
+        `${rel}:${i + 1} guarda una ruta de API sin base y la usa en un fetch\n` +
+        `      ${linea.trim()}\n` +
+        `      envuélvela: rutaApi("/api/..."). Fuera del navegador, sin base` +
+        ` no resuelve a ningún sitio`
       );
     }
   });
+
+  return fallos;
+}
+
+module.exports = { revisaFuente };
+
+// Lo de abajo es la herramienta de línea de órdenes. Al requerir este fichero
+// desde una prueba no se ejecuta: solo se coge `revisaFuente`.
+if (require.main !== module) {
+  return;
+}
+
+const fallos = [];
+let revisados = 0;
+
+for (const fichero of recorre(DIRECTORIO)) {
+  const rel = path.relative(RAIZ, fichero);
+  if (rel === EL_QUE_PUEDE) continue;
+
+  revisados += 1;
+  fallos.push(...revisaFuente(fs.readFileSync(fichero, "utf8"), rel));
 }
 
 /**

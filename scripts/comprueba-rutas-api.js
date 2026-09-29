@@ -40,6 +40,25 @@ const EL_QUE_PUEDE = path.join("src", "utils", "apiClient.js");
 const A_PELO = /fetch\(\s*(?:"|'|`)\/api\//;
 
 /**
+ * Una dirección que acaba en un enlace, no en un `fetch`.
+ *
+ * Esta regla llegó tarde y costó una avería. `useConditionReport` devolvía
+ * esto:
+ *
+ *     descargaUrl: `/api/market?route=condition-report&vehicleId=...`
+ *
+ * y un componente lo pintaba como `<a href={url} target="_blank">`. No hay
+ * ningún `fetch` por medio, así que las dos reglas de arriba ni se enteraban —
+ * y dentro del APK esa dirección no lleva a ninguna parte, igual que pasó con
+ * las franjas de visita.
+ *
+ * Se mira por el nombre de la propiedad: lo que se llama `algoUrl`, `href` o
+ * `src` es una dirección, y una dirección necesita la base delante.
+ */
+const DIRECCION_SIN_BASE =
+  /(?:[A-Za-z_$][\w$]*[Uu]rl|href|src|[Bb]ase)\s*[:=]\s*(?:[^;\n]*?\?\s*)?(?:"|'|`)\/api\//;
+
+/**
  * Una ruta guardada en una variable: `X = … "/api/…"`.
  *
  * Captura el nombre, porque por sí solo el literal no dice nada: lo que
@@ -116,6 +135,14 @@ function revisaFuente(fuente, rel = "(fuente)") {
         `      ${linea.trim()}\n` +
         `      usa rutaApi("/api/..."), que es lo mismo en el navegador y lo` +
         ` único que funciona fuera de él`
+      );
+    }
+
+    if (DIRECCION_SIN_BASE.test(linea)) {
+      fallos.push(
+        `${rel}:${i + 1} arma una dirección de API sin base\n` +
+        `      ${linea.trim()}\n` +
+        `      acabará en un href o en un src; envuélvela: rutaApi("/api/...")`
       );
     }
 

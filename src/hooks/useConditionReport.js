@@ -319,7 +319,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
        * pide el documento con la clave de servicio.
        */
       descargaUrl: terminado
-        ? `/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(texto(terminado.session_id))}`
+        ? rutaApi(`/api/market?route=condition-report&vehicleId=${encodeURIComponent(vid)}&descargar=${encodeURIComponent(texto(terminado.session_id))}`)
         : "",
       /**
        * Raíz de la vista en realidad aumentada; el componente le añade
@@ -330,7 +330,7 @@ export function useConditionReport(alTerminar, origen = "idcar") {
        * `vercel.json` la traen a la misma función que sirve el PDF.
        */
       modelo3dBase: terminado
-        ? `/api/informe-3d/${encodeURIComponent(vid)}/${encodeURIComponent(texto(terminado.session_id))}`
+        ? rutaApi(`/api/informe-3d/${encodeURIComponent(vid)}/${encodeURIComponent(texto(terminado.session_id))}`)
         : "",
     };
   }, [porVehiculo, carga]);

@@ -1788,12 +1788,7 @@ export default function App() {
   const [sellMarketSnapshotLoading, setSellMarketSnapshotLoading] = useState(false);
   const [sellMarketSnapshotError, setSellMarketSnapshotError] = useState("");
   const [savedComparisons, setSavedComparisons] = useState([]);
-  const [userAppointments, setUserAppointments] = useState([]);
-  const [userMaintenances, setUserMaintenances] = useState([]);
-  const [userInsurances, setUserInsurances] = useState([]);
-  const [userValuations, setUserValuations] = useState([]);
-  const [userVehicleStates, setUserVehicleStates] = useState([]);
-  const [userSolicitudes, setUserSolicitudes] = useState([]);
+  /* Los seis del panel viven en `useUserMobilitySync`, que es quien los trae. */
   // Cuántas veces hay que volver a pedir los datos del usuario. Se sube al
   // reservar una visita y al abrir el panel: lo que acaba de hacer tiene que
   // estar ahí sin recargar la página.
@@ -2231,12 +2226,6 @@ export default function App() {
     themeStorageKey: THEME_STORAGE_KEY,
     setThemeMode,
     setSavedComparisons,
-    setUserAppointments,
-    setUserMaintenances,
-    setUserInsurances,
-    setUserValuations,
-    setUserVehicleStates,
-    setUserSolicitudes,
     setMarketAlerts,
     setMarketAlertStatus,
     setQuestionnaireDraft,
@@ -2567,17 +2556,23 @@ export default function App() {
     setAuthDialogMode("login");
   }, []);
 
-  useUserMobilitySync({
+  const {
+    userAppointments,
+    userMaintenances,
+    userInsurances,
+    userValuations,
+    userVehicleStates,
+    userSolicitudes,
+    setUserAppointments,
+    setUserMaintenances,
+    setUserInsurances,
+    setUserVehicleStates,
+    setUserSolicitudes,
+  } = useUserMobilitySync({
     currentUserEmail,
     refrescos: refrescosMovilidad,
     alCaducarLaSesion,
     setSavedComparisons,
-    setUserAppointments,
-    setUserMaintenances,
-    setUserInsurances,
-    setUserValuations,
-    setUserVehicleStates,
-    setUserSolicitudes,
   });
 
   const {

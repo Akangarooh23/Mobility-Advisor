@@ -13,12 +13,6 @@ import {
   readMarketAlertStatus,
   readQuestionnaireDraft,
   readSavedComparisons,
-  readUserAppointments,
-  readUserMaintenances,
-  readUserInsurances,
-  readUserValuations,
-  readUserVehicleStates,
-  readUserSolicitudes,
   writeAuthUser,
   writeSavedComparisons,
 } from "../utils/storage";
@@ -27,12 +21,6 @@ export function useAppBootstrap({
   themeStorageKey,
   setThemeMode,
   setSavedComparisons,
-  setUserAppointments,
-  setUserMaintenances,
-  setUserInsurances,
-  setUserValuations,
-  setUserVehicleStates,
-  setUserSolicitudes,
   setMarketAlerts,
   setMarketAlertStatus,
   setQuestionnaireDraft,
@@ -87,12 +75,8 @@ export function useAppBootstrap({
     }
 
     setSavedComparisons(readSavedComparisons());
-    setUserAppointments(readUserAppointments());
-    if (setUserMaintenances) setUserMaintenances(readUserMaintenances());
-    if (setUserInsurances) setUserInsurances(readUserInsurances());
-    if (setUserValuations) setUserValuations(readUserValuations());
-    if (setUserVehicleStates) setUserVehicleStates(readUserVehicleStates());
-    if (setUserSolicitudes) setUserSolicitudes(readUserSolicitudes());
+    /* Los seis del panel se siembran en `useUserMobilitySync`, que es quien
+       los trae del servidor. */
     setMarketAlerts(readMarketAlerts());
     setMarketAlertStatus(readMarketAlertStatus());
     setQuestionnaireDraft(readQuestionnaireDraft());
@@ -215,13 +199,7 @@ export function useAppBootstrap({
     setQuestionnaireDraft,
     setSavedComparisons,
     setThemeMode,
-    setUserAppointments,
-    setUserMaintenances,
-    setUserInsurances,
-    setUserValuations,
-    setUserVehicleStates,
-    setUserSolicitudes,
-    themeStorageKey,
+                themeStorageKey,
     setAuthRequired,
     setAuthDialogMode,
     setShowConsentReview,

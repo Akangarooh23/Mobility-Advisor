@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getUserMobilityDataJson } from "../utils/apiClient";
 import {
   writeSavedComparisons,
@@ -11,17 +11,17 @@ import {
   writeCachedGarageVehicleCount,
   writeUserBillingState,
   readUserBillingState,
+  readUserAppointments,
+  readUserMaintenances,
+  readUserInsurances,
+  readUserValuations,
+  readUserVehicleStates,
+  readUserSolicitudes,
 } from "../utils/storage";
 
 export function useUserMobilitySync({
   currentUserEmail,
   setSavedComparisons,
-  setUserAppointments,
-  setUserMaintenances,
-  setUserInsurances,
-  setUserValuations,
-  setUserVehicleStates,
-  setUserSolicitudes,
   setGarageVehicleCount,
   setCurrentPlanId,
   // Sube de uno en uno cuando algo ha cambiado y hay que volver a pedirlo:
@@ -32,15 +32,62 @@ export function useUserMobilitySync({
   /** Se llama cuando el servidor contesta que ya no hay sesión. */
   alCaducarLaSesion,
 }) {
+  /*
+   * Los seis viven aquí, que es donde se traen.
+   *
+   * Estaban en `App` —seis de sus 127 `useState`— y los tocaban tres sitios:
+   * `useAppBootstrap` los sembraba desde el navegador al arrancar, este hook
+   * los refrescaba desde el servidor, y `App` los cambiaba a mano al reservar
+   * una visita o al cerrar una revisión.
+   *
+   * Tres dueños y ningún sitio donde mirar qué son. Ahora se siembran y se
+   * refrescan aquí, y `App` los pide.
+   */
+  const [userAppointments, setUserAppointments] = useState([]);
+  const [userMaintenances, setUserMaintenances] = useState([]);
+  const [userInsurances, setUserInsurances] = useState([]);
+  const [userValuations, setUserValuations] = useState([]);
+  const [userVehicleStates, setUserVehicleStates] = useState([]);
+  const [userSolicitudes, setUserSolicitudes] = useState([]);
+
+  /*
+   * Lo que quedó de la última visita, mientras llega lo de ahora.
+   *
+   * Va en un efecto y no en el valor inicial para que siga pasando cuando
+   * pasaba: `useAppBootstrap` lo hacía así, y adelantarlo a la primera pintada
+   * cambiaría lo que se ve durante un instante. Eso es otra conversación.
+   */
+  useEffect(() => {
+    setUserAppointments(readUserAppointments());
+    setUserMaintenances(readUserMaintenances());
+    setUserInsurances(readUserInsurances());
+    setUserValuations(readUserValuations());
+    setUserVehicleStates(readUserVehicleStates());
+    setUserSolicitudes(readUserSolicitudes());
+  }, []);
+
   useEffect(() => {
     let disposed = false;
 
     if (!currentUserEmail) {
+      /*
+       * Sin sesión, ninguna de las seis se queda en pantalla.
+       *
+       * Eran cinco: `userAppointments` no se vaciaba. No había comentario que
+       * lo justificara y las otras cinco dicen cuál era la intención, así que
+       * parece un olvido y no una decisión. Se nota en un ordenador
+       * compartido: quien cierra sesión deja sus citas —con su coche y su
+       * taller— a la vista del siguiente.
+       *
+       * Esto sí cambia lo que se ve, y va escrito a propósito para que se
+       * pueda discutir en vez de descubrirse.
+       */
+      setUserAppointments([]);
       setUserValuations([]);
       setUserVehicleStates([]);
       setUserMaintenances([]);
       setUserInsurances([]);
-      if (setUserSolicitudes) setUserSolicitudes([]);
+      setUserSolicitudes([]);
       return () => {
         disposed = true;
       };
@@ -119,15 +166,27 @@ export function useUserMobilitySync({
   }, [
     currentUserEmail,
     setSavedComparisons,
+    setGarageVehicleCount,
+    setCurrentPlanId,
+    refrescos,
+    alCaducarLaSesion,
+  ]);
+
+  return {
+    userAppointments,
+    userMaintenances,
+    userInsurances,
+    userValuations,
+    userVehicleStates,
+    userSolicitudes,
+    // Los `set…` se devuelven porque `App` los cambia a mano en ocho sitios:
+    // al reservar una visita, al cerrar una revisión, al contestar una cita.
+    // Eso es suyo y no de este hook, que solo trae lo que hay en el servidor.
     setUserAppointments,
     setUserMaintenances,
     setUserInsurances,
     setUserValuations,
     setUserVehicleStates,
     setUserSolicitudes,
-    setGarageVehicleCount,
-    setCurrentPlanId,
-    refrescos,
-    alCaducarLaSesion,
-  ]);
+  };
 }

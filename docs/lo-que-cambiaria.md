@@ -2034,15 +2034,106 @@ desde la tabla que probaba.
 
 ---
 
+## Zona 17 — Las cabeceras de seguridad, contra el dominio ✔ revisada
+
+Era el último hueco con nombre de este documento: había un
+`docs/cabeceras-de-seguridad.md` y yo nunca había comprobado que lo que dice se
+cumpla de verdad. Ya está comprobado, y **estaba bien**.
+
+### ✅ 17.1 — Las cinco están puestas en los tres sitios
+
+`npm run test:cabeceras` —que ya existía, y está escrito para distinguir «no pude
+preguntar» de «la respuesta es mala»— contra los tres sitios publicados:
+
+```
+la web (200)   la app (200)   el ERP (200)
+  strict-transport-security   x-content-type-options   x-frame-options
+  referrer-policy             content-security-policy
+```
+
+Las cinco, en los tres. `max-age=63072000` —dos años—, `nosniff`, `DENY`,
+`strict-origin-when-cross-origin`, y una CSP con `frame-ancestors 'none'`,
+`base-uri 'self'`, `object-src 'none'`, `form-action 'self'` y
+`upgrade-insecure-requests`.
+
+### ✅ 17.2 — Y que la CSP no lleve `script-src` es una decisión, no un olvido
+
+Iba a apuntarlo. La CSP no tiene `default-src` ni `script-src`, que es la parte
+que de verdad frena un XSS —y hay un XSS latente apuntado en §6—. Pero el
+documento lo explica antes de que yo llegue, y lo explica bien: la web carga
+imágenes de decenas de dominios, el CRA mete un script en línea en su
+`index.html`, y una CSP puesta a ciegas deja el escaparate en blanco **sin dar
+ningún error**.
+
+Y propone el camino correcto: publicarla en `Report-Only`, recoger una semana de
+avisos y cerrar a partir de lo que salga.
+
+### 🟡 17.3 — Y ese plan ya no tiene el obstáculo que dice tener
+
+El documento cierra esa parte con: *«Eso necesita un sitio donde recoger los
+avisos, y es trabajo aparte.»*
+
+**Ese sitio se construyó en esta revisión y nadie ha atado los dos cabos.** Está
+entero:
+
+- `moveadvisor_errores` (migración 0016), con su huella para agrupar repetidos y
+  su índice parcial por lo no avisado;
+- `/api/error` → `lib/api/error-del-navegador-handler.js`, que acepta POST y
+  guarda con `guarda()`;
+- `cron-avisa-de-los-fallos`, que cada hora manda por correo lo que no se ha
+  avisado.
+
+Lo único que falta es que el manejador entienda la forma de un informe de CSP: un
+navegador manda `{"csp-report": {"violated-directive": …, "blocked-uri": …}}`, y
+hoy el manejador exige `sitio` y `mensaje` y descarta lo que no los traiga. Son
+unas líneas para mapear uno a otro.
+
+Con eso, poner `Content-Security-Policy-Report-Only` con su `report-uri /api/error`
+pasa de «trabajo aparte» a una tarde, y la semana de medición empieza sola.
+
+### 🟡 17.4 — Nada comprueba las cabeceras por su cuenta
+
+`npm run test:cabeceras` no está en el CI, y con motivo: necesita internet y
+pregunta a producción, que no es algo que deba pasar en cada empujón.
+
+Pero entonces solo corre cuando alguien se acuerda, y el propio script dice de qué
+está protegiendo: *«una cabecera que falta no da ningún error: el sitio funciona
+igual de bien y deja de estar protegido»*. Es la misma forma que §16.3 y que los
+quince días de n8n: **la ausencia no hace ruido**.
+
+Su sitio no es el CI, es un cron semanal. Y ya hay ocho en `vercel.json` y un
+mecanismo de avisos por correo que funciona.
+
+### ✅ 17.5 — La diferencia de HSTS entre los tres no es nuestra
+
+Medido: el ERP sirve `max-age=63072000; includeSubDomains; preload` y la web y la
+app solo `max-age=63072000`.
+
+Fui a buscar la inconsistencia en la configuración y **no está**: ni el
+`vercel.json` de este repositorio ni el del ERP declaran `Strict-Transport-Security`
+—lo busqué en los dos—. La pone Vercel. Y el corte cae exactamente en un sitio:
+el ERP es el único de los tres que vive en un `*.vercel.app`, que es un sufijo que
+está en la lista de precarga de HSTS de los navegadores; los otros dos son dominio
+propio.
+
+O sea que no hay nada mal configurado. Lo que hay es **una decisión que nadie ha
+tomado**: `popcar.com.es` no está en la lista de precarga, así que la primerísima
+visita de alguien que escriba la dirección sin `https://` viaja en claro una vez.
+Entrar en esa lista exige servir `includeSubDomains; preload` y **salir de ella es
+lento y penoso**, así que es una decisión de una sola dirección. No digo que se
+haga; digo que hoy está sin decidir y parece un descuido cuando no lo es.
+
+---
+
 ## Lo que queda, que ya no es leer código
 
 Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es
 esto, y ninguna de las dos cosas es leer ficheros:
 
-- **Las cabeceras de seguridad.** Hay `docs/cabeceras-de-seguridad.md` y no he
-  verificado que lo que dice se aplique de verdad contra el dominio. Es una
-  comprobación contra producción, y con el cortafuegos de Vercel retando a esta
-  IP hay que hacerla con cuidado.
+- ~~Las cabeceras de seguridad~~ — comprobadas contra los tres dominios: §17.
+  Estaban bien. Lo que sale de ahí es otra cosa: la CSP en `Report-Only` ya tiene
+  dónde recoger los avisos (§17.3) y las cabeceras no las vigila nada por su
+  cuenta (§17.4).
 - **De `scripts/` sigo sin leer los scrapers uno a uno.** Es lo único que queda de
   código sin abrir, y §13 cubre lo que de ellos se ejecuta de verdad: los 52 flujos
   activos de n8n, comparados contra la instancia.

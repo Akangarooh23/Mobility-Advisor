@@ -2726,6 +2726,96 @@ base, en un sitio donde el resto del razonamiento está bien hecho.
 
 ---
 
+## Zona 22 — `src/` entero, barrido por clase de defecto ✔ primera pasada
+
+Para llegar al 100 % de las 64.612 líneas de `src/` sin leerlas una a una, la forma
+que funciona es al contrario: coger una clase de defecto y pasarla por **todos** los
+ficheros. Esta pasada cubre **170 de 170** y busca tres cosas, las tres de dinero,
+porque es lo que se nota:
+
+| Clase | Encontradas |
+|---|---:|
+| `Math.round(x).toLocaleString()` sin comprobar `x` | 2 |
+| `.toLocaleString("es…")` sobre un valor sin guardia | **0** |
+| `Number(precio) \|\| 0` | 3 |
+
+Cinco candidatas en 170 ficheros, y **cero de la clase más común**. El front está
+más limpio de lo que esperaba: formatea después de comprobar, casi siempre.
+
+De las cinco, una es real y llega al cliente.
+
+### 🟠 22.1 — Un coche sin precio se enseña a 0 €, y ese 0 llega a la cuota y al depósito
+
+`src/pages/PortalVoDetailPage.js`, la ficha de un coche del marketplace:
+
+```js
+const precioConGarantia = (Number(selectedPortalVoOffer.price) || 0) + diferenciaGarantia;
+…
+const precioFinanciable = isImport ? precioConGarantia
+  : Number(selectedPortalVoOffer.salePrice ?? selectedPortalVoOffer.price) || 0;
+```
+
+`Number(null) || 0` es `0`. Así que sin precio, lo que se pinta en la línea 798 con
+`formatCurrency(precioConGarantia)` es **la diferencia de la garantía sola** —o 0 €
+si no hay ampliación elegida—, presentada como el precio del coche. Y `0` sigue
+hacia `precioFinanciable`, de donde salen —lo dice el comentario de la línea 262—
+*«el grande de arriba, la cuota del mes, la fianza y el ahorro»*.
+
+**Y llega, no es teórico.** Lo conté en la base:
+
+| | |
+|---|---:|
+| Ofertas totales | 2.464.301 |
+| Sin precio (`NULL` o `0`) | **32** |
+| De ésas, **activas** | **32** |
+| De ésas, **con `visible_desde`** | **32** |
+
+Las 32 están vivas y visibles: 19 de Wallapop, 7 de Autocasión, 6 de Milanuncios.
+Portales de particulares, donde «a consultar» es normal.
+
+**Lo que más me convence de que es un descuido y no una decisión**: el ahorro **sí
+está protegido**, tres líneas más abajo.
+
+```js
+const ahorroConGarantia = precioEspanolMedio > 0 && precioConGarantia > 0
+  ? Math.round(precioEspanolMedio - precioConGarantia) : …
+```
+
+O sea que ya se sabía que `precioConGarantia` puede ser cero. Se guardó la cifra
+derivada y no la que se pinta.
+
+**Qué haría**: si no hay precio, no hay precio. «Precio a consultar», que es lo que
+pone cualquier portal español, y el camino de financiación y depósito desactivado —
+porque no se puede calcular una cuota sobre un importe que no existe, ni cobrar un
+depósito de un coche sin precio—.
+
+Y **una prueba con esas 32 ofertas de verdad**: es un caso que la base tiene hoy y
+que ninguna prueba mira.
+
+### ⚪ 22.2 — Y las otras cuatro, por qué no son nada
+
+Lo apunto para que nadie las persiga otra vez:
+
+- `EscenaMercado.js:65` — `Math.round(n).toLocaleString("es-ES")` en una escena
+  animada que recibe números de un guion propio, no de la base.
+- `ServiceMaintenancePage.js:383` — `Math.round(estimation.kmToNext)`, y
+  `estimation` solo existe si se pudo estimar; el bloque entero va detrás de esa
+  comprobación.
+- `PortalVoDetailPage.js:269` y `:295` — el mismo `|| 0` de §22.1, contados aparte
+  porque son otras dos expresiones; se arreglan con el mismo cambio.
+
+### Lo que esta pasada cubre, y lo que no
+
+Cubre **el 100 % de los ficheros de `src/`** para tres clases de defecto. No cubre
+las demás clases: fechas y zonas horarias, estados de error que no se enseñan,
+efectos sin limpieza que escriben después de desmontar, dependencias de `useMemo`
+que mienten. Cada una es otra pasada, y cada pasada vuelve a ser sobre los 170.
+
+Es así como se llega a una cobertura que se puede defender sin leer 64.612 líneas:
+no «he mirado este fichero», sino «este defecto no está en ninguno».
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

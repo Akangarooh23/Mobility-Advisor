@@ -16,6 +16,12 @@
  * se aplicó, esto lo dice en vez de callarse: lo que corre en producción ya no
  * sería lo que pone el fichero.
  *
+ * **Con una excepción**: las que llevan `CONCURRENTLY` van sin transacción,
+ * porque Postgres no permite `CREATE INDEX CONCURRENTLY` dentro de un `BEGIN`.
+ * Antes fallaban siempre —y al aplicarse en orden, bloqueaban a las siguientes—.
+ * El precio es que ésas no tienen vuelta atrás: si una falla, puede quedar un
+ * índice inválido y hay que tirarlo a mano. El error lo explica cuando pasa.
+ *
  * Los ficheros viven en `migrations/`, se llaman `NNNN-lo-que-hace.sql` y se
  * aplican por orden de nombre. El 0001 es la foto de lo que ya había.
  *
@@ -104,20 +110,56 @@ async function main() {
   for (const p of pendientes) {
     const cliente = await pool.connect();
     const empezo = Date.now();
+    /*
+     * `CREATE INDEX CONCURRENTLY` NO puede ir dentro de una transacción.
+     *
+     * Postgres lo rechaza con «cannot run inside a transaction block», y como
+     * esto aplicaba todo dentro de un BEGIN, una migración con CONCURRENTLY
+     * fallaba siempre —y al ir en orden, bloqueaba también a las siguientes—.
+     * Es lo que pasó con la 0015: llevaba días sin poder aplicarse, y con ella
+     * la 0016.
+     *
+     * Y CONCURRENTLY no es un capricho: sin él, crear un índice en una tabla
+     * grande toma un bloqueo que para las escrituras, y `moveadvisor_market_offers`
+     * es la tabla del buscador. Así que lo que se cambia es esto y no la
+     * migración.
+     */
+    const aSolas = /\bCONCURRENTLY\b/i.test(p.texto);
+
     try {
-      await cliente.query("BEGIN");
+      if (!aSolas) await cliente.query("BEGIN");
       await cliente.query(p.texto);
       const tardo = Date.now() - empezo;
       await cliente.query(
         "INSERT INTO migraciones_aplicadas (nombre, huella, tardo_ms) VALUES ($1, $2, $3)",
         [p.f, p.huella, tardo]
       );
-      await cliente.query("COMMIT");
-      console.log(`  ✓ ${p.f}  (${tardo} ms)`);
+      if (!aSolas) await cliente.query("COMMIT");
+      console.log(`  ✓ ${p.f}  (${tardo} ms)${aSolas ? "  [sin transacción: CONCURRENTLY]" : ""}`);
     } catch (e) {
-      await cliente.query("ROLLBACK").catch(() => {});
+      if (!aSolas) await cliente.query("ROLLBACK").catch(() => {});
       console.error(`  ✗ ${p.f}\n     ${e.message}`);
-      console.error("\n  No ha entrado nada de esa migración. Las anteriores sí.");
+
+      if (aSolas) {
+        /*
+         * Sin transacción no hay vuelta atrás, y un CONCURRENTLY que falla deja
+         * el índice **inválido** —existiendo pero sin usarse—. Y como existe, un
+         * `IF NOT EXISTS` lo daría por hecho en el siguiente intento y lo dejaría
+         * inválido para siempre, en silencio. Hay que tirarlo a mano.
+         */
+        console.error(
+          "\n  Esa migración va SIN transacción, porque lleva CONCURRENTLY.\n" +
+          "  Puede haber quedado un índice inválido. Míralo con:\n\n" +
+          "    SELECT indexrelid::regclass FROM pg_index WHERE NOT indisvalid;\n\n" +
+          "  Y si sale alguno, tíralo antes de volver a intentarlo:\n\n" +
+          "    DROP INDEX CONCURRENTLY <el que salga>;\n\n" +
+          "  Un IF NOT EXISTS no lo arregla: el índice inválido existe, así que\n" +
+          "  el siguiente intento lo daría por bueno y se quedaría así."
+        );
+      } else {
+        console.error("\n  No ha entrado nada de esa migración. Las anteriores sí.");
+      }
+
       cliente.release();
       await pool.end();
       process.exit(1);

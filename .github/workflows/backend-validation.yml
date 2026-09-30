@@ -96,15 +96,23 @@ jobs:
       # la red de seguridad del repositorio dependia de que alguien se acordara
       # de lanzarla a mano antes de empujar. Dos pasos, y ya no.
       #
-      # El de lib va con el patron entre comillas a proposito, y no por
-      # `npm run test:lib`. Ese script lo escribe sin comillas, y en Windows
-      # funciona porque cmd no expande y node se encarga, pero en el ubuntu de
-      # aqui lo expande bash: sin `globstar`, `lib/**/*.test.js` se convierte en
-      # `lib/*/*.test.js` y **se deja fuera los 61 ficheros que estan
-      # directamente en lib/**. Medido: 934 de las 1.690 pruebas. Entre comillas
-      # el patron llega entero a node y se corren las 1.690 en los dos sitios.
+      # Los ficheros se buscan con `find`, y las dos formas obvias estan
+      # descartadas por un motivo medido cada una.
+      #
+      # `npm run test:lib` no sirve: ese script escribe `lib/**/*.test.js` sin
+      # comillas. En Windows funciona porque cmd no expande y el patron llega
+      # entero a node, pero aqui lo expande bash, y sin `globstar` eso se queda
+      # en `lib/*/*.test.js`: fuera los 61 ficheros que estan directamente en
+      # lib/. Medido, 934 de las 1.699 pruebas.
+      #
+      # Y entre comillas tampoco: node sabe expandir el patron el mismo, pero
+      # **solo desde la version 22**. Este trabajo usa la 20 y contesto
+      # `Could not find 'lib/**/*.test.js'`. En local paso, porque ahi hay una
+      # Node 24; lo cazo el CI en el primer empujon, que es para lo que esta.
+      #
+      # `find` no depende ni de la shell ni de la version de node.
       - name: Run lib tests
-        run: node --test "lib/**/*.test.js"
+        run: node --test $(find lib -name '*.test.js')
 
       - name: Run frontend tests
         env:

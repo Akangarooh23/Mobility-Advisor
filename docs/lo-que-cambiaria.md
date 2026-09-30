@@ -1216,10 +1216,30 @@ Medido:
 Y los 61 que se caen son los que están **directamente en `lib/`**, que es donde
 vive casi todo lo que he escrito esta revisión.
 
-En el workflow lo he escrito con comillas y con el comentario explicando por qué
-no va por `npm run test:lib`. **El script de `package.json` sigue mal**, y no lo
-he tocado porque tu otra sesión lo tiene abierto: cámbialo a
-`node --test "lib/**/*.test.js"` cuando cierres lo tuyo.
+En el workflow lo he escrito con `find`, y el camino hasta ahí tiene una segunda
+parte que vale más que la primera.
+
+**Lo puse entre comillas y el CI se puso rojo en el primer empujón.** node sabe
+expandir ese patrón él mismo, pero **solo desde la versión 22**, y el workflow usa
+`node-version: 20`:
+
+```
+Could not find '/home/runner/work/Mobility-Advisor/Mobility-Advisor/lib/**/*.test.js'
+```
+
+En local pasó porque aquí hay una Node 24. Había verificado los finales de línea
+—cloné el repositorio con LF y corrí las dos suites— y **no verifiqué la versión
+de node**, que era el otro eje. Dije que el CI iba a pasar y no pasó.
+
+Queda con `node --test $(find lib -name '*.test.js')`, que no depende ni de la
+shell ni de la versión de node. 1.699 pruebas, comprobado.
+
+Y de paso: el CI que acabo de añadir cazó un fallo de mi propio cambio a los
+cuarenta segundos de empujarlo. Es exactamente para eso.
+
+**El script de `package.json` sigue mal** y no lo he tocado porque tu otra sesión
+lo tiene abierto: cámbialo a `node --test $(find lib -name '*.test.js')` cuando
+cierres lo tuyo —o a las comillas, si subes la Node del proyecto a la 22—.
 
 ### ✅ 11.3 — El importador de talleres no verificaba el certificado — **arreglado**
 
@@ -1796,6 +1816,133 @@ escrita—, así que las Inter de aquí no las usa nadie.
 Es carpeta de trabajo de diseño y está bien que exista; lo que no está escrito en
 ninguna parte es que `home-v3.html` es la última y `home-v2.html` la anterior.
 Dentro de seis meses eso no se deduce del nombre.
+
+---
+
+## Zona 15 — El guardián de n8n y la limpieza de su base ✔ revisada
+
+Código de la otra sesión, empujado el 30 de septiembre: `scripts/vigila-n8n.js`,
+`scripts/limpia-n8n.js`, `migrations/0019-el-vigilante-de-n8n.sql` y un cambio en
+`ecosystem.config.js`. Lo reviso porque acaba de entrar y porque toca dos cosas
+delicadas: levantar procesos y borrar de una base con el fichero abierto.
+
+**Está bien hecho**, y §15.4 lo detalla. Los tres hallazgos son de lo que pasa
+cuando falla algo de alrededor, y **el peor sale de cómo se juntan los dos
+scripts**, no de ninguno por separado.
+
+### 🟠 15.1 — El guardián necesita Postgres para poder levantar n8n
+
+`scripts/vigila-n8n.js`, línea 126:
+
+```js
+const c = new Client({ connectionString: DB_URL, statement_timeout: 60000 });
+await c.connect();
+```
+
+Eso está **fuera de todo `try`**. Si Neon no contesta —o la contraseña cambia, o
+la red se va— el `connect` levanta, el `.catch` del final imprime `ERROR:` y sale
+con 1. O sea: **n8n se queda caído**.
+
+Y la base solo se usa para dos cosas: apuntar el latido y consultar el
+enfriamiento. Ninguna de las dos es el trabajo del guardián. Que un vigilante de
+n8n dependa de Postgres para poder reiniciar n8n es la dependencia al revés: el
+día que fallen las dos cosas a la vez —y una parada de n8n y un problema de base
+no son sucesos independientes, comparten máquina y red— no hay quien levante nada.
+
+**Qué haría**: el enfriamiento en un fichero local, que es donde ya vive el freno
+de mano. La fecha de modificación de `~/.n8n/ultimo-intento` responde «¿se
+intentó hace menos de cinco minutos?» sin salir de la máquina. El latido en
+Postgres se queda como está —es un registro, no una condición— dentro de un `try`
+que si falla no impida levantar n8n.
+
+### 🟠 15.2 — Nadie lee los latidos, que son la mitad del diseño
+
+La migración explica para qué está la tabla, y lo dice sin rodeos:
+
+> *«Lo que NO puede cubrir es que la máquina entera esté apagada: si no hay
+> máquina, no hay guardián. Por eso cada pasada deja su latido aquí, y desde
+> fuera se puede ver que el último es de hace tres horas y avisar.»*
+
+Busqué quién mira `moveadvisor_latidos_n8n` en todo el repositorio. Sale en tres
+sitios: la migración que la crea, el guardián que escribe en ella, y un
+**comentario** de `ecosystem.config.js`. **Nadie la lee.**
+
+Así que los dos casos que la tabla existe para cubrir siguen descubiertos:
+
+1. **La máquina apagada.** No hay guardián, no hay latidos, y nada nota la
+   ausencia.
+2. **El guardián se rinde.** Después de `MAX_INTENTOS` en una hora deja de
+   intentarlo —con razón: insistir cada cinco minutos no arregla un problema de
+   fondo— y apunta *«no arranca solo, hay que mirarlo»*. A nadie.
+
+**Y el sitio donde ponerlo ya existe.** Hay dos crones que ya avisan por correo y
+que corren **en Vercel**, o sea fuera de esta máquina, que es justo lo que hace
+falta para detectar que la máquina está apagada:
+
+- `cron-avisa-de-los-fallos`, que ya lee `moveadvisor_errores WHERE avisado_en IS
+  NULL` y manda el correo.
+- `lib/vigila-scrapers.js`, que avisa cuando deja de entrar catálogo.
+
+Añadirle al primero un «¿el último latido es de hace más de media hora?» son unas
+líneas, y cierra el diseño que la migración describe.
+
+### 🟡 15.3 — Un freno de mano sin caducidad es un interruptor de apagado
+
+Los dos scripts se coordinan con un fichero, `~/.n8n/no-me-levantes`: la limpieza
+lo pone antes de parar n8n y el guardián no toca nada mientras exista. Es la
+decisión correcta y está bien pensada.
+
+Pero el guardián solo mira si **existe**:
+
+```js
+if (fs.existsSync(FRENO)) {
+  await apunta(escucha(), false, "freno de mano puesto: alguien lo ha parado a proposito");
+  return;
+}
+```
+
+Sin mirar de cuándo es. Y la limpieza lo borra en un `finally`, que cubre una
+excepción pero **no cubre que el proceso muera de golpe**: un Ctrl-C, un reinicio
+de la máquina, un corte de luz o un `kill` entre el `ponFreno()` y el `finally`.
+La limpieza corre a las **03:00 y sin nadie delante**, que es exactamente cuando
+un reinicio no lo ve nadie.
+
+Si eso pasa, el resultado es: n8n apagado, el guardián viéndolo apagado cada cinco
+minutos y decidiendo no hacer nada, y el latido diciendo *«alguien lo ha parado a
+propósito»* — que es lo que uno leería como normal—. Sumado a §15.2, nadie lo lee
+tampoco. **Un fichero de cero bytes apagando los 52 flujos indefinidamente.**
+
+**Qué haría**: que el freno caduque. Ignorarlo si tiene más de media hora —la
+limpieza entera tarda minutos— y escribir dentro el PID del proceso que lo puso,
+para poder comprobar si sigue vivo. Dos líneas, y el modo de fallo desaparece.
+
+### ✅ 15.4 — Y lo que está bien hecho, que es la mayor parte
+
+Lo digo con detalle porque es lo que no hay que tocar al arreglar lo de arriba.
+
+- **El enfriamiento que evita dos n8n está probado, no supuesto.** Su comentario
+  dice: *«Probado: dos pasadas con tres segundos de diferencia lanzaron DOS n8n»*.
+  Y el código hace lo que el comentario dice —lo comprobé, porque esta misma
+  revisión se encontró un comentario que afirmaba algo que su código no cumplía—:
+  cinco minutos de margen sobre los 60-100 segundos que n8n tarda en escuchar,
+  más un `hayProceso()` antes, más un tope de intentos por hora.
+- **La limpieza se niega tres veces antes de tocar la base.** Sin `--hazlo` no
+  hace nada. Con `--hazlo` pero n8n escuchando y sin `--con-parada`, se niega y
+  dice por qué: *«Tocar el fichero con n8n dentro corrompe la base.»* Y si hay
+  ejecuciones de verdad en marcha, se niega a parar n8n aunque se lo pidan. Es la
+  misma disciplina que se le puso a los tres scripts destructivos de §7, aplicada
+  sin que nadie la pidiera.
+- **Y si para n8n, lo vuelve a levantar pase lo que pase**, en un `finally`, con
+  el motivo escrito: *«Un fallo a mitad que deje el sistema apagado es peor que la
+  base gorda: en agosto estuvo quince días sin raspar y nadie se enteró.»*
+- **La tabla de latidos se poda sola** a los treinta días, en cada pasada del
+  guardián, con la cuenta hecha: 288 latidos al día, 105.000 al año sin podar.
+  Contra las otras tablas de este sistema que crecen sin fin, esto es lo
+  contrario de lo que suele pasar.
+- **El índice es el de la pregunta que se hace.** `(momento DESC)`, porque lo que
+  se pide siempre es el último. Después de las §1.1 y §8.5 —523 MB de índices que
+  nadie lee y dos que creé yo y tuve que tirar—, ver un índice puesto por una
+  consulta concreta y no por si acaso se agradece.
 
 ---
 

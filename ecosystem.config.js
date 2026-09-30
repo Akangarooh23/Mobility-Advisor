@@ -8,7 +8,7 @@
  *
  *   07:00  carswise-provincias   normaliza `provincia` desde lo que trae cada portal
  *   07:30  carswise-duplicados   reconstruye la tabla de duplicados
- *   08:00  (carswise-visibles)   decide qué se le puede enseñar -TODAVÍA NO, ver abajo-
+ *   08:00  carswise-visibles     decide qué se le puede enseñar a un cliente
  *
  * El orden NO es estético: hay una dependencia real. `recalcula-visibles`
  * marca ofertas con el motivo `duplicada`, y ese motivo sale de la tabla que
@@ -76,29 +76,25 @@ module.exports = {
       args: ["--aplica"],
       cron_restart: "0 7 * * *",
     },
-    /*
-     * ── `carswise-visibles` NO está aquí todavía, y es a propósito ─────────
-     *
-     * `recalcula-visibles` iría a las 08:00, después del agrupador de las
-     * 07:30, porque el motivo `duplicada` sale de la tabla que aquél
-     * reconstruye. Pero tal como está tarda demasiado para correr a diario.
-     *
-     * Medido el 29-sep-2026, la pasada completa con lotes de 10.000:
-     * 5 h 40 min. Correría de las 08:00 a las 13:40 machacando la tabla, y la
-     * segunda pasada no seria mas rapida: escribe poco, pero lee lo mismo.
-     *
-     * El motivo es el tamaño del lote. Recorrer por índice con LIMIT obliga a
-     * ir a buscar cada fila por separado, y contra el almacenamiento remoto
-     * de Neon eso es lentísimo: 124 s por cada 10.000 filas. La misma lectura
-     * hecha de una sola vez, con barrido secuencial y en paralelo, tarda
-     * 6 minutos para el millón y medio. Al partirlo en lotes gané que no
-     * bloquea a los scrapers y perdí un factor de cincuenta.
-     *
-     * Antes de programarlo hay que medir dos salidas: lotes mucho más grandes
-     * -100.000 o 200.000, que vuelven a permitir el barrido secuencial- o que
-     * sea incremental y mire solo lo que ha cambiado desde la última pasada.
-     *
-     * Mientras tanto se lanza a mano:  npm run recalcula-visibles -- --aplica
-     */
+    {
+      /*
+       * Va DESPUÉS del agrupador de las 07:30, no antes: el motivo
+       * `duplicada` sale de la tabla que aquél reconstruye. Si corriera
+       * antes, estaría decidiendo con los duplicados de ayer.
+       *
+       * Medido el 30-sep-2026 con la versión que hace un portal por
+       * sentencia: 12 minutos y 4.913 filas cambiadas de 1,63 millones. El
+       * cálculo es estable entre pasadas, así que una diaria no reescribe la
+       * tabla entera cada noche.
+       *
+       * La primera versión, con lotes de 10.000 por cursor de id, tardaba
+       * 5 h 40 min. Está contado en la cabecera del script.
+       */
+      ...comun,
+      name: "carswise-visibles",
+      script: "scripts/recalcula-visibles.js",
+      args: ["--aplica"],
+      cron_restart: "0 8 * * *",
+    },
   ],
 };

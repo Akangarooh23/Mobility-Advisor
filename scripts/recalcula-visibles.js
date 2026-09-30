@@ -61,16 +61,6 @@ const DB_URL = (env.match(/^DATABASE_URL=(.*)$/m) || [])[1].trim().replace(/^["'
 
 const APLICA = process.argv.includes("--aplica");
 
-/**
- * Cuántas filas por sentencia.
- *
- * 10.000 sale de la medida: seleccionar 25.000 ids ya costaba 21 s contra el
- * almacenamiento remoto de Neon, y ese es el tiempo que alguien espera. Con
- * 10.000 son unos 10 s. Con el millón y medio de golpe eran VEINTE MINUTOS de
- * bloqueo y cola en n8n.
- */
-const LOTE = 10000;
-
 const mil = (n) => Number(n).toLocaleString("es");
 
 /*
@@ -182,9 +172,9 @@ const CASE_MOTIVO = "CASE\n"
    * de tuplas muertas que el autovacuum tiene que limpiar cada noche.
    */
   console.log("\n  APLICANDO");
-  console.log("      por lotes de " + LOTE.toLocaleString("es") + ", para no bloquear a los scrapers");
+  console.log("      un portal por sentencia, para no bloquear a los scrapers");
   /*
-   * ── Por qué por lotes y no de una vez ────────────────────────────────────
+   * ── Un portal por sentencia ──────────────────────────────────────────────
    *
    * Escrito como un solo UPDATE sobre el millón y medio de filas, Postgres
    * mantiene el bloqueo de TODAS ellas hasta que termina. El 29-sep-2026 eso
@@ -193,36 +183,47 @@ const CASE_MOTIVO = "CASE\n"
    *     pid 22494  843s  Lock transactionid  bloqueado por: [15090]
    *
    * Y un workflow bloqueado ocupa uno de los tres huecos de concurrencia de
-   * n8n, así que detrás se forma cola. Como esto va a correr cada mañana a
-   * las 08:00, cuando los scrapers están trabajando, no puede ser así.
+   * n8n, así que detrás se forma cola. Esto corre cada mañana mientras los
+   * scrapers trabajan, así que no puede ser así.
    *
-   * Por lotes, cada sentencia bloquea 25.000 filas unos segundos y suelta. Lo
-   * que se tarda en total es parecido; lo que cambia es que nadie espera.
+   * ── Y por portal, no por rangos de id ────────────────────────────────────
    *
-   * ── Cómo se recorre ──────────────────────────────────────────────────────
+   * El primer intento fue trocear con un cursor sobre la clave primaria,
+   * `id > el último del lote anterior` con LIMIT. Funcionaba y no bloqueaba,
+   * pero la pasada completa pasó a tardar 5 h 40 min.
    *
-   * Por `id`, que es la clave primaria, avanzando con un cursor -`id > el
-   * último del lote anterior`-. No con OFFSET: con OFFSET, Postgres tiene que
-   * recorrer y descartar todo lo anterior en cada lote, y el último tarda lo
-   * que todos los demás juntos.
+   * El culpable no era el tamaño del lote sino el ORDER BY: obliga a recorrer
+   * por índice y a ir a buscar cada fila por separado, y contra el
+   * almacenamiento remoto de Neon cada salto se paga. Medido sobre las mismas
+   * filas, leyendo y evaluando el motivo:
    *
-   * El CTE devuelve el último id MIRADO, no el último escrito. No es lo
-   * mismo: dentro de un lote la mayoría de filas ya están bien y no se tocan,
-   * y si el cursor avanzara solo hasta el último escrito, se repetirían.
+   *     cursor por id, LIMIT 10.000    2,25 ms/fila
+   *     cursor por id, LIMIT 100.000   0,17 ms/fila
+   *     por portal, sin ORDER BY       0,05 ms/fila     <- 45 veces mejor
+   *
+   * Sin ORDER BY, Postgres barre en secuencial, paraleliza y le pide a Neon
+   * páginas seguidas. Leer el millón y medio pasa de una hora a minuto y
+   * medio.
+   *
+   * Y los portales son trozos naturales y bastante equilibrados -wallapop
+   * 532.223, coches.net 282.161, milanuncios 263.260, autoscout24 251.631,
+   * autocasión 199.211, y siete más pequeños-, así que son once sentencias en
+   * vez de 164, cada una bloqueando solo lo suyo.
    */
-  let cursor = "";
+  const portales = (await c.query(
+    `SELECT o.portal, count(*)::int n FROM moveadvisor_market_offers o
+      WHERE ${DONDE} GROUP BY 1 ORDER BY n`)).rows;
+
   let escritas = 0;
   let mirados = 0;
-  let lotes = 0;
   const t0 = Date.now();
-  for (;;) {
-    const r = await conReintento(c, "lote " + (lotes + 1), `
+  for (const { portal } of portales) {
+    const t1 = Date.now();
+    const r = await conReintento(c, portal, `
       WITH lote AS (
         SELECT o.id, ${CASE_MOTIVO} AS motivo
           FROM moveadvisor_market_offers o
-         WHERE ${DONDE} AND o.id > $1
-         ORDER BY o.id
-         LIMIT ${LOTE}
+         WHERE ${DONDE} AND o.portal = $1
       ),
       escrito AS (
         UPDATE moveadvisor_market_offers o
@@ -235,23 +236,18 @@ const CASE_MOTIVO = "CASE\n"
                 OR o.visible_motivo IS DISTINCT FROM k.motivo)
         RETURNING 1
       )
-      SELECT (SELECT max(id) FROM lote) AS ultimo,
-             (SELECT count(*)::int FROM lote) AS mirados,
-             (SELECT count(*)::int FROM escrito) AS escritos`, [cursor]);
+      SELECT (SELECT count(*)::int FROM lote) AS mirados,
+             (SELECT count(*)::int FROM escrito) AS escritos`, [portal]);
 
     const f = r.rows[0];
-    if (!f.mirados) break;
-    cursor = f.ultimo;
     escritas += f.escritos;
     mirados += f.mirados;
-    lotes++;
-    if (lotes % 10 === 0) {
-      console.log("      " + mil(mirados) + " miradas, " + mil(escritas) + " cambiadas"
-        + "   (" + ((Date.now() - t0) / 1000).toFixed(0) + " s)");
-    }
+    console.log("      " + portal.padEnd(14) + mil(f.mirados).padStart(9) + " miradas   "
+      + mil(f.escritos).padStart(9) + " cambiadas   "
+      + ((Date.now() - t1) / 1000).toFixed(0).padStart(4) + " s");
   }
-  console.log("      " + mil(mirados) + " miradas en " + lotes + " lotes, "
-    + mil(escritas) + " cambiadas, " + ((Date.now() - t0) / 1000).toFixed(0) + " s");
+  console.log("      " + mil(mirados) + " miradas, " + mil(escritas) + " cambiadas, "
+    + ((Date.now() - t0) / 1000).toFixed(0) + " s en total");
 
   /*
    * Y las que ya no estan activas dejan de estar visibles.
@@ -269,34 +265,18 @@ const CASE_MOTIVO = "CASE\n"
    * FALSE no vuelve a entrar. Aun así se usa el último mirado, que funciona
    * en los dos casos y no obliga a razonarlo cada vez que alguien lo lea.
    */
-  let cursorM = "";
   let bajas = 0;
-  let lotesM = 0;
-  for (;;) {
-    const r = await conReintento(c, "vendidas " + (lotesM + 1), `
-      WITH lote AS (
-        SELECT o.id FROM moveadvisor_market_offers o
-         WHERE NOT o.is_active AND o.visible IS DISTINCT FROM FALSE
-           AND NOT o.visible_a_mano AND o.id > $1
-         ORDER BY o.id LIMIT ${LOTE}
-      ),
-      escrito AS (
-        UPDATE moveadvisor_market_offers o
-           SET visible = FALSE, visible_motivo = 'no_activa', visible_desde = NOW()
-          FROM lote k WHERE o.id = k.id
-        RETURNING 1
-      )
-      SELECT (SELECT max(id) FROM lote) AS ultimo,
-             (SELECT count(*)::int FROM lote) AS mirados,
-             (SELECT count(*)::int FROM escrito) AS escritos`, [cursorM]);
-    const f = r.rows[0];
-    if (!f.mirados) break;
-    cursorM = f.ultimo;
-    bajas += f.escritos;
-    lotesM++;
+  for (const { portal } of (await c.query(
+    `SELECT DISTINCT portal FROM moveadvisor_market_offers
+      WHERE NOT is_active AND visible IS DISTINCT FROM FALSE AND NOT visible_a_mano`)).rows) {
+    const r = await conReintento(c, "vendidas de " + portal, `
+      UPDATE moveadvisor_market_offers
+         SET visible = FALSE, visible_motivo = 'no_activa', visible_desde = NOW()
+       WHERE NOT is_active AND visible IS DISTINCT FROM FALSE
+         AND NOT visible_a_mano AND portal = $1`, [portal]);
+    bajas += r.rowCount;
   }
-  console.log("      vendidas que dejan de verse: " + mil(bajas)
-    + "   en " + lotesM + " lotes");
+  console.log("      vendidas que dejan de verse: " + mil(bajas));
 
   const fin = (await c.query(
     `SELECT count(*) FILTER (WHERE visible)::int se_ven,

@@ -141,6 +141,7 @@
     "arregla-potencia": "node --max-old-space-size=4096 scripts/arregla-potencia-volcado.js",
     "recalcula-visibles": "node scripts/recalcula-visibles.js",
     "test:visibles": "node scripts/comprueba-lo-que-se-ensena.js",
+    "limpia-n8n": "node scripts/limpia-n8n.js",
     "normaliza-provincias": "node scripts/normaliza-provincias.js",
     "genera-municipios": "node scripts/genera-municipios.js",
     "refresca-facetas": "node scripts/refresca-facetas.js",

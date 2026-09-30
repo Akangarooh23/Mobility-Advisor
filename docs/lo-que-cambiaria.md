@@ -2359,6 +2359,50 @@ Dos consecuencias, y la primera es mía:
 `SET` contra este `DATABASE_URL` está tocando a los demás, así que eso merece un
 aviso en `lib/postgres.js`.
 
+### 🟡 19.5 — El secreto compartido se compara con `!==` y el resto del repositorio no
+
+`apps/api/src/routes/idcars.ts`, la puerta por la que este repositorio le pide al
+ERP que lea una ficha técnica:
+
+```ts
+if (String(req.headers.authorization ?? '') !== `Bearer ${secreto}`) {
+  res.status(401).json({ ok: false, error: 'no_autorizado' });
+```
+
+Comparación de cadenas, que corta en el primer carácter distinto. Y el mismo
+repositorio usa `timingSafeEqual` en **cuatro** sitios: `lib/personal.ts`,
+`lib/whatsapp.ts`, y dos en `routes/auth.ts`. O sea que la costumbre está y aquí
+no se aplicó.
+
+A diferencia de comparar hashes —donde da igual, §10.10—, aquí **el atacante
+controla lo que se compara**: puede mandar el token que quiera y medir. Sacar un
+secreto byte a byte por la red es difícil y ruidoso, pero no imposible con
+suficientes muestras, y la puerta que protege es la que lee documentos de coches
+de clientes.
+
+**Cómo se arregla**, y es lo que hacen los otros cuatro: recortar a la misma
+longitud primero —`timingSafeEqual` **levanta** si los búferes miden distinto— y
+comparar con él.
+
+### ✅ 19.6 — Y la firma del webhook de WhatsApp está bien hecha
+
+Miré `lib/whatsapp.ts` esperando encontrar justo ese fallo, porque es el clásico:
+
+```ts
+const recibida = cabecera.slice('sha256='.length);
+if (recibida.length !== esperada.length) return false;
+return timingSafeEqual(Buffer.from(recibida, 'utf8'), Buffer.from(esperada, 'utf8'));
+```
+
+La comprobación de longitud **está antes**, que es lo que evita que
+`timingSafeEqual` levante con una firma de tamaño raro y convierta un 401 en un
+500. Y si falta `WHATSAPP_APP_SECRET` el webhook **rechaza todo** en vez de dejar
+pasar, con el aviso explicando dónde se pone.
+
+Vale la pena decirlo porque en este repositorio `/api/whatsapp` **no verifica
+ninguna firma** (§3). Los dos lados hablan con Meta y solo uno comprueba quién
+llama.
+
 ### Lo que NO he revisado del ERP
 
 Casi todo: 80.232 líneas y he mirado cuatro cosas concretas. No he entrado en

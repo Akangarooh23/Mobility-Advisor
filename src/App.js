@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { FICHA_VO_PUBLICA } from "./utils/fichaPublica";
+/* Las direcciones publicas viven en su modulo: es lo que decide en que pantalla
+   aterriza quien abre un enlace, y no se podia probar desde dentro de App. */
+import {
+  getPublicPathForEntryMode,
+  normalizePublicPath,
+  readMarketplaceVoIdFromPath,
+  readVehicleDetailIdFromPath,
+  resolveEntryModeFromPublicPath,
+} from "./utils/rutas";
 import { idDeAnuncioPropio, ofertaDelMarketplacePorId } from "./utils/anuncioPropio";
 import { NOMBRE, SITIO_URL, DOMINIO, CORREO_CONTACTO } from "./marca";
 import i18next from "i18next";
@@ -1300,49 +1309,6 @@ const SEO_STATIC_PAGES = {
   },
 };
 
-const PUBLIC_ROUTE_BY_ENTRY_MODE = {
-  aboutCarswise: "/sobre-popcar",
-  plans: "/planes",
-  portalVo: "/marketplace-vo",
-  // (la apertura temporal de la ficha VO está justo debajo de este mapa)
-  vehicleDetail: "/ficha-vehiculo",
-  vehicleOptions: "/asesor-vehiculo",
-  servicesSeo: "/servicios",
-  blog: "/blog",
-  blogCompraUsado: "/blog/guia-compra-coche-segunda-mano-espana",
-  blogRentingCompra: "/blog/renting-vs-compra-2026-que-conviene-segun-tu-uso",
-  viewingPropose: "/cita/proponer",
-  viewingConfirm: "/cita/confirmar",
-  empresas: "/empresas",
-  comoFunciona: "/como-funciona",
-  comparador: "/comparador",
-  buscarCoche: "/buscar-coche",
-  contact: "/contacto",
-  legalNotice: "/aviso-legal",
-  privacyPolicy: "/politica-privacidad",
-  cookiePolicy: "/politica-cookies",
-  termsConditions: "/terminos-condiciones",
-  marketingPolicy: "/politica-comunicaciones",
-  experianPolicy: "/politica-experian",
-  experianTerms: "/condiciones-experian",
-  /*
-   * La pantalla del IDCar, que no tenía dirección.
-   *
-   * Se llegaba a ella solo por estado interno, así que no se podía enlazar: ni
-   * desde «lo que te falta» de su encargo, ni desde un correo. Y es donde se
-   * suben el permiso, la ficha técnica y la ITV, que es justo lo que más veces
-   * hay que pedirle.
-   */
-  idCarsManage: "/mis-coches",
-};
-
-
-
-const ENTRY_MODE_BY_PUBLIC_ROUTE = Object.entries(PUBLIC_ROUTE_BY_ENTRY_MODE).reduce((acc, [entryMode, path]) => {
-  acc[path] = entryMode;
-  return acc;
-}, {});
-
 const SEO_META_BY_ENTRY_MODE = {
   home: {
     title: "PopCar | Asesor de movilidad para comprar, renting y vender mejor",
@@ -1464,43 +1430,6 @@ function buildBlogPostingSchema(post = {}) {
   };
 }
 
-function normalizePublicPath(pathname = "") {
-  const normalized = String(pathname || "").replace(/\/+$/, "").toLowerCase();
-  return normalized || "/";
-}
-
-function resolveEntryModeFromPublicPath(pathname = "") {
-  const normalizedPath = normalizePublicPath(pathname);
-  if (normalizedPath.startsWith("/panel")) {
-    return null;
-  }
-
-  const vehicleDetailBasePath = normalizePublicPath(getPublicPathForEntryMode("vehicleDetail"));
-  if (vehicleDetailBasePath !== "/" && normalizedPath.startsWith(`${vehicleDetailBasePath}/`)) {
-    return "vehicleDetail";
-  }
-
-  const marketplaceVoBasePath = normalizePublicPath("/marketplace-vo");
-  if (normalizedPath.startsWith(`${marketplaceVoBasePath}/`)) {
-    return "portalVoDetail";
-  }
-
-  return ENTRY_MODE_BY_PUBLIC_ROUTE[normalizedPath] || null;
-}
-
-function readMarketplaceVoIdFromPath(pathname = "") {
-  const base = "/marketplace-vo";
-  const raw = String(pathname || "").replace(/\/+$/, "");
-  if (!raw.toLowerCase().startsWith(`${base}/`)) return "";
-  const segment = raw.slice(base.length + 1).split("?")[0];
-  if (!segment) return "";
-  try { return decodeURIComponent(segment); } catch { return segment; }
-}
-
-function getPublicPathForEntryMode(entryMode = "") {
-  return PUBLIC_ROUTE_BY_ENTRY_MODE[entryMode] || "/";
-}
-
 function buildVehicleDetailSharePayload(offer = {}) {
   if (!offer || typeof offer !== "object") {
     return null;
@@ -1614,26 +1543,6 @@ function buildVehicleDetailSharePath(offer = {}) {
   }
 
   return `${route}?vd=${encodedPayload}`;
-}
-
-function readVehicleDetailIdFromPath(pathname = "") {
-  const basePath = getPublicPathForEntryMode("vehicleDetail");
-  const rawPath = String(pathname || "").replace(/\/+$/, "") || "/";
-
-  if (!rawPath.startsWith(`${basePath}/`)) {
-    return "";
-  }
-
-  const encodedId = rawPath.slice(basePath.length + 1);
-  if (!encodedId) {
-    return "";
-  }
-
-  try {
-    return decodeURIComponent(encodedId);
-  } catch (_error) {
-    return encodedId;
-  }
 }
 
 function readVehicleDetailOfferFromSearch(search = "") {

@@ -1206,6 +1206,231 @@ de ellas cambian a dónde llegan los correos de los clientes.
 
 ---
 
+## Zona 12 — Tres de los cinco sitios que no había abierto ✔ revisada
+
+De los cinco que quedaban apuntados abrí tres: `db/`, `data/` y los ficheros de
+la raíz. **`n8n-workflows/` sigue sin revisar** —solo lo busqué por nombres de
+tabla, que no es lo mismo— y `mockups/` tampoco. Lo digo en el encabezado porque
+el título de una zona es lo único que mucha gente lee.
+
+Salieron seis cosas, y la primera es la más cara de todo este documento.
+
+### 🔴 12.1 — La tasación tiene un plan B de hace 47 días, y entra sin avisar
+
+`readInventoryUniverse` en `lib/inventoryStore.js`, que es de donde salen los
+comparables con los que se valora el coche de alguien:
+
+```js
+const fromPostgres = await readPostgresInventory(…);
+if (fromPostgres.length > 0) {
+  return { offers: fromPostgres, source: "postgres" };
+}
+
+const fromSqlServer = await readSqlServerInventory(12000, options);   // siempre []
+if (fromSqlServer.length > 0) { … }
+
+return {
+  offers: readLocalInventory(),
+  source: "local-json",
+};
+```
+
+`readLocalInventory()` lee `data/inventory-offers.json`, que está en el
+repositorio. Lo abrí y lo medí:
+
+| | |
+|---|---|
+| Ofertas | **2.749** |
+| Fecha de todas ellas | **14 de agosto de 2026** |
+| Último commit que lo tocó | 14 de agosto (`0dcd57b`), hace **47 días** |
+| Portales | 7 |
+| Precio mediano | 17.490 € |
+| Contra lo que hay en Postgres | 2.749 de 2,8 millones: el **0,1 %** |
+
+Son ofertas de verdad —urls reales, 71 marcas—, no datos de prueba. Y eso es
+justo lo que lo hace peligroso: el resultado parece bueno.
+
+**Cuándo entra.** No hace falta que nada se rompa. `readPostgresInventory`
+devuelve `[]` en dos casos que no distingue:
+
+1. **La consulta falla.** Su `catch` escribe en consola y devuelve `[]` (línea
+   986). Y fallar aquí no es hipotético: es lo que hacían los ocho manejadores
+   que cerraban el pool compartido (§2), y con consultas de 8 a 48 segundos (§9)
+   un tiempo agotado entra por la misma puerta.
+2. **El filtro no encuentra nada, legítimamente.** Un perfil estrecho —una
+   versión concreta en una provincia concreta— puede dar cero de 2,8 millones.
+
+En los dos casos se tasa contra el fichero. Y `readLocalInventory()` **no filtra
+nada**: devuelve las 2.749 enteras, sin mirar las opciones. Así que el caso 2 es
+el peor de los dos: el filtro no encontró nada y la respuesta es un universo de
+2.749 coches que no tienen que ver, en vez de «no hay comparables».
+
+El único rastro es el campo `source: "local-json"`, y nadie lo mira.
+
+**Qué haría**, y esto no es una opinión de estilo: **quitar la tercera rama**.
+Cero comparables es una respuesta legítima y hay que darla. Si Postgres falla,
+que levante —`registra()` ya existe—. El fichero solo tiene sentido para
+desarrollar sin base, y eso se decide con `hasPostgresConnection()`, igual que
+en §5.7. Es el mismo fallo que el garaje, en el sitio donde más se paga: el
+precio es el producto.
+
+### 🟡 12.2 — Una tabla de otro repositorio, vacía, y un `catch` que lo tapa
+
+`lib/el-motor-de-la-ficha.js` ordena la lista de versiones del coche usando la
+cilindrada y los kilovatios de su ficha técnica:
+
+```sql
+SELECT codigos FROM erp_fichas_tecnicas_leidas WHERE vehicle_id = $1
+```
+
+Esa tabla **no la declara ninguna migración de este repositorio**, y no es un
+descuido: la escribe el ERP. Lo comprobé en el otro repositorio —
+`apps/api/src/lib/la-ficha-leida.ts`— y hace `INSERT … ON CONFLICT` después de
+un `aseguraLaTabla()` que la crea al vuelo.
+
+Tres cosas de eso:
+
+1. **La tabla tiene 0 filas en producción.** Así que hoy la función devuelve
+   vacío siempre y la lista de versiones sale sin ordenar.
+2. **Nadie se puede enterar.** `elMotorDeLaFicha` envuelve la consulta en
+   `try { … } catch { return vacio; }`. El comentario del manejador dice «nunca
+   falla: sin ficha leída devuelve el motor vacío», y **es verdad** —lo
+   comprobé—. Pero eso significa que «la tabla no existe», «la base no
+   contesta» y «este coche no tiene ficha» son la misma respuesta.
+3. **Es la forma exacta del fallo que este repositorio ya se comió una vez.**
+   `lib/el-esquema-tiene-un-dueno.test.js` nació porque descargar una factura
+   estaba roto en producción por una columna que creaba otro fichero al vuelo.
+   La regla que puso —el esquema se declara en `migrations/`— **no puede ver lo
+   que pasa entre dos repositorios**, y su lista de tablas de muestra no incluye
+   ésta; su propio comentario admite que no es la lista entera.
+
+**Qué haría**: que el `catch` llame a `registra()` antes de devolver vacío. Sigue
+sin romper nada y deja de ser invisible. Y añadir la tabla a la lista de esa
+prueba, con una nota de que la dueña es el ERP.
+
+### 🟡 12.3 — El CI prueba la autenticación contra un servidor que sirve 31 de 49 rutas
+
+`local-api-server.js` es lo que el CI arranca para las pruebas de auth y de
+seguridad. Despacha así:
+
+```js
+const handler = handlers[url.pathname];
+if (!handler) { sendJson(res, 404, { error: "Not Found" }); return; }
+```
+
+Búsqueda exacta en una tabla escrita a mano, y 404. Ni prefijos, ni parámetros,
+ni `?route=`. Comparado con los 49 caminos `/api` de `vercel.json`, **28 no
+existen en el servidor local**: los ocho crones, `/api/whatsapp`,
+`/api/fianza-confirmar`, `/api/fianza-devolucion`, `/api/mandato-firmado`,
+`/api/papeles-venta`, `/api/informe-publico/…`, `/api/modelo-3d/…` y
+**`/api/invoice-pdf`**.
+
+Ese último es el que duele. `el-esquema-tiene-un-dueno.test.js` cuenta que
+descargar una factura en PDF **estuvo roto en producción** —`column
+i.rectifica_numero does not exist`— y que nadie podía verlo. Es una de las 28 que
+ninguna prueba local puede tocar.
+
+No digo que haya que servir las 49 en local; algunas no tienen sentido fuera de
+Vercel. Digo que **hay que saber cuáles no se prueban**, porque ahora mismo la
+lista no está escrita en ninguna parte y la diferencia se descubre en producción.
+
+### 🟡 12.4 — Sin `?route=`, la ruta se decide buscando trozos en la URL entera
+
+Los tres enrutadores reparten por `?route=`. Cuando no viene, `lib/api/enrutador.js`
+cae a una lista de alias:
+
+```js
+const url = String(req.url || "").toLowerCase();
+for (const [trozo, ruta] of alias) {
+  if (url.includes(trozo)) return ruta;
+}
+```
+
+`includes` sobre la URL entera, **query incluida**. Su propio comentario lo llama
+frágil y dice que arreglarlo cambia comportamiento. Lo que el comentario no dice
+es la consecuencia concreta, y dos alias de `/api/user` son cortos:
+
+```js
+["leads", "leads"],
+["error", "error"],
+```
+
+Así que una petición a `/api/user?email=alguien@error.com`, sin `route`, se
+resuelve a la ruta `error`. Y se puede llegar ahí desde fuera, porque
+`vercel.json` tiene un `/api/(.*) → /api/$1` que sirve el fichero por su nombre.
+
+**Y no es un agujero de permisos**: cada ruta es alcanzable por su propio camino
+de todas formas, así que no se llega a nada nuevo. Lo que es, es una trampa
+puesta: el día que alguien añada un alias corto para una ruta con privilegios
+—`market.js` ya tiene `fianza-devolucion`, que lleva la clave de Stripe— deja de
+ser inofensivo. Yo exigiría el `?route=` y devolvería 404 sin él.
+
+### 🟡 12.5 — 126 MB y 490.033 filas que nada de lo que se despliega lee
+
+Comparé las tablas de la base contra las que declaran las migraciones. De los
+siete objetos que ninguna migración crea, cinco tienen explicación (§12.7). El
+que no:
+
+```
+moveadvisor_market_dealers        tabla      126 MB     490.033 filas
+```
+
+La crea `scripts/carga-dealers-cochesnet.js` con un `CREATE TABLE IF NOT EXISTS`
+propio, y la leen esos dos guiones de carga y nadie más: no aparece en `api/`, ni
+en `lib/`, ni en los 60 flujos de n8n. Lo busqué en los tres sitios.
+
+Son 126 MB en una base de 7.294 MB cuyo problema, medido, es que el conjunto de
+trabajo es tres veces la caché y el acierto es del 36,8 % (§9.1). No sé si esos
+concesionarios hacen falta para algo que venga después; si no hacen falta,
+tirarlos es el único sitio de todo este documento donde se gana espacio de caché
+gratis.
+
+### ⚪ 12.6 — 340 líneas de SQL Server dentro del fichero más caliente
+
+`lib/inventoryStore.js` tiene 3.176 líneas y sirve el marketplace. Dentro:
+
+- `buildSqlServerWhereClause` — líneas 356 a 582, **227 líneas** que construyen
+  un `WHERE` de T-SQL (`N'…'`, `NVARCHAR(32)`, columnas en PascalCase)
+  **concatenando cadenas**, con un escapador escrito a mano:
+  `String(v).replace(/'/g, "''")`.
+- `readSqlServerInventory` — 105 líneas que llaman a `sqlcmd` por la línea de
+  órdenes.
+
+**No es un agujero de inyección**, y lo comprobé antes de escribirlo:
+`readSqlServerInventory` sale por la puerta con `[]` si no hay configuración de
+SQL Server, así que el `WHERE` no se construye nunca; y `sqlcmd` no existe en
+ninguna parte —lo dice el propio `api/auth.js` al retirar el proveedor `mssql`—.
+
+Lo que es: que `readInventoryUniverse` aparenta tener tres fuentes cuando dos
+están muertas, en la función de la que sale el precio. Y un escapador de SQL
+hecho a mano esperando a que alguien reconecte esto.
+
+### ✅ 12.7 — Lo que miré de estos cinco sitios y está bien
+
+- **`db/postgres/init.sql` no contradice a `migrations/`.** Me olía a segundo
+  esquema con vida propia. Comparé las tres cosas —las 24 tablas de `init.sql`,
+  las 105 de `migrations/` y las 110 de la base— y las 24 están todas en
+  `migrations/`, sin una columna en desacuerdo. Es un subconjunto redundante, no
+  una verdad paralela.
+- **Las dos vistas materializadas son la excepción documentada.** `mmo_modelos` y
+  `mmo_facetas` no las crea ninguna migración, y eso es a propósito:
+  `el-esquema-tiene-un-dueno.test.js` tiene una lista de `PUEDEN` con un solo
+  nombre —`lib/facetas-del-buscador.js`— y su motivo escrito, más una tercera
+  prueba que comprueba que la excepción sigue existiendo. Iba a apuntarlo como
+  hallazgo y lo leí antes.
+- **`migraciones_aplicadas`, `pg_stat_statements` y `pg_stat_statements_info`**
+  salieron en la misma lista y son artefactos: el registro de `scripts/migra.mjs`
+  y las vistas que trae la extensión de la migración 0018.
+- **El pool propio de `inventoryStore` está justificado y escrito.** Es la otra
+  excepción a lo de §2, y el comentario explica la razón: `getEnvValue` también
+  lee el `.env` del disco, de lo que viven los guiones, y eso no debe estar en el
+  módulo compartido.
+- **`data/inventory-offers.json` son ofertas de verdad, no datos de prueba.** Lo
+  digo porque sus vecinos en `data/` sí lo son (`cochesnet-…-test.json`), y me
+  esperaba lo mismo. Que sean reales es lo que hace a §12.1 peor, no mejor.
+
+---
+
 ## Lo que queda, que ya no es leer código
 
 Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es
@@ -1215,15 +1440,10 @@ esto, y ninguna de las dos cosas es leer ficheros:
   verificado que lo que dice se aplique de verdad contra el dominio. Es una
   comprobación contra producción, y con el cortafuegos de Vercel retando a esta
   IP hay que hacerla con cuidado.
-- **Cinco sitios que no he abierto**, con su tamaño: `n8n-workflows/` (60
-  ficheros, 22.598 líneas: los scrapers de verdad, y la copia del repositorio
-  puede ser más vieja que lo que corre), `db/` (2.342 líneas, y dentro un
-  **segundo esquema** —`db/postgres/init.sql`, 24 `CREATE TABLE`— que no
-  referencia nadie y que no he comparado con `migrations/`), `data/` (78.603
-  líneas, casi todas de un `inventory-offers.json` de 74.426), los cuatro
-  ficheros de la raíz que arrancan el servidor local (`local-api-server.js`,
-  `local-dev.js`, `ecosystem.config.js`, y un `tmp_e2e_test_flow.js` que se me
-  escapó porque solo busqué los `tmp_` dentro de `scripts/`), y `mockups/`.
+- **Dos sitios que sigo sin abrir.** `n8n-workflows/` —60 ficheros, 22.598
+  líneas: los scrapers de verdad, y la copia del repositorio puede ser más vieja
+  que lo que corre— y `mockups/`. De los cinco que había apuntado, los otros tres
+  están en §12. Y de `scripts/` sigo sin leer los scrapers uno a uno.
 - **Los 31 `catch {}` vacíos de `billingStore.js`** uno a uno. Cuatro son §5.7;
   los otros 27 no los he mirado.
 - **Dejar que `pg_stat_statements` acumule unos días de tráfico real** y volver a

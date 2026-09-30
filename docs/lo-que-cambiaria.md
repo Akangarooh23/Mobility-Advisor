@@ -27,8 +27,15 @@ Las zonas revisadas van marcadas. Las que faltan están al final, con su tamaño
 
 ## Zona 1 — Base de datos ✔ revisada
 
-108 tablas, **7,63 GB**, y el 88% es una sola: `moveadvisor_market_offers`
-(2,8 millones de filas, 6,7 GB).
+108 tablas, **7.294 MB** —7,12 GB—, y el 88% es una sola:
+`moveadvisor_market_offers` (2,8 millones de filas, 6,7 GB).
+
+(Escribí 7,63 GB la primera vez. Son 7.294 MB hoy, medidos con
+`pg_database_size`, y la suma de tablas e índices da 7.281 MB: casi todo el peso
+está en tablas, no en cosas del sistema. Parte de la diferencia son los dos índices
+de 124 y 131 MB que creé y tiré al medir §8; el resto, que la primera cifra la
+saqué de otra forma. Lo apunto porque la de §9.1 —el peso contra la caché— depende
+de este número.)
 
 ### 🟠 1.1 — 523 MB de índices que casi nadie ha leído nunca
 
@@ -525,15 +532,15 @@ marca, modelo, cuántos, desde`, refrescada por el cron que ya existe. Eso convi
 La banda de precio es la decisión de diseño: en tramos (0-10k, 10-20k…) la vista
 es pequeña y la respuesta aproximada; sin tramos no cabe.
 
-### 🟡 8.4 — No se puede saber qué consulta es lenta en producción
+### ✅ 8.4 — No se podía saber qué consulta es lenta en producción — **hecho**
 
-`pg_stat_statements` **no está instalada** —las extensiones son `plpgsql` y
-`unaccent`—. Sin ella, cualquier trabajo de rendimiento es a ciegas: no hay forma
-de saber qué consulta consume el tiempo, cuántas veces se llama ni desde cuándo.
+`pg_stat_statements` no estaba instalada —las extensiones eran `plpgsql` y
+`unaccent`—. Sin ella, cualquier trabajo de rendimiento era a ciegas: no había
+forma de saber qué consulta consume el tiempo, cuántas veces se llama ni desde
+cuándo. Y todo lo de arriba lo encontré a mano, buscando donde se me ocurrió mirar.
 
-Neon la soporta y se enciende con un `CREATE EXTENSION`. Es lo primero que pondría
-antes de optimizar nada más, porque todo lo de arriba lo he encontrado a mano y
-puede haber algo peor que no he mirado.
+La declara `migrations/0018` y se lee con `npm run consultas-lentas`. En el primer
+minuto ya enseñó cuatro cosas que yo no había mirado, dos de ellas en §9.
 
 ### 🟡 8.5 — Planificar cuesta más que ejecutar en las consultas pequeñas
 
@@ -557,6 +564,111 @@ filtro se aplica en **todas** las pantallas que enseñan facetas.
 
 ---
 
+## Zona 9 — La base, por debajo de las consultas ✔ revisada
+
+Con `pg_stat_statements` encendida y los contadores de `pg_stat_database`. Esta zona
+es la que reencuadra todo lo demás.
+
+### 🔴 9.1 — El acierto de caché es del 36,8 %
+
+Una base sana está por encima del 99 %. Con 36,8 %, **dos de cada tres lecturas de
+página van al almacenamiento** en vez de a memoria.
+
+La razón, con los números delante:
+
+| | |
+|---|---|
+| La base pesa | **7.294 MB** |
+| `shared_buffers` | **128 MB** |
+| `neon.file_cache_size_limit` | 2.997 MB (y cambia solo: se vio en 607, 1.461, 2.229 y 2.997) |
+
+El conjunto de trabajo —la tabla de 6,7 GB más sus 2,35 GB de índices— es **tres
+veces la caché**. De ahí salen los 67.000 saltos aleatorios de la consulta del
+consejero, y de ahí sale que la misma consulta tarde 4.384 o 18.721 milisegundos
+según lo que esté cacheado en ese instante.
+
+Esto **no se arregla con SQL**. Las dos salidas son: hacer el conjunto de trabajo
+más pequeño —tirar los 523 MB de índices que nadie lee (§1.1), archivar ofertas
+viejas— o pagar una instancia de Neon con más memoria. Es una decisión de coste.
+
+### 🟠 9.2 — 294 GB escritos en ficheros temporales
+
+25.957 ficheros temporales, **294 GB**. Con `work_mem = 4 MB`, cualquier ordenación
+o agrupación mayor de eso se va a disco.
+
+Probé a subirlo en mi sesión —4, 32 y 64 MB— sobre la consulta del consejero y **no
+pude demostrar nada**: las tres ordenaban en memoria y los tiempos salieron 8.513,
+2.965 y 16.031 ms de mediana, con un caso de 48 segundos en la primera. O sea: para
+**esa** consulta `work_mem` no es la restricción.
+
+Así que los 294 GB vienen de otras: el `REFRESH MATERIALIZED VIEW` sobre 2,8
+millones de filas y las cargas masivas, que son las que de verdad ordenan mucho.
+Subir `work_mem` sigue siendo probablemente lo correcto, pero **hay que decidirlo
+con datos de esas consultas**, no con las que se me ocurrieron a mí.
+
+### 🟠 9.3 — 11 bloqueos mutuos, y un 3,8 % de transacciones deshechas
+
+`deadlocks = 11` y 120.621 transacciones deshechas de 3.190.293. Los catorce
+scrapers que insertan usan `ON CONFLICT` —comprobado uno a uno— así que no es un
+problema de duplicados; son escrituras concurrentes tocando las mismas filas en
+distinto orden. Once no es una emergencia, pero no es cero, y con más scrapers en
+paralelo sube.
+
+### 🟡 9.4 — El refresco de las facetas cuesta 63 s y corre cada hora
+
+`REFRESH MATERIALIZED VIEW CONCURRENTLY mmo_facetas`: **63 segundos**, medido. Y hay
+dos crones horarios, uno por vista.
+
+Pero el **63 % de todas las escrituras de la semana caen en una sola hora, las
+07h** —808.326 filas de 1.289.768—. El resto del día son entre 2.000 y 44.000
+cambios por hora.
+
+Y el propio manejador dice que **«si no se refresca, no se rompe nada»**: los
+desplegables enseñan lo de la vez anterior y una marca nueva tarda en aparecer.
+
+O sea: se refresca 24 veces al día para recoger algo que cambia una vez al día. Son
+unos **46 minutos diarios escaneando 4,3 GB**, y lo que es peor, vacían la caché dos
+veces por hora — que es justo lo que hace inmedibles todas las demás consultas.
+
+**Qué haría**: mover los dos crones de cada hora a una vez al día, después de la
+carga de las 07h. Cambia el ritmo de frescura de los desplegables, así que es
+decisión de producto, pero el propio código ya dice que la frescura ahí no importa.
+
+### ✅ 9.5 — Los catorce scrapers insertan bien
+
+Los 14 flujos de n8n que escriben en la tabla grande usan `ON CONFLICT` —los miré
+uno a uno—. Ni claves duplicadas ni filas repetidas por esa vía.
+
+(Dos `comprueba-as24-*.js` salieron «sin ON CONFLICT» en mi primer barrido y era
+falso positivo: son comprobadores que verifican el SQL *generado*, no scripts que
+inserten.)
+
+### ✅ 9.6 — Los 1.098 `UPDATE` de una fila no son un problema
+
+Salieron los cuartos en tiempo total —17,9 s en 1.098 llamadas de 16 ms— y los
+apunté como algo a agrupar. Mirándolo: vienen de un flujo de n8n que procesa anuncio
+por anuncio porque n8n funciona así, repartidos en una pasada nocturna. 18 segundos
+de base al día no es nada. **Le di más importancia de la que tiene.**
+
+### Y la conclusión de método, que vale más que los hallazgos
+
+Intenté optimizar esta base midiendo, tres veces, y las tres fallé:
+
+1. propuse una vista materializada que habría dado cuentas equivocadas;
+2. creé dos índices cubridores; el planificador no usó ninguno, y uno **empeoró** el
+   caso estrecho de 6,7 a 11 segundos;
+3. probé tres valores de `work_mem` y los tiempos salieron sin orden ni sentido.
+
+La causa está en §9.1: con un 36,8 % de acierto de caché y una caché que Neon
+redimensiona sola, **el ruido de fondo es mayor que cualquier mejora que se quiera
+demostrar**. Tres medidas de la misma consulta: 4.384, 5.920 y 18.721 ms.
+
+Lo que toca ahora **no es más `EXPLAIN` a mano**: es dejar que
+`pg_stat_statements` acumule unos días de tráfico real y decidir sobre medias de
+miles de llamadas. Está encendida y hay `npm run consultas-lentas`.
+
+---
+
 ## Lo que falta por revisar
 
 Con su tamaño, para que nadie lea esto como si cubriera todo:
@@ -566,7 +678,12 @@ Con su tamaño, para que nadie lea esto como si cubriera todo:
 | `scripts/`, la parte no destructiva | 229 ficheros | los scrapers: qué rascan y qué escriben |
 | `api/auth.js` por dentro | 1.873 líneas | revisado por fuera, no leído entero |
 
-Y lo que no entra en ninguna zona y tampoco he hecho: revisar los **planes de
-consulta** más allá de los dos índices arreglados, y las **cabeceras de
+Y lo que no entra en ninguna zona y tampoco he hecho: las **cabeceras de
 seguridad** (hay `docs/cabeceras-de-seguridad.md`, no he verificado que se
 apliquen).
+
+Además, lo de §9 deja una tarea que **no es de leer código**: dejar
+`pg_stat_statements` acumulando unos días de tráfico real y volver a
+`npm run consultas-lentas`. Las decisiones de rendimiento que quedan —qué índices
+tirar, si subir `work_mem`, si pagar más memoria de Neon— se toman con esos
+números, no con los míos medidos a mano.

@@ -26,6 +26,10 @@
       "schedule": "0 10 * * *"
     },
     {
+      "path": "/api/cron-avisa-de-los-fallos",
+      "schedule": "5 * * * *"
+    },
+    {
       "path": "/api/cron-facetas-buscador?vista=mmo_modelos",
       "schedule": "20 * * * *"
     },
@@ -176,6 +180,10 @@
       "destination": "/api/user?route=funnel-event"
     },
     {
+      "source": "/api/error",
+      "destination": "/api/user?route=error"
+    },
+    {
       "source": "/api/cron-appointment-reminders",
       "destination": "/api/user?route=cron-appointment-reminders"
     },
@@ -190,6 +198,10 @@
     {
       "source": "/api/cron-vigila-scrapers",
       "destination": "/api/user?route=cron-vigila-scrapers"
+    },
+    {
+      "source": "/api/cron-avisa-de-los-fallos",
+      "destination": "/api/user?route=cron-avisa-de-los-fallos"
     },
     {
       "source": "/api/cron-facetas-buscador",

@@ -138,6 +138,7 @@ import { PORTAL_VO_OFFERS } from "./data/portalVoOffers";
 import { captureUtmFromUrl } from "./utils/utmTracker";
 import { recuerdaLaMatricula } from "./utils/encargoDeVentaWeb";
 import { trackFunnelEvent } from "./utils/funnelTracker";
+import { enganchaLosAvisos, elContextoLoDa } from "./utils/avisaDeLosFallos";
 import { BLOG_POSTS, getBlogPostBySlug } from "./data/blogPosts";
 import { STEPS, getQuestionnaireSteps, seLePregunta } from "./data/questionnaireSteps";
 import { BLOCK_COLORS, BRAND_LOGOS } from "./ui/branding";
@@ -1944,6 +1945,35 @@ export default function App() {
   useEffect(() => {
     applyUiLanguage(uiLanguage);
   }, [applyUiLanguage, uiLanguage]);
+
+  /*
+   * Y si la web se rompe en el movil de alguien, que se sepa.
+   *
+   * Sin esto, una pantalla en blanco no deja rastro: no hay un 500 en los
+   * registros, no hay una peticion fallida, no hay nada. Solo alguien que no
+   * vuelve. Es el fallo mas caro que hay por eso mismo.
+   *
+   * Se engancha una vez, al arrancar.
+   */
+  useEffect(() => enganchaLosAvisos(), []);
+
+  /*
+   * Y lo que hace util el aviso: en que pantalla estaba y quien era.
+   *
+   * La pila vendra ilegible -el JavaScript de produccion esta minificado-, asi
+   * que esto es lo que de verdad dice donde mirar.
+   *
+   * Se pasa una funcion y no un objeto porque el enganche se hace una sola vez y
+   * la pantalla cambia cada dos por tres.
+   */
+  useEffect(() => {
+    elContextoLoDa(() => ({
+      pantalla: entryMode || "portada",
+      // El correo lo tapa el servidor antes de guardarlo.
+      quien: currentUserEmail || "",
+      contexto: { step },
+    }));
+  }, [entryMode, currentUserEmail, step]);
 
   const {
     syncBrowserPath,

@@ -91,7 +91,40 @@ async function conReintento(c, etiqueta, sql, params) {
   }
 }
 
-const PRECIO_MINIMO = 4500;
+/*
+ * ── El precio bajo no es el problema; el precio IMPOSIBLE sí ───────────────
+ *
+ * Hasta el 30-sep-2026 esto era un suelo fijo de 4.500 EUR. Se puso para
+ * quitar las cuotas mensuales publicadas como precio -T-Roc de 2023 con
+ * 62.958 km «a 301 EUR»-. Medido después, quitaba demasiado:
+ *
+ *     tramo        ofertas   año medio   km medios   cuotas disfrazadas
+ *     < 1.000        3.348      2003      226.869          130
+ *     1.000-2.000   15.602      2003      266.524           47
+ *     2.000-3.000   25.517      2005      242.848           31
+ *     3.000-4.500   40.083      2007      229.350           54
+ *
+ * 84.550 coches viejos de verdad escondidos para filtrar 262 malos. Un coche
+ * de 2003 con 266.000 km a 1.500 EUR está bien valorado; lo que no existe es
+ * un Cupra Formentor de 2024 con 65.252 km a 508 EUR.
+ *
+ * Lo que distingue una cuota de un coche barato NO es el precio: es el precio
+ * JUNTO CON la edad y los kilómetros. Un precio bajo se acepta cuando el
+ * coche lo justifica -es viejo o ha rodado mucho- y se rechaza cuando no.
+ *
+ * Los dos umbrales salen de la tabla de arriba: por debajo de 4.500 el coche
+ * medio tiene veinte años y 240.000 km, así que diez años o 150.000 km es un
+ * listón que pasan todos los legítimos y ninguna de las cuotas.
+ *
+ * Y lo que NO se sabe no descarta: sin año o sin kilómetros no se puede
+ * juzgar, y esconder por no saber es peor que enseñar.
+ */
+const PRECIO_SOSPECHOSO = 4500;
+const ANOS_QUE_LO_JUSTIFICAN = 10;
+const KM_QUE_LO_JUSTIFICAN = 150000;
+
+/** Por debajo de esto no hay coche que valga, tenga la edad que tenga. */
+const PRECIO_ABSURDO = 300;
 const PRECIO_MAXIMO = 200000;
 const KM_MAXIMO = 500000;
 
@@ -108,9 +141,25 @@ const MOTIVOS = [
   ["no_es_coche", `o.es_coche IS FALSE`],
   ["danada", `o.is_damaged IS TRUE`],
   ["sin_foto", `COALESCE(o.image_url, '') = ''`],
-  ["precio_bajo", `(o.price IS NULL OR o.price < ${PRECIO_MINIMO})`],
+  ["precio_imposible", `(o.price IS NULL OR o.price < ${PRECIO_ABSURDO}
+      OR (o.price < ${PRECIO_SOSPECHOSO}
+          AND COALESCE(EXTRACT(YEAR FROM now())::int - o."year", 99) < ${ANOS_QUE_LO_JUSTIFICAN}
+          AND COALESCE(o.mileage, 999999) < ${KM_QUE_LO_JUSTIFICAN}))`],
   ["precio_alto", `o.price > ${PRECIO_MAXIMO}`],
   ["km_imposible", `o.mileage IS NOT NULL AND (o.mileage < 0 OR o.mileage > ${KM_MAXIMO})`],
+  /*
+   * Las dos reglas que tenía el consejero y esto no. Son datos que no pueden
+   * ser ciertos, no preferencias, así que su sitio es la definición común.
+   *
+   * Salió en una prueba un VW Taigo de 2026 con 67.481 km: en septiembre de
+   * 2026 eso son 7.500 km al mes desde que se matriculó. Puede ser una flota,
+   * pero lo normal es que el scraper haya leído mal. Se permiten 50.000 km por
+   * año de vida contando el año en curso entero: un comercial que hace 50.000
+   * al año y vende a los tres pasa de sobra con sus 200.000.
+   */
+  ["anio_imposible", `o."year" > EXTRACT(YEAR FROM now())::int + 1`],
+  ["km_por_anio", `o.mileage IS NOT NULL AND o."year" IS NOT NULL
+      AND o.mileage > 50000 * GREATEST(EXTRACT(YEAR FROM now())::int - o."year" + 1, 1)`],
 ];
 
 /** CASE que devuelve el primer motivo que aplica, o NULL si no aplica ninguno. */

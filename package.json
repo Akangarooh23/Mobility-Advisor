@@ -81,7 +81,6 @@
     "migrate:attachments:sqlserver": "node scripts/migrate-attachments-filesystem-sqlserver.js",
     "migrate:sqlserver-to-postgres": "node scripts/migrate-sqlserver-to-postgres.js",
     "migrate:erp:sqlserver-to-postgres": "node scripts/migrate-erp-sqlserver-to-postgres.js",
-    "cleanup:test-users-local": "node scripts/cleanup-test-users-sqlserver.js",
     "test:ranking": "node scripts/find-listing-ranking-local.js",
     "eject": "react-scripts eject",
     "build:android": "powershell -NoProfile -Command \"$env:REACT_APP_API_BASE_URL='https://www.carswiseai.com'; npm run build; npx cap sync android\"",

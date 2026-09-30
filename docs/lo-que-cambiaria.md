@@ -458,6 +458,105 @@ conviene saberlo antes que después.
 
 ---
 
+## Zona 8 — Los planes de consulta ✔ revisada
+
+Medido contra la base de producción con `EXPLAIN (ANALYZE, BUFFERS)`.
+
+### 🟠 8.1 — La consulta central del consejero tarda 8,6 segundos y toca 520 MB
+
+Perfil realista —diésel en Madrid, 5.000-30.000 €—:
+
+```
+Execution Time: 8594 ms
+Buffers: shared hit=3302 read=67126 dirtied=66170 written=52343
+Index Scan using ix_mmo_activas_provincia_combustible
+  (cost=0.43..100.80 rows=24) (actual rows=69426)
+```
+
+Tres cosas, en orden de importancia:
+
+1. **El índice de la migración 0015 sí se usa.** Ese arreglo funcionó.
+2. **Toca 67.126 páginas —unos 520 MB— para contestar una pregunta.** Porque
+   agrupa **69.426 filas** en tiempo de petición. No es un problema de índice: es
+   la forma de la pregunta.
+3. **El planificador estima 24 filas donde hay 69.426**: se equivoca por 2.900×.
+   Son columnas correlacionadas —«Madrid» y «diésel» no son independientes, y el
+   planificador multiplica sus frecuencias como si lo fueran— y por eso acaba
+   ordenando en disco (`external merge Disk: 2144kB`).
+
+**Lancé `ANALYZE` y no lo arregla**: la estimación sigue en 24, y la segunda
+pasada no es más rápida —lo que descarta que sean bits de ayuda por asentar—.
+
+### 🔴 8.2 — Y eso explica los 253 segundos de la búsqueda
+
+`lib/los-modelos-que-hay.js` la ejecuta **dos veces** cuando el perfil es
+estrecho:
+
+```js
+const conTres = await preguntar(LOS_MINIMOS);
+return conTres.length ? conTres : preguntar(1);
+```
+
+Y el propio fichero ya tiene medido el caso malo: *«Con un perfil de SUV premium
+alemán en Madrid la consulta tardó **104 segundos**»*. Dos veces eso, más los ocho
+portales que se rascan en vivo, es la búsqueda de 253 segundos.
+
+Alguien midió los 104 segundos y **envolvió la consulta en un tiempo límite** para
+que no se llevara por delante el análisis. Es una tirita razonable; no es el
+arreglo.
+
+### 🟠 8.3 — El arreglo ya está inventado en este repositorio, pero no cubre esta pregunta
+
+Hay **dos vistas materializadas** refrescadas por un cron cada hora:
+
+| Vista | Filas | Columnas |
+|---|---:|---|
+| `mmo_modelos` | 24.775 | `marca, grafia, modelo, del_catalogo, n` |
+| `mmo_facetas` | 7.130 | `tipo, valor, n` |
+
+O sea: el patrón existe y funciona —leer `mmo_modelos` tarda **58 ms**—. Pero
+guarda marca y modelo **globales**, sin provincia, sin combustible y sin precio,
+que son justo las tres dimensiones que el consejero necesita.
+
+**Qué haría**: una tercera vista con `(provincia, combustible, banda de precio) →
+marca, modelo, cuántos, desde`, refrescada por el cron que ya existe. Eso convierte
+8,6 segundos en milisegundos y se lleva por delante la mitad de los 253.
+
+La banda de precio es la decisión de diseño: en tramos (0-10k, 10-20k…) la vista
+es pequeña y la respuesta aproximada; sin tramos no cabe.
+
+### 🟡 8.4 — No se puede saber qué consulta es lenta en producción
+
+`pg_stat_statements` **no está instalada** —las extensiones son `plpgsql` y
+`unaccent`—. Sin ella, cualquier trabajo de rendimiento es a ciegas: no hay forma
+de saber qué consulta consume el tiempo, cuántas veces se llama ni desde cuándo.
+
+Neon la soporta y se enciende con un `CREATE EXTENSION`. Es lo primero que pondría
+antes de optimizar nada más, porque todo lo de arriba lo he encontrado a mano y
+puede haber algo peor que no he mirado.
+
+### 🟡 8.5 — Planificar cuesta más que ejecutar en las consultas pequeñas
+
+En el listado del marketplace: `Planning Time: 9,0 ms` contra
+`Execution Time: 3,7 ms`. No es grave, pero con **31 índices** en la tabla grande
+el planificador tiene mucho que evaluar en cada consulta. Es un argumento más para
+tirar los ocho índices de 523 MB que nadie lee (§1.1).
+
+### ⚪ 8.6 — Las facetas se construyen con texto sin normalizar
+
+Una fila de muestra de `mmo_modelos`:
+
+```json
+{"marca":"\"furgoneta camper ford\".", "modelo":"Transit custom \"Negociable\"", "del_catalogo":false}
+```
+
+Marca y modelo vienen de lo rascado, con comillas, puntos y texto descriptivo
+dentro. Hay un `del_catalogo` que distingue los que están en el catálogo de los que
+no, así que alguien lo pensó y se filtran en algún sitio; conviene comprobar que el
+filtro se aplica en **todas** las pantallas que enseñan facetas.
+
+---
+
 ## Lo que falta por revisar
 
 Con su tamaño, para que nadie lea esto como si cubriera todo:
@@ -465,7 +564,6 @@ Con su tamaño, para que nadie lea esto como si cubriera todo:
 | Zona | Tamaño | Qué buscar |
 |---|---|---|
 | `scripts/`, la parte no destructiva | 229 ficheros | los scrapers: qué rascan y qué escriben |
-| Los planes de consulta | — | más allá de los dos índices ya arreglados |
 | `api/auth.js` por dentro | 1.873 líneas | revisado por fuera, no leído entero |
 
 Y lo que no entra en ninguna zona y tampoco he hecho: revisar los **planes de

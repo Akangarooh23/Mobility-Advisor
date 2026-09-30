@@ -143,6 +143,8 @@
     "test:visibles": "node scripts/comprueba-lo-que-se-ensena.js",
     "limpia-n8n": "node scripts/limpia-n8n.js",
     "vigila-n8n": "node scripts/vigila-n8n.js",
+    "genera-confirmador-wallapop": "node scripts/genera-confirmador-wallapop.js",
+    "test:wallapop-confirmar": "node scripts/comprueba-confirmador-wallapop.js",
     "normaliza-provincias": "node scripts/normaliza-provincias.js",
     "genera-municipios": "node scripts/genera-municipios.js",
     "refresca-facetas": "node scripts/refresca-facetas.js",

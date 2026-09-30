@@ -1,0 +1,348 @@
+{
+  "id": "WallapopConf0001",
+  "name": "Wallapop – Confirmar vivas por vendedor",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Ejecutar manualmente",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 15 8,10,12,14,16,18,20,22 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "8 veces/día (08-22 h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Vendedores de wallapop con 10 o mas ofertas vivas, los mas\n-- desatendidos primero.\n--\n-- El id del vendedor no esta en la oferta: hay que cruzarlo por nombre con la\n-- tabla de concesionarios. Se comprobo el 30-sep-2026 y cubre el 100 % de los\n-- 5.350 vendedores gordos, que son 390.268 ofertas.\nSELECT d.dealer_id,\n       o.dealer_name,\n       count(*)::int AS ofertas,\n       max(o.last_checked_at) AS ultima\n  FROM moveadvisor_market_offers o\n  JOIN LATERAL (\n        SELECT dealer_id FROM moveadvisor_market_dealers\n         WHERE portal = 'wallapop' AND company_name = o.dealer_name\n         LIMIT 1\n       ) d ON true\n WHERE o.portal = 'wallapop'\n   AND o.is_active\n   AND COALESCE(o.dealer_name, '') <> ''\n GROUP BY d.dealer_id, o.dealer_name\nHAVING count(*) >= 10\n ORDER BY max(o.last_checked_at) ASC NULLS FIRST\n LIMIT 60",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "PG: Cola de vendedores",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        -140,
+        190
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Loop: vendedor por vendedor",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        120,
+        190
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ 'https://api.wallapop.com/api/v3/users/' + $json.dealer_id + '/items' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "X-DeviceOS",
+              "value": "0"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000,
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "pagination": {
+            "pagination": {
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "type": "qs",
+                    "name": "since",
+                    "value": "={{ $response.body.meta.next }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.meta || !$response.body.meta.next }}",
+              "limitPagesFetched": true,
+              "maxRequests": 25,
+              "requestInterval": 400
+            }
+          }
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "HTTP: Catálogo del vendedor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Wallapop - confirmar vivas por vendedor.\n//\n// ESTE NODO NO DA BAJAS, Y NO ES UN OLVIDO. El catalogo por vendedor esta\n// incompleto: probado el 30-sep-2026 contra un vendedor del que sabiamos la\n// respuesta, de 12 ofertas ausentes de su catalogo 2 seguian vivas. Dar de\n// baja por ausencia mataria coches buenos.\n//\n// Lo que aparece, vive -4 de 4 en el control-. Lo que no aparece se queda\n// como esta y sube solo a lo alto de la cola del verificador de uno en uno,\n// que es el unico que puede matar y solo con un 404 delante.\n\nconst vendedor = $('Loop: vendedor por vendedor').item.json;\n\n// Todas las paginas de este vendedor, juntas.\nconst ids = [];\nfor (const it of $input.all()) {\n  const lote = (it.json && it.json.data) || [];\n  for (const x of lote) if (x && x.id) ids.push(String(x.id));\n}\n\nconst s = $getWorkflowStaticData('global');\ns.wp_vendedores = (s.wp_vendedores || 0) + 1;\ns.wp_vistos = (s.wp_vistos || 0) + ids.length;\n\nif (!ids.length) {\n  // Un vendedor sin catalogo puede ser una cuenta cerrada, pero tambien una\n  // peticion que fue mal. No se confirma nada y no se toca nada.\n  s.wp_vacios = (s.wp_vacios || 0) + 1;\n  console.log('[wp-confirmar] ' + vendedor.dealer_name + ': catalogo vacio, no se toca');\n  return [{ json: { seguir: '', sql: null } }];\n}\n\nconst esc = v => \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\nconst nuestros = ids.map(x => esc('wp_' + x)).join(', ');\n\nreturn [{ json: {\n  seguir: 'si',\n  vendedor: vendedor.dealer_name,\n  vistos: ids.length,\n  sql:\n    'UPDATE moveadvisor_market_offers' +\n    \" SET last_checked_at = NOW()\" +\n    ' WHERE portal = ' + esc('wallapop') +\n    '   AND is_active' +\n    '   AND id IN (' + nuestros + ')',\n} }];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000006",
+      "name": "Code: Confirmar vivas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "hay-algo",
+              "leftValue": "={{ $json.seguir }}",
+              "rightValue": "si",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000007",
+      "name": "IF: ¿hay que confirmar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "a1000000-0000-4000-8000-000000000008",
+      "name": "PG: Confirmar vivas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        1180,
+        220
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "uG6rcC7AqSKyEJOW",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "a1000000-0000-4000-8000-000000000009",
+      "name": "Esperar 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1440,
+        300
+      ],
+      "webhookId": "a1000000-0000-4000-8000-00000000000a"
+    },
+    {
+      "parameters": {
+        "jsCode": "// El parte de la pasada, y limpiar la memoria del workflow.\nconst s = $getWorkflowStaticData('global');\nconst parte = {\n  vendedores: s.wp_vendedores || 0,\n  anuncios_vistos: s.wp_vistos || 0,\n  catalogos_vacios: s.wp_vacios || 0,\n};\n// La memoria es del WORKFLOW, no de la pasada: si no se limpia, la siguiente\n// empieza con los numeros de esta y el parte deja de significar nada.\nfor (const k of Object.keys(s)) if (k.indexOf('wp_') === 0) delete s[k];\nconsole.log('[wp-confirmar] ' + parte.vendedores + ' vendedores, '\n  + parte.anuncios_vistos + ' anuncios confirmados vivos, '\n  + parte.catalogos_vacios + ' catalogos vacios');\nreturn [{ json: parte }];"
+      },
+      "id": "a1000000-0000-4000-8000-00000000000b",
+      "name": "Code: Resumen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Ejecutar manualmente": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola de vendedores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8 veces/día (08-22 h)": {
+      "main": [
+        [
+          {
+            "node": "PG: Cola de vendedores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Cola de vendedores": {
+      "main": [
+        [
+          {
+            "node": "Loop: vendedor por vendedor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop: vendedor por vendedor": {
+      "main": [
+        [
+          {
+            "node": "Code: Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP: Catálogo del vendedor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Catálogo del vendedor": {
+      "main": [
+        [
+          {
+            "node": "Code: Confirmar vivas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Confirmar vivas": {
+      "main": [
+        [
+          {
+            "node": "IF: ¿hay que confirmar?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF: ¿hay que confirmar?": {
+      "main": [
+        [
+          {
+            "node": "PG: Confirmar vivas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PG: Confirmar vivas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2s": {
+      "main": [
+        [
+          {
+            "node": "Loop: vendedor por vendedor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "all",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "9BwKOPMIzjj3owho"
+  },
+  "pinData": {}
+}

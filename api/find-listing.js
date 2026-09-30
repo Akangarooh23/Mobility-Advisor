@@ -4334,8 +4334,16 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
        * Ver lib/la-ficha-dice-si-esta-danado.js.
        */
       const trasLaFicha = await lasQueLaFichaNoDescarta(rankedInventory);
-      if (trasLaFicha.danadas > 0) {
-        console.warn("[find-listing] la ficha declara danadas " + trasLaFicha.danadas + " de las que iban a salir");
+      /*
+       * Se aplica siempre, no solo si hay danadas: tambien caen las que su ficha
+       * ya no existe, que es lo que pasa cuando el coche se ha vendido y el pool
+       * todavia no se ha enterado.
+       */
+      if (trasLaFicha.danadas > 0 || trasLaFicha.vendidas > 0) {
+        console.warn(
+          "[find-listing] la ficha quita " + trasLaFicha.danadas + " por danos y "
+            + trasLaFicha.vendidas + " que ya no existen, de las que iban a salir"
+        );
         rankedInventory = trasLaFicha.cumplen;
       }
 

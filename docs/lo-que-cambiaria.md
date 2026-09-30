@@ -1420,12 +1420,60 @@ devuelve `[]` en dos casos que no distingue:
 2. **El filtro no encuentra nada, legítimamente.** Un perfil estrecho —una
    versión concreta en una provincia concreta— puede dar cero de 2,8 millones.
 
-En los dos casos se tasa contra el fichero. Y `readLocalInventory()` **no filtra
-nada**: devuelve las 2.749 enteras, sin mirar las opciones. Así que el caso 2 es
-el peor de los dos: el filtro no encontró nada y la respuesta es un universo de
-2.749 coches que no tienen que ver, en vez de «no hay comparables».
+En los dos casos se tasa contra el fichero.
 
-El único rastro es el campo `source: "local-json"`, y nadie lo mira.
+### Corrección: escribí que se tasaba contra 2.749 coches sin relación, y no era eso
+
+Lo dije como hecho medido y estaba mal. `readLocalInventory()` no filtra, cierto,
+pero **`listInventoryOffers` sí filtra después, en JavaScript**: marca, modelo,
+combustible, cambio, año, kilómetros. Lo vi al revisar qué hace la pantalla con
+un informe sin comparables, que es lo que este arreglo provoca.
+
+Lo que de verdad pasaba, contado de las 2.749 del fichero:
+
+| Perfil | Comparables que salían del fichero |
+|---|---:|
+| Peugeot 3008, gasolina, 2019 ±4 | **32** |
+| Volkswagen Golf, gasolina, 2019 ±4 | **27** |
+| Hyundai Tucson, gasolina, 2019 ±4 | **27** |
+| Kia Sportage, gasolina, 2019 ±4 | **23** |
+| Opel Corsa, gasolina, 2019 ±4 | **22** |
+| una marca de las 60 que no están en el fichero | 0 |
+
+Y eso es **peor** que lo que yo había escrito, no mejor. Un universo de 2.749
+coches sin relación se nota: las cifras salen absurdas y alguien lo ve. Treinta y
+dos comparables de la marca y el modelo correctos, con el año correcto, **y
+precios del 14 de agosto**, no se nota en nada: la mediana es plausible, el rango
+es plausible, y el informe la presenta como mercado de hoy.
+
+Lo remata el porcentaje de confianza. `sellReportGenerator.js` la calcula con
+`confidencePct(comparables, cv, usedFallback)`, y con 32 comparables y
+`usedFallback = false` sale un **65 %**. O sea que el informe afirmaba una
+confianza del 65 % sobre un mercado de hace mes y medio.
+
+El único rastro era el campo `source: "local-json"`, y nadie lo mira.
+
+### Y el arreglo destapa un camino que ya existía y no se usaba nunca
+
+Esto también lo encontré después, y refuerza el arreglo. `sellReportGenerator.js`
+**ya sabe** qué hacer sin comparables:
+
+```js
+if (comps >= 3 && median > 0) {
+  base = median;                      // mercado
+} else {
+  usedFallback = true;
+  base = depreciationEst.optimal;     // modelo de depreciación por edad y km
+}
+```
+
+Cae a un modelo de depreciación, lo marca con `usedFallback` y **baja el
+porcentaje de confianza por ello**. Es exactamente la respuesta correcta.
+
+Y era inalcanzable siempre que el fichero contuviera la marca del coche: con 32
+comparables, `comps >= 3` es verdad y el modelo de depreciación no se llegaba a
+consultar. O sea que la tercera rama no solo metía datos viejos: **tapaba el
+camino bueno que ya estaba escrito**.
 
 **Hecho, y en dos sitios.** `readPostgresInventory` levanta en vez de devolver
 `[]`, que es lo que hacía indistinguibles «no hay comparables» y «no he podido

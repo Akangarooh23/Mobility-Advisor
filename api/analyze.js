@@ -4,6 +4,7 @@ const { laMotorizacionQuePidio, laEtiquetaQueLeCorresponde } = require("../lib/l
 const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
 const { losModelosQueHaySinPasarse, comoSeLosCuentas, esDeLosQueHay } = require("../lib/los-modelos-que-hay");
 const { getPostgresPool } = require("../lib/inventoryStore");
+const { seHaPasado, elPromptEsEnorme } = require("../lib/lo-que-cuesta-dinero");
 const { lasMarcasQueQuiere } = require("../lib/las-marcas-que-quiere");
 const { jsonrepair } = require("jsonrepair");
 
@@ -1845,6 +1846,18 @@ module.exports = async function handler(req, res) {
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
     const prompt = body?.prompt;
+
+    /*
+     * Esto estaba abierto a Internet sin sesion y sin freno, y el prompt lo
+     * escribe quien llama: cualquiera podia usar la clave de Gemini como si
+     * fuera suya. El motivo de los dos frenos y de los numeros esta en
+     * `lib/lo-que-cuesta-dinero.js`.
+     *
+     * El tope de longitud va primero: rechazar algo enorme no debe gastarle un
+     * intento a quien se ha equivocado.
+     */
+    if (elPromptEsEnorme(prompt, res)) return undefined;
+    if (await seHaPasado(getPostgresPool(), req, res, "analisis")) return undefined;
     /*
      * Con los nombres que el motor busca.
      *

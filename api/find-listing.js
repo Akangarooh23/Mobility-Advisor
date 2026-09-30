@@ -1,5 +1,6 @@
 const SEARCH_ENDPOINT = "https://html.duckduckgo.com/html/";
 const { listInventoryOffers, getPostgresPool } = require("../lib/inventoryStore");
+const { seHaPasado } = require("../lib/lo-que-cuesta-dinero");
 const { comoLasLeeElMotor } = require("../lib/las-respuestas-del-test");
 const { elEncargoDeBusqueda } = require("../lib/el-encargo-de-busqueda");
 const { laMedianaDeCada, ordenaPorCalidadPrecio } = require("../lib/lo-que-vale-en-el-mercado");
@@ -4611,6 +4612,14 @@ module.exports = async function handler(req, res) {
     res.status(405).json({ error: "Method not allowed" });
     return;
   }
+
+  /*
+   * Cada llamada golpea siete portales externos, DuckDuckGo y r.jina.ai, durante
+   * hasta 300 segundos, y estaba abierta sin sesion ni freno. Aqui lo caro no es
+   * la factura: es que alguien puede hacer que los portales de los que depende el
+   * producto bloqueen las IPs de Vercel.
+   */
+  if (await seHaPasado(getPostgresPool(), req, res, "busqueda")) return;
 
   try {
     const body = safeJsonParse(req.body);

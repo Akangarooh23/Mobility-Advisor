@@ -43,6 +43,7 @@
     "start:api": "node local-api-server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:todo": "powershell -NoProfile -Command \"$env:CI=1; npx react-scripts test --watchAll=false; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm run test:lib\"",
     "test:auth-local": "node scripts/auth-e2e-local.js",
     "test:auth-local:strict": "node scripts/auth-e2e-local-strict.js",
     "test:auth-all-local": "node scripts/auth-e2e-all-local.js",

@@ -9,8 +9,11 @@ que está mal.
 3 coches**. Está pre-lanzamiento. Nada de lo que hay aquí está haciendo daño
 ahora mismo; varias cosas empiezan a hacerlo el día que haya tráfico.
 
-Las once zonas están revisadas. Lo que queda, que ya no es leer código, está al
-final.
+Las once zonas están revisadas, y **eso no quiere decir que esté todo mirado**.
+Son 170.166 líneas sin contar pruebas: leí entero lo que podía hacer daño y medí
+el resto con comprobaciones dirigidas. §5.7 es la prueba de que eso no es lo
+mismo — lo encontré después de dar la zona 5 por buena. Lo que queda, con su
+tamaño, está al final.
 
 ---
 
@@ -374,6 +377,93 @@ un olor y no un fallo. Con texto, «9000» ordena por encima de «10000».
 Dos clics simultáneos ven los dos `cuantas === 0`. La exposición es **1,99 €**, así
 que no merece un cerrojo; queda apuntado para que nadie lo descubra creyendo que es
 grave.
+
+
+### 🔴 5.7 — Si Postgres falla, el garaje contesta que sí y se lo queda en memoria
+
+Esto lo encontré **después** de dar la zona 5 por revisada, y por eso está al
+final: revisé el dinero —los precios, los planes, las carreras— y no revisé
+**dónde vive el dato**.
+
+`lib/billingStore.js` tiene dos almacenes. El de verdad es Postgres. El otro es
+un fichero del repositorio, `db/billing-data.json`, y en producción ese fichero
+**no se puede escribir** —el disco de Vercel es de solo lectura—, así que:
+
+```js
+try {
+  fs.writeFileSync(BILLING_STORE_PATH, JSON.stringify(safeStore, null, 2));
+} catch {
+  // read-only filesystem (Vercel serverless) — keep in memory for this invocation
+  _memoryStore = safeStore;
+}
+```
+
+Hasta aquí es una decisión consciente y está comentada. El problema son las
+**cuatro funciones del garaje**, que hacen esto:
+
+```js
+async function addGarageVehicleByEmail(email = "", vehicle = {}) {
+  if (hasPostgresConnection()) {
+    try {
+      return await addGarageVehicleByEmailPostgres(email, vehicle);
+    } catch {
+      // Fallback to local JSON store.
+    }
+  }
+  // …y aquí sigue, escribiendo en el almacén local
+```
+
+Son `listGarageVehiclesByEmail`, `listGarageVehicleSummariesByEmail`,
+`addGarageVehicleByEmail` y `removeGarageVehicleByEmail`. **Cualquier error de
+Postgres cae en ese `catch {}` vacío y sigue como si no hubiera pasado nada**,
+contra un almacén que en producción es la memoria de una instancia.
+
+Lo que ve la persona, en orden de gravedad:
+
+1. **Añade su coche y se lo guarda «bien».** La función devuelve la lista con el
+   coche dentro, la pantalla lo enseña, y desaparece cuando esa instancia se
+   recicla. Es un éxito falso sobre los datos de alguien.
+2. **Borra un coche y vuelve.** El borrado «funciona» contra un almacén vacío;
+   en Postgres el coche sigue estando.
+3. **Abre «Mis coches» y está vacío.** La lista devuelve `[]` porque la memoria
+   está vacía, no porque no tenga coches.
+
+Y «un error de Postgres» aquí no es hipotético. Es exactamente lo que devolvían
+los ocho manejadores que cerraban el pool compartido (§2): *«Cannot use a pool
+after calling end on the pool»*. Con el 36,8% de acierto de caché y consultas de
+entre 8 y 48 segundos (§9), un tiempo agotado también entra por ahí.
+
+**Lo peor es que la regla correcta ya está escrita en este mismo fichero**, 300
+líneas más abajo, para la búsqueda de clientes de Stripe:
+
+> *«Levanta, y no devuelve "no lo conozco". No poder mirar no es lo mismo que no
+> ser nuestro: con lo segundo el webhook responde 200, Stripe da el evento por
+> entregado y la baja se pierde para siempre.»*
+
+Eso es palabra por palabra lo que les pasa a estas cuatro. Alguien encontró el
+caso de Stripe, lo entendió y lo arregló; las cuatro del garaje se quedaron.
+
+**Qué haría**: que el `catch` no exista. La caída al almacén local solo tiene
+sentido cuando `hasPostgresConnection()` es falso, que es el desarrollo en local:
+
+```js
+async function addGarageVehicleByEmail(email = "", vehicle = {}) {
+  if (hasPostgresConnection()) {
+    // Si la base no contesta, levanta. Guardar en la memoria de una instancia
+    // y decir que sí es peor que decir que no se pudo.
+    return addGarageVehicleByEmailPostgres(email, vehicle);
+  }
+  …
+```
+
+En las dos de escribir es que sí o que sí: un guardado que falla no puede
+contestar que fue bien. En las dos de leer cambia lo que ve la persona —un aviso
+de error en vez de un garaje vacío—, y eso es mejor, pero se nota, así que es
+decisión de producto.
+
+Y de fondo: **31 `catch {}` vacíos en este fichero**. Cuatro son estos. Los
+demás hay que mirarlos uno a uno, porque `registra()` ya existe y no hay motivo
+para que ninguno siga tragándose el porqué.
 
 ---
 
@@ -1125,6 +1215,17 @@ esto, y ninguna de las dos cosas es leer ficheros:
   verificado que lo que dice se aplique de verdad contra el dominio. Es una
   comprobación contra producción, y con el cortafuegos de Vercel retando a esta
   IP hay que hacerla con cuidado.
+- **Cinco sitios que no he abierto**, con su tamaño: `n8n-workflows/` (60
+  ficheros, 22.598 líneas: los scrapers de verdad, y la copia del repositorio
+  puede ser más vieja que lo que corre), `db/` (2.342 líneas, y dentro un
+  **segundo esquema** —`db/postgres/init.sql`, 24 `CREATE TABLE`— que no
+  referencia nadie y que no he comparado con `migrations/`), `data/` (78.603
+  líneas, casi todas de un `inventory-offers.json` de 74.426), los cuatro
+  ficheros de la raíz que arrancan el servidor local (`local-api-server.js`,
+  `local-dev.js`, `ecosystem.config.js`, y un `tmp_e2e_test_flow.js` que se me
+  escapó porque solo busqué los `tmp_` dentro de `scripts/`), y `mockups/`.
+- **Los 31 `catch {}` vacíos de `billingStore.js`** uno a uno. Cuatro son §5.7;
+  los otros 27 no los he mirado.
 - **Dejar que `pg_stat_statements` acumule unos días de tráfico real** y volver a
   `npm run consultas-lentas`. Las decisiones de rendimiento que quedan —qué
   índices tirar, si subir `work_mem`, si pagar más memoria de Neon— se toman con

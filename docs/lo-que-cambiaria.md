@@ -713,7 +713,7 @@ en las dos acciones. Eso sí cambia lo que nota la gente —te desloguea del mó
 al cambiar la contraseña en el portátil—, así que lo decides tú; pero es lo que
 hace todo el mundo y es lo que la gente espera de ese botón.
 
-### 🟠 10.2 — `register` contesta si un correo tiene cuenta
+### 🟠 10.2 — `register` contesta si un correo tiene cuenta — **el freno hecho, el 409 no**
 
 El login se cuida mucho de no decirlo. Y luego `register` contesta esto:
 
@@ -734,14 +734,19 @@ además se pueden crear cuentas sin límite.
 
 **Qué haría**, en dos pasos que se pueden hacer por separado:
 
-1. Añadir `registro` y `registroPorIp` a `LIMITES` en `lib/freno.js` y un
-   `FRENO.pide` al principio de `register`. Es media hora y no cambia nada de lo
-   que ve nadie.
-2. Para el 409, lo que hacen las tiendas grandes: contestar lo mismo que en el
-   alta buena y mandar un correo al dueño de la dirección diciendo que alguien
-   ha intentado registrarse con ella. Eso ya es decisión de producto.
+1. **Hecho**: `registro` (5 por correo cada cuarto de hora) y `registroPorIp`
+   (10) en `LIMITES`, y el `FRENO.pide` al principio de `register`. No cambia
+   nada de lo que ve nadie que no esté barriendo.
+2. **Pendiente, y es tuyo**: el 409. Lo que hacen las tiendas grandes es
+   contestar lo mismo que en un alta buena y mandar un correo al dueño de la
+   dirección diciendo que alguien ha intentado registrarse con ella. Eso cambia
+   lo que ve la gente, así que es decisión de producto.
 
-### 🟠 10.3 — El mensaje único del login se delata por el tiempo
+Y hay que decirlo claro: **el freno estrecha el agujero, no lo cierra**. Quien
+tenga paciencia y muchas IP sigue pudiendo preguntar de una en una. El que cierra
+es el punto 2.
+
+### ✅ 10.3 — El mensaje único del login se delataba por el tiempo — **hecho**
 
 El comentario dice, literalmente: *«se cuenta antes de comprobar nada, para que
 un intento fallido cueste igual que uno acertado y no se pueda medir la
@@ -773,9 +778,9 @@ const acierta = Boolean(user) && hashRecibido === user.passwordHash;
 ```
 
 Cuesta 46 ms en el caso que antes era gratis. Es el precio de que los dos casos
-se parezcan.
+se parezcan. Puesto, con el comentario y las medidas dentro.
 
-### 🟠 10.4 — El 500 de auth devuelve el mensaje de error de Postgres
+### ✅ 10.4 — El 500 de auth devolvía el mensaje de error de Postgres — **hecho**
 
 ```js
 } catch (err) {
@@ -790,7 +795,9 @@ lleva nombres de tabla, de columna, de restricción y a veces el valor que
 falló. En el endpoint de autenticación es donde más se busca esa información.
 
 `details` fuera, y el error a `registra()` —que ya existe y ya guarda en
-`moveadvisor_errores`—.
+`moveadvisor_errores`—. Y el front no se queda sin mensaje: `App.js` lee
+`data.details || data.error` en los dos sitios donde lo usa, así que ahora enseña
+el de `error`, que además está escrito para una persona.
 
 ### 🟡 10.5 — Los códigos de recuperación viven en la tabla de sesiones
 
@@ -843,7 +850,7 @@ Subirlo a 8 es una línea. Y **está bien puesto donde está**: la comprobación
 en el alta y en el cambio, no en el login, así que quien ya tiene una de 6 sigue
 entrando y se le pide la nueva cuando la cambie.
 
-### ⚪ 10.8 — Tres campos del alta se leen del cuerpo sin parsear
+### ✅ 10.8 — Tres campos del alta se leían del cuerpo sin parsear — **hecho**
 
 Veinte campos se leen de `body`, que es `parseBody(req.body)`. Pero tres se leen
 de `req.body` directamente:
@@ -858,7 +865,9 @@ Si el cuerpo llega como cadena en vez de objeto —que es para lo que existe
 como particular, sin razón social y sin un error. Hoy Vercel entrega el JSON ya
 parseado, así que no pasa; el día que cambie el camino de entrada, sí.
 
-### ⚪ 10.9 — Tres restos
+Ahora los tres se leen de `body`, como los otros veinte.
+
+### ✅ 10.9 — Tres restos — **hechos**
 
 - `execFileSync` se importa en la línea 5 y **no se usa en ninguna parte**. En el
   fichero de autenticación, un `require("child_process")` que no hace nada es lo
@@ -896,6 +905,31 @@ parseado, así que no pasa; el día que cambie el camino de entrada, sí.
   en el repositorio— y no lo es: el testigo no va firmado, es aleatorio y se
   busca por su hash en la tabla. El secreto es un pimiento, no una llave. Sin un
   testigo válido no hay nada que firmar.
+
+
+### 10.11 — Lo que vigila que no vuelva
+
+`lib/ninguna-puerta-sin-freno.test.js`, cinco comprobaciones. La regla general
+es la primera: **toda acción de auth que se pueda llamar sin cookie de sesión
+tiene que frenar dentro de su bloque**. Hoy son cuatro —`login`, `register`,
+`request_password_reset`, `reset_password`—; la que se añada mañana entra sola.
+
+Las otras cuatro son de forma: que el alta frene por IP y no solo por correo, que
+el hash del login no viva detrás de un cortocircuito, que `SAL_DE_PEGA` salga de
+`randomBytes`, y que el 500 no devuelva `err.message`.
+
+**Comprobé que cazan.** Las lancé contra el `api/auth.js` de antes del arreglo
+—el de `git show HEAD:api/auth.js`— y las cinco fallaron. Una prueba escrita
+después del arreglo y que no se prueba contra el antes no vale nada, y ya me pasó
+en esta revisión: escribí unas de rutas generadas a partir de la misma tabla que
+probaban, y pasaban aunque renombrara una ruta.
+
+Y **falló contra sí misma la primera vez**: el comentario que puse en `auth.js`
+para explicar el cortocircuito cita el cortocircuito, y el patrón lo encontró en
+la prosa. Tercera vez en esta revisión que un ejemplo dentro de un comentario
+dispara mi propia prueba. Ahora se quitan los comentarios antes de mirar, lo que
+además hace más fuertes las cinco: hablan del código y no de lo que el código
+dice de sí mismo.
 
 ---
 

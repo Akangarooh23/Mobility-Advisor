@@ -1,15 +1,15 @@
-﻿const fs = require("fs");
+const fs = require("fs");
 const { elPoolObligatorio } = require("../lib/postgres");
 const path = require("path");
 const crypto = require("crypto");
-const { execFileSync } = require("child_process");
 const { MARCA, remitente, respuestaA } = require("../lib/marca");
 const { plantilla, parrafo, aviso, codigo } = require("../lib/correo");
 const { aplicaCors } = require("../lib/cors");
 const FRENO = require("../lib/freno");
+const { registra } = require("../lib/registra");
 
 // mssql is only needed when AUTH_PROVIDER=mssql; lazy-load to avoid crashing on Vercel
-// Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL â€” map it early
+// Neon injects DATABASE_URL; @vercel/postgres needs POSTGRES_URL — map it early
 if (!process.env.POSTGRES_URL && process.env.DATABASE_URL) {
   process.env.POSTGRES_URL = process.env.DATABASE_URL;
 }
@@ -133,6 +133,16 @@ function sanitizeUser(user = {}) {
 function hashPassword(password, salt) {
   return crypto.scryptSync(String(password || ""), String(salt || ""), 64).toString("hex");
 }
+
+/**
+ * La sal con la que se hashea cuando no hay nadie a quien hashear.
+ *
+ * Existe para que un login contra un correo que no tiene cuenta cueste el mismo
+ * tiempo que uno contra un correo que sí. Se genera una vez por instancia porque
+ * el valor da igual: lo que importa es que el trabajo se haga. Ver el comentario
+ * largo en `action === "login"`.
+ */
+const SAL_DE_PEGA = crypto.randomBytes(16).toString("hex");
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -582,8 +592,6 @@ function runSecurityMaintenance() {
   cleanupBackoffBucket(resetConfirmEmailBackoff);
   cleanupBackoffBucket(resetConfirmIpBackoff);
 }
-
-let _pgPool = null;
 
 function getPgPool() {
   return elPoolObligatorio();
@@ -1114,11 +1122,23 @@ async function authHandler(req, res) {
   try {
     return await _authHandlerInner(req, res);
   } catch (err) {
-    console.error("[MoveAdvisor] authHandler uncaught error:", err);
+    /*
+     * Lo que salió mal se guarda; no se cuenta.
+     *
+     * Aquí iba `details: err.message`. El mensaje de Postgres lleva nombres de
+     * tabla, de columna, de restricción y a veces el valor que falló, y este es
+     * el endpoint donde más se busca esa información: con un par de peticiones
+     * mal formadas se dibuja el esquema de usuarios y sesiones.
+     *
+     * `registra()` lo deja en `moveadvisor_errores` con su huella, que es donde
+     * hay que mirarlo. Y el front no se queda sin mensaje: `App.js` lee
+     * `data.details || data.error`, así que ahora enseña el de `error`, que
+     * además está escrito para una persona.
+     */
+    await registra("auth", err, { accion: normalizeText(req?.body?.action) }).catch(() => {});
     return res.status(500).json({
       ok: false,
       error: "Error interno del servidor. Intentalo de nuevo.",
-      details: normalizeText(err?.message) || "Unexpected auth handler error",
       provider: getAuthProvider(),
     });
   }
@@ -1657,8 +1677,8 @@ async function _authHandlerInner(req, res) {
   }
 
   if (action === "register") {
-    const clientType = String(req.body?.clientType || "individual");
-    const company_name = String(req.body?.company_name || "");
+    const clientType = String(body.clientType || "individual");
+    const company_name = String(body.company_name || "");
     if (!name && !(clientType === "business" && company_name)) {
       return res.status(400).json({ error: "Indica tu nombre para crear la cuenta." });
     }
@@ -1669,6 +1689,38 @@ async function _authHandlerInner(req, res) {
 
     if (password.length < 6) {
       return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres." });
+    }
+
+    /*
+     * El freno del alta, y qué frena de verdad.
+     *
+     * Aquí no había ninguno. El login se cuida mucho de no decir si un correo
+     * tiene cuenta —su comentario explica que la diferencia es una lista de
+     * clientes— y tres líneas más abajo esto contesta 409 «Ya existe una cuenta
+     * con ese correo». Con una lista de direcciones y una petición por cada una
+     * se sabía quién está aquí, tan rápido como aguantara la máquina.
+     *
+     * El que corta el barrido es **el de IP**: el de correo no, porque para
+     * preguntar por mil direcciones basta una petición por dirección. El de
+     * correo está para que no se pueda machacar un alta concreta.
+     *
+     * Y esto no cierra el agujero, lo estrecha: quien tenga paciencia y muchas
+     * IP sigue pudiendo preguntar. Cerrarlo de verdad es no contestar 409 —dar
+     * la misma respuesta que en un alta buena y mandar un correo al dueño de la
+     * dirección—, y eso cambia lo que ve la gente, así que se decide aparte.
+     */
+    const frenoAlta = usePostgres ? getPgPool() : null;
+    const altaPorIp = await FRENO.pide(frenoAlta, "registro-ip", clientIp, FRENO.LIMITES.registroPorIp);
+    const altaPorCorreo = await FRENO.pide(frenoAlta, "registro", email, FRENO.LIMITES.registro);
+    if (!altaPorIp.paso || !altaPorCorreo.paso) {
+      const espera = Math.max(altaPorIp.enSegundos, altaPorCorreo.enSegundos);
+      logAuthSecurity("register_rate_limited", {
+        email: maskEmail(email), ip: maskIp(clientIp), retryAfterSeconds: espera,
+      });
+      res.setHeader("Retry-After", String(espera));
+      return res.status(429).json({
+        error: "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+      });
     }
 
     const existingUser = usePostgres
@@ -1786,8 +1838,26 @@ async function _authHandlerInner(req, res) {
      * recuperarla—.
      */
     const user = foundUser ? mapDbUser(foundUser) : null;
-    const acierta =
-      Boolean(user) && hashPassword(password, user.passwordSalt) === user.passwordHash;
+
+    /*
+     * Y el reloj tampoco lo dice.
+     *
+     * Esto era `Boolean(user) && hashPassword(...) === user.passwordHash`, y el
+     * `&&` cortaba: si la cuenta no existía, **scrypt no se llamaba**. Medido en
+     * esta máquina, siete pasadas: 43,7 · 43,8 · 44,1 · 46,2 · 46,4 · 46,6 ·
+     * 47,9 ms. O sea que un correo con cuenta tardaba 46 ms más que uno sin
+     * ella, y eso se mide desde cualquier parte promediando unas peticiones:
+     * está muy por encima del ruido de la red.
+     *
+     * Con lo cual el mensaje único de aquí arriba no servía de nada. Tanto
+     * cuidado en no decirlo con palabras, y lo decía el cronómetro.
+     *
+     * Ahora el hash se calcula siempre, contra una sal de pega cuando no hay
+     * usuario, y se tira. Cuesta 46 ms en el caso que antes era gratis; es el
+     * precio de que los dos casos se parezcan.
+     */
+    const hashRecibido = hashPassword(password, user ? user.passwordSalt : SAL_DE_PEGA);
+    const acierta = Boolean(user) && hashRecibido === user.passwordHash;
 
     if (!acierta) {
       logAuthSecurity("login_failed", {

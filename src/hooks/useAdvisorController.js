@@ -126,7 +126,6 @@ export function useAdvisorController({
   setDecisionLoading,
   setEntryMode,
   setError,
-  setIsUserLoggedIn,
   setListingError,
   setListingFilters,
   setLoading,
@@ -173,30 +172,17 @@ export function useAdvisorController({
     setShowAuthMenu(false);
     setShowUserPanel(false);
 
-    if (typeof onAuthRequest === "function") {
-      onAuthRequest(mode, { routePage });
-      return;
-    }
-
-    setIsUserLoggedIn(true);
-    setShowUserPanel(!routePage);
-    setUserDashboardPage(routePage || "home");
-
-    if (routePage) {
-      setEntryMode("userDashboard");
-      setStep(-1);
-    }
-
-    setSaveFeedback(
-      mode === "login"
-        ? "Sesión iniciada. Ya tienes disponible tu panel personal."
-        : "Cuenta creada. Ya tienes disponible tu panel personal."
-    );
-
-    if (typeof window !== "undefined") {
-      window.setTimeout(() => setSaveFeedback(""), 2200);
-    }
-  }, [onAuthRequest, setEntryMode, setIsUserLoggedIn, setSaveFeedback, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage]);
+    /*
+     * Y se lo pide a quien sabe: abrir el dialogo de acceso.
+     *
+     * Aqui habia veinte lineas mas -una TERCERA copia de «ya estas dentro»,
+     * con su propio mensaje- para el caso de que nadie pasara `onAuthRequest`.
+     * `App` lo pasa siempre, asi que no se ejecutaban nunca: el mensaje
+     * «Sesion iniciada. Ya tienes disponible tu panel personal» no existia en
+     * ninguna pantalla, y no lo miraba ninguna prueba.
+     */
+    onAuthRequest?.(mode, { routePage });
+  }, [onAuthRequest, setShowAuthMenu, setShowUserPanel]);
 
   const handleUserAccessClick = useCallback(() => {
     if (isUserLoggedIn) {
@@ -218,8 +204,10 @@ export function useAdvisorController({
   }, [isUserLoggedIn, setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
 
   const handleLogout = useCallback(() => {
+    /* Esto apaga los dos estados de la sesion: `currentUser` e
+       `isUserLoggedIn`. Aqui se apagaba solo el segundo, y el primero lo
+       apagaba `resetLoggedUser`: la coherencia dependia de llamar a los dos. */
     onLogoutUser?.();
-    setIsUserLoggedIn(false);
     setShowAuthMenu(false);
     setShowUserPanel(false);
     setUserDashboardPage("home");
@@ -233,7 +221,7 @@ export function useAdvisorController({
         window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
       }
     }
-  }, [entryMode, onLogoutUser, setEntryMode, setIsUserLoggedIn, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
+  }, [entryMode, onLogoutUser, setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
 
   const updateListingFilter = useCallback((key, value) => {
     if (key === "priceRange") {

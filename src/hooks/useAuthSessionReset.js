@@ -1,9 +1,8 @@
 import { useCallback } from "react";
 import { postAuthJson } from "../utils/apiClient";
-import { clearAuthUser } from "../utils/storage";
 
 export function useAuthSessionReset({
-  setCurrentUser,
+  saleDeLaCuenta,
   vuelveAlAcceso,
   olvidaElDialogoDeAcceso,
   setPendingPlanCheckoutId,
@@ -11,8 +10,9 @@ export function useAuthSessionReset({
 }) {
   const resetLoggedUser = useCallback(() => {
     void postAuthJson({ action: "logout" }).catch(() => {});
-    clearAuthUser();
-    setCurrentUser(null);
+    /* Los dos estados de «no hay nadie» se mueven juntos: estaba aqui solo
+       `currentUser`, e `isUserLoggedIn` lo apagaba `handleLogout` despues. */
+    saleDeLaCuenta();
     vuelveAlAcceso();
     /* Y el dialogo con su formulario. Aqui se vaciaba con TRES claves de las
        seis, asi que apellidos, telefono y razon social quedaban en
@@ -24,7 +24,7 @@ export function useAuthSessionReset({
     olvidaElDialogoDeAcceso,
     vuelveAlAcceso,
     olvidaElCambioDeContrasena,
-    setCurrentUser,
+    saleDeLaCuenta,
     setPendingPlanCheckoutId,
   ]);
 

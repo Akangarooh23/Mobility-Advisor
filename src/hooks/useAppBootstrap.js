@@ -7,13 +7,11 @@ import {
   getUserSavedComparisonsJson,
 } from "../utils/apiClient";
 import {
-  clearAuthUser,
   readAuthUser,
   readMarketAlerts,
   readMarketAlertStatus,
   readQuestionnaireDraft,
   readSavedComparisons,
-  writeAuthUser,
   writeSavedComparisons,
 } from "../utils/storage";
 
@@ -24,8 +22,8 @@ export function useAppBootstrap({
   setMarketAlerts,
   setMarketAlertStatus,
   setQuestionnaireDraft,
-  setCurrentUser,
-  setIsUserLoggedIn,
+  entraEnLaCuenta,
+  saleDeLaCuenta,
   setAuthRequired,
   setAuthDialogMode,
   setShowConsentReview,
@@ -81,8 +79,9 @@ export function useAppBootstrap({
     setMarketAlertStatus(readMarketAlertStatus());
     setQuestionnaireDraft(readQuestionnaireDraft());
 
-    setCurrentUser(savedAuthUser);
-    setIsUserLoggedIn(Boolean(savedAuthUser?.email));
+    /* Lo guardado en el navegador, que es lo que evita ver la portada un
+       instante al recargar. Sin correo, `entra` deja «no hay nadie». */
+    entraEnLaCuenta(savedAuthUser);
     /*
      * Ya se sabe.
      *
@@ -113,9 +112,7 @@ export function useAppBootstrap({
         const sessionUser = data?.authenticated ? data?.user : null;
 
         if (sessionUser?.email) {
-          writeAuthUser(sessionUser);
-          setCurrentUser(sessionUser);
-          setIsUserLoggedIn(true);
+          entraEnLaCuenta(sessionUser);
 
           /*
            * Si la contraseña la hemos pedido nosotros y el servidor dice que ya
@@ -178,9 +175,7 @@ export function useAppBootstrap({
           return;
         }
 
-        clearAuthUser();
-        setCurrentUser(null);
-        setIsUserLoggedIn(false);
+        saleDeLaCuenta();
         // Session expired → require login again (skip on public/legal pages)
         if (!isPublicRoute) {
           setAuthRequired(true);
@@ -191,8 +186,8 @@ export function useAppBootstrap({
       }
     })();
   }, [
-    setCurrentUser,
-    setIsUserLoggedIn,
+    entraEnLaCuenta,
+    saleDeLaCuenta,
     setSesionComprobada,
     setMarketAlertStatus,
     setMarketAlerts,

@@ -37,6 +37,7 @@ import { useLosConsentimientosDelRegistro } from "./hooks/useLosConsentimientosD
 import { useElCambioDeContrasena } from "./hooks/useElCambioDeContrasena";
 import { useLaRecuperacionDeLaCuenta } from "./hooks/useLaRecuperacionDeLaCuenta";
 import { useElDialogoDeAcceso, FORMULARIO_DE_ACCESO_VACIO, queFaltaParaEntrar } from "./hooks/useElDialogoDeAcceso";
+import { useLaSesion } from "./hooks/useLaSesion";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -109,9 +110,7 @@ import {
 } from "./utils/businessHelpers";
 import { buildUserDashboardModel } from "./utils/userDashboardHelpers";
 import {
-  clearAuthUser,
   clearQuestionnaireDraft,
-  writeAuthUser,
   writeUserAppointments,
 } from "./utils/storage";
 import {
@@ -1757,7 +1756,24 @@ export default function App() {
    * Quien esta mirando. Vive aqui arriba, y no con el resto de la sesion, porque
    * `useElMercadoVo` lo necesita para decir quien ve el catalogo.
    */
-  const [currentUser, setCurrentUser] = useState(null);
+  /*
+   * La sesion: quien ha entrado, si ya se sabe, y si hace falta entrar.
+   *
+   * `currentUser` e `isUserLoggedIn` cuentan el mismo hecho y se movian por
+   * separado en cuatro ficheros. Ahora van juntos siempre.
+   *
+   * Vive aqui arriba porque `useElMercadoVo` necesita saber quien mira el
+   * catalogo.
+   */
+  const {
+    currentUser,
+    isUserLoggedIn,
+    sesionComprobada, setSesionComprobada,
+    authRequired, setAuthRequired,
+    entra: entraEnLaCuenta,
+    seActualiza: seActualizaElUsuario,
+    sale: saleDeLaCuenta,
+  } = useLaSesion();
   /* En minusculas y sin espacios, que es como se compara en todas partes. */
   const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
   /* Los nueve del mercado de VO viven en `useElMercadoVo`, con la funcion que
@@ -1834,7 +1850,6 @@ export default function App() {
   const [planCheckoutFeedback, setPlanCheckoutFeedback] = useState("");
   const [pendingPlanCheckoutId, setPendingPlanCheckoutId] = useState("");
   const [showAuthMenu, setShowAuthMenu] = useState(false);
-  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
   /**
    * Si ya sabemos si hay sesión o todavía no se ha mirado.
    *
@@ -1842,8 +1857,6 @@ export default function App() {
    * distintas: «no ha entrado» y «aún no lo hemos comprobado». Quien las
    * confunda le pide la contraseña a alguien que ya está dentro.
    */
-  const [sesionComprobada, setSesionComprobada] = useState(false);
-  const [authRequired, setAuthRequired] = useState(false);
   const [showUserPanel, setShowUserPanel] = useState(false);
   const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
   /* `currentUser` se declara mas arriba: `useElMercadoVo` lo necesita para
@@ -1896,7 +1909,7 @@ export default function App() {
     manda: submitChangePassword,
     olvidaTodo: olvidaElCambioDeContrasena,
   } = useElCambioDeContrasena({
-    alRecibirUsuario: (usuario) => { writeAuthUser(usuario); setCurrentUser(usuario); },
+    alRecibirUsuario: seActualizaElUsuario,
   });
   const [userDashboardPage, setUserDashboardPage] = useState("home");
   /* Los cinco del registro viven en `useLosConsentimientosDelRegistro`, con la
@@ -1921,7 +1934,7 @@ export default function App() {
     guardaLoElegido: guardaLosConsentimientos,
     continuarSinAceptar,
   } = useRevisionDeConsentimientos({
-    alRecibirUsuario: (usuario) => { writeAuthUser(usuario); setCurrentUser(usuario); },
+    alRecibirUsuario: seActualizaElUsuario,
   });
   const [themeMode, setThemeMode] = useState("light");
   const [uiLanguage, setUiLanguage] = useState(() => {
@@ -2285,8 +2298,8 @@ export default function App() {
     setMarketAlerts,
     setMarketAlertStatus,
     setQuestionnaireDraft,
-    setCurrentUser,
-    setIsUserLoggedIn,
+    entraEnLaCuenta,
+    saleDeLaCuenta,
     setAuthRequired,
     setAuthDialogMode,
   });
@@ -2518,13 +2531,11 @@ export default function App() {
    * cerrar. Solo se borra lo que este navegador se creía.
    */
   const alCaducarLaSesion = useCallback(() => {
-    clearAuthUser();
-    setCurrentUser(null);
-    setIsUserLoggedIn(false);
+    saleDeLaCuenta();
     setAuthRequired(true);
     setAuthDialogMode("login");
-    // Viene de `useElDialogoDeAcceso`. Es estable, pero ESLint no lo ve.
-  }, [setAuthDialogMode]);
+    // Vienen de sus hooks. Son estables, pero ESLint no lo ve.
+  }, [saleDeLaCuenta, setAuthDialogMode, setAuthRequired]);
 
   const {
     userAppointments,
@@ -2751,7 +2762,7 @@ export default function App() {
   });
 
   const { resetLoggedUser } = useAuthSessionReset({
-    setCurrentUser,
+    saleDeLaCuenta,
     vuelveAlAcceso,
     olvidaElDialogoDeAcceso,
     setPendingPlanCheckoutId,
@@ -2788,9 +2799,7 @@ export default function App() {
   const yaEstaDentro = useCallback((nextUser, { motivo, aviso }) => {
     const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
-    writeAuthUser(nextUser);
-    setCurrentUser(nextUser);
-    setIsUserLoggedIn(true);
+    entraEnLaCuenta(nextUser);
     setStep(-1);
 
     if (nextTargetEntryMode) {
@@ -2871,7 +2880,8 @@ export default function App() {
     }
   }, [
     authTargetEntryMode, authTargetPage, entryMode, pendingPlanCheckoutId,
-    startSubscriptionCheckout, syncBrowserPath, vuelveAlAcceso,
+    startSubscriptionCheckout, syncBrowserPath, vuelveAlAcceso, entraEnLaCuenta,
+    setAuthRequired,
     // Los `set...` vienen de `useElDialogoDeAcceso`. Son estables -salen de
     // `useState`- pero ESLint no puede saberlo a traves de un hook propio.
     setAuthDialogMode, setAuthForm, setAuthTargetEntryMode,
@@ -4415,7 +4425,6 @@ export default function App() {
     setDecisionLoading,
     setEntryMode,
     setError,
-    setIsUserLoggedIn,
     setListingError,
     setListingFilters,
     setLoading,

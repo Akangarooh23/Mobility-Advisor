@@ -50,13 +50,15 @@ const nada = () => {};
 
 function Sonda({
   setSesionComprobada,
-  setIsUserLoggedIn = nada,
+  entraEnLaCuenta = nada,
+  saleDeLaCuenta = nada,
   setAuthRequired = nada,
   setAuthDialogMode = nada,
 }) {
   useAppBootstrap({
     setSesionComprobada,
-    setIsUserLoggedIn,
+    entraEnLaCuenta,
+    saleDeLaCuenta,
     setAuthRequired,
     setAuthDialogMode,
     themeStorageKey: "tema",
@@ -98,24 +100,28 @@ beforeEach(() => {
 
 describe("el arranque dice cuándo ya se sabe si hay sesión", () => {
   test("con la sesión guardada, se avisa sin esperar a la red", () => {
-    readAuthUser.mockReturnValue({ email: "cliente@example.com" });
+    const guardado = { email: "cliente@example.com" };
+    readAuthUser.mockReturnValue(guardado);
     const avisa = jest.fn();
     const entra = jest.fn();
 
-    render(<Sonda setSesionComprobada={avisa} setIsUserLoggedIn={entra} />);
+    render(<Sonda setSesionComprobada={avisa} entraEnLaCuenta={entra} />);
 
     expect(avisa).toHaveBeenCalledWith(true);
-    expect(entra).toHaveBeenCalledWith(true);
+    // Se le pasa el usuario, y `useLaSesion` decide si eso es alguien dentro.
+    expect(entra).toHaveBeenCalledWith(guardado);
   });
 
   test("y sin sesión guardada también: eso también es saberlo", () => {
     const avisa = jest.fn();
     const entra = jest.fn();
 
-    render(<Sonda setSesionComprobada={avisa} setIsUserLoggedIn={entra} />);
+    render(<Sonda setSesionComprobada={avisa} entraEnLaCuenta={entra} />);
 
     expect(avisa).toHaveBeenCalledWith(true);
-    expect(entra).toHaveBeenCalledWith(false);
+    // Sin nada guardado se le pasa lo que hay, que no tiene correo: no es nadie.
+    expect(entra).toHaveBeenCalled();
+    expect(entra.mock.calls[0][0]?.email).toBeFalsy();
   });
 
   test("se avisa después de decir si hay sesión, no antes", () => {
@@ -130,7 +136,7 @@ describe("el arranque dice cuándo ya se sabe si hay sesión", () => {
     render(
       <Sonda
         setSesionComprobada={() => orden.push("comprobada")}
-        setIsUserLoggedIn={() => orden.push("sesion")}
+        entraEnLaCuenta={() => orden.push("sesion")}
       />
     );
 

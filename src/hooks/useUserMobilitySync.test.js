@@ -138,11 +138,17 @@ describe("y en la aplicación está enchufado", () => {
       APP.indexOf("const alCaducarLaSesion = useCallback("),
       APP.indexOf("const alCaducarLaSesion = useCallback(") + 400
     );
-    // Las cuatro, y las cuatro hacen falta: borrar lo guardado, olvidar al
-    // usuario, dejar de creerse dentro y pedir la contraseña.
-    expect(manejador).toContain("clearAuthUser()");
-    expect(manejador).toContain("setCurrentUser(null)");
-    expect(manejador).toContain("setIsUserLoggedIn(false)");
+    /*
+     * Esto miraba las cuatro lineas escritas a mano: borrar lo guardado, olvidar
+     * al usuario, dejar de creerse dentro y pedir la contraseña.
+     *
+     * Las tres primeras son ahora `saleDeLaCuenta()`, en `useLaSesion`, que las
+     * hace juntas siempre. Que las haga lo prueba `laSesionSeMueveDeUnaPieza`,
+     * con el hook de verdad; aqui se comprueba que este manejador la llama y que
+     * sigue pidiendo la contraseña.
+     */
+    expect(manejador).toContain("saleDeLaCuenta()");
+    expect(manejador).toContain("setAuthRequired(true)");
     expect(manejador).toContain('setAuthDialogMode("login")');
   });
 

@@ -1634,6 +1634,37 @@ export default function App() {
     sellMarketSnapshotError, setSellMarketSnapshotError,
   } = useElFlujoDeVenta();
   const [step, setStep] = useState(-1);
+
+  /**
+   * Ir a una pantalla.
+   *
+   * ## Por que existe
+   *
+   * `setEntryMode(X); setStep(-1);` estaba escrito OCHENTA Y TRES veces: 77 en
+   * este fichero y 6 en tres hooks. Era lo mas repetido del proyecto.
+   *
+   * Y no son dos instrucciones sueltas: son una sola cosa. `entryMode` dice que
+   * pantalla, y `step === -1` dice «no estas en el cuestionario». Casi todas las
+   * pantallas se dibujan con `step === -1 && entryMode === "algo"`, asi que
+   * cambiar el modo sin poner el paso a -1 deja la pantalla en blanco: el modo
+   * nuevo no encaja con ninguna condicion y el cuestionario tampoco sale.
+   *
+   * Escrito ochenta y tres veces, esa pareja depende de que nadie se olvide de la
+   * segunda linea. Ya paso una vez -en la cuarta copia de abrir la ficha de un
+   * coche- y solo era inocuo porque el manejador vivia dentro de una pantalla que
+   * ya exigia `step === -1`.
+   *
+   * ## Y es la costura
+   *
+   * Aqui no hay `react-router`: la navegacion se deduce a mano de
+   * `window.location.pathname`. Con «ir a una pantalla» en un solo sitio, migrar
+   * algun dia es cambiar el cuerpo de esta funcion, no reescribir ochenta y tres
+   * manejadores y un efecto de ciento veinte lineas a la vez.
+   */
+  const vasA = useCallback((modo) => {
+    setEntryMode(modo);
+    setStep(-1);
+  }, []);
   const [answers, setAnswers] = useState({ perfil: "particular" });
   const [multiSelected, setMultiSelected] = useState([]);
   const [dualTimelineSelection, setDualTimelineSelection] = useState({ horizonte_tenencia: [], antiguedad_vehiculo_buscada: [] });
@@ -1924,7 +1955,7 @@ export default function App() {
     setShowUserPanel,
     setUserDashboardPage,
     setEntryMode,
-    setStep,
+    vasA,
   });
 
   const showOffersPage = useCallback(() => {
@@ -1939,27 +1970,25 @@ export default function App() {
 
   const openPublicPage = useCallback((nextEntryMode = null, historyMode = "push") => {
     setShowHeaderMobileNav(false);
-    setEntryMode(nextEntryMode);
-    setStep(-1);
+    vasA(nextEntryMode);
     syncBrowserPath(nextEntryMode ? getPublicPathForEntryMode(nextEntryMode) : "/", historyMode);
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [syncBrowserPath]);
+  }, [syncBrowserPath, vasA]);
 
   const openInternalLandingFlow = useCallback((nextEntryMode) => {
     setShowHeaderMobileNav(false);
     setShowAuthMenu(false);
     setShowUserPanel(false);
-    setEntryMode(nextEntryMode);
-    setStep(-1);
+    vasA(nextEntryMode);
     syncBrowserPath("/", "push");
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [syncBrowserPath]);
+  }, [syncBrowserPath, vasA]);
 
   /*
    * Tres envoltorios que no envolvian nada.
@@ -1982,14 +2011,13 @@ export default function App() {
   const abreLaFichaDelCoche = useCallback((oferta, volverA) => {
     setVehicleDetailOffer(oferta);
     setVehicleDetailBackTarget(volverA);
-    setEntryMode("vehicleDetail");
+    vasA("vehicleDetail");
     syncBrowserPath(buildVehicleDetailSharePath(oferta), "push");
-    setStep(-1);
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [syncBrowserPath]);
+  }, [syncBrowserPath, vasA]);
 
   /**
    * Vuelve al mercado, que es donde se cae cuando un enlace no lleva a nada.
@@ -1998,9 +2026,8 @@ export default function App() {
    * ficha que ensenar, y en los tres sitios donde puede fallar la peticion.
    */
   const vuelveAlMercado = useCallback(() => {
-    setEntryMode("portalVo");
-    setStep(-1);
-  }, []);
+    vasA("portalVo");
+  }, [vasA]);
 
   const openPlansSection = useCallback((sectionId = "planes") => {
     if (typeof window !== "undefined") {
@@ -2257,8 +2284,7 @@ export default function App() {
       const parametrosDeVuelta = new URLSearchParams(window.location.search);
       const vuelta = parametrosDeVuelta.get("volver");
       if (vuelta === "idcar" || vuelta === "panel") {
-        setEntryMode(vuelta === "panel" ? "userDashboard" : "idCarsManage");
-        setStep(-1);
+        vasA(vuelta === "panel" ? "userDashboard" : "idCarsManage");
         window.history.replaceState({}, "", window.location.pathname);
         return;
       }
@@ -2277,8 +2303,7 @@ export default function App() {
         );
         if (cached) {
           setSelectedPortalVoOfferId(cached.id);
-          setEntryMode("portalVoDetail");
-          setStep(-1);
+          vasA("portalVoDetail");
           return;
         }
         // Fetch offer by ID — do NOT set entryMode("portalVo") before fetching
@@ -2298,8 +2323,7 @@ export default function App() {
             }
             metePorDelante(offer);
             setSelectedPortalVoOfferId(offer.id);
-            setEntryMode("portalVoDetail");
-            setStep(-1);
+            vasA("portalVoDetail");
           } else {
             // No está en VO: puede ser una oferta de importación (otra tabla)
             fetch(rutaApi(`/api/import-offers?id=${encodeURIComponent(offerId)}`))
@@ -2309,8 +2333,7 @@ export default function App() {
                 if (d?.ok && imp?.id) {
                   metePorDelante(imp);
                   setSelectedPortalVoOfferId(imp.id);
-                  setEntryMode("portalVoDetail");
-                  setStep(-1);
+                  vasA("portalVoDetail");
                 } else {
                   vuelveAlMercado();
                 }
@@ -2347,27 +2370,24 @@ export default function App() {
 
         setVehicleDetailOffer(deepLinkedOffer);
         setVehicleDetailBackTarget("advice");
-        setEntryMode("vehicleDetail");
-        setStep(-1);
+        vasA("vehicleDetail");
         return;
       }
 
       if (!pathEntryMode) {
         if (normalizePublicPath(window.location.pathname) === "/") {
-          setEntryMode(null);
-          setStep(-1);
+          vasA(null);
         }
         return;
       }
 
-      setEntryMode(pathEntryMode);
-      setStep(-1);
+      vasA(pathEntryMode);
     };
 
     applyRouteFromPath();
     window.addEventListener("popstate", applyRouteFromPath);
     return () => window.removeEventListener("popstate", applyRouteFromPath);
-  }, [portalVoOffersLive, syncBrowserPath, metePorDelante, vuelveAlMercado]);
+  }, [portalVoOffersLive, syncBrowserPath, metePorDelante, vuelveAlMercado, vasA]);
 
   useEffect(() => {
     if (typeof document === "undefined" || typeof window === "undefined") {
@@ -2557,6 +2577,7 @@ export default function App() {
     resetListingDiscovery,
     setQuestionnaireDraft,
     setEntryMode,
+    vasA,
     setStep,
     setAdvancedMode,
     setAnswers,
@@ -2620,9 +2641,8 @@ export default function App() {
     setSellFlowType(tipo);
     setSelectedValuationVehicleSummary(null);
     setSellAnswers((prev) => ({ ...prev, sellerType: particular ? "particular" : "profesional" }));
-    setEntryMode("sell");
-    setStep(-1);
-  }, [isUserLoggedIn, openAuthDialog, setSellAnswers, setSellFlowType]);
+    vasA("sell");
+  }, [isUserLoggedIn, openAuthDialog, setSellAnswers, setSellFlowType, vasA]);
 
   /**
    * Las columnas del pie.
@@ -2728,6 +2748,8 @@ export default function App() {
     const nextTargetEntryMode = normalizeText(authTargetEntryMode);
 
     entraEnLaCuenta(nextUser);
+    /* Solo el paso, sin `vasA`: la pantalla la deciden las ramas de abajo, y
+       puede ser que se quede en la que ya estaba. */
     setStep(-1);
 
     if (nextTargetEntryMode) {
@@ -3264,15 +3286,14 @@ export default function App() {
     setShowAuthMenu(false);
     setShowUserPanel(false);
     syncBrowserPath("/", "replace");
-    setEntryMode("portalVo");
-    setStep(-1);
+    vasA("portalVo");
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
     // `setPortalVoFilters` viene de `useElMercadoVo`. Es estable -sale de
     // `useState`- pero ESLint no puede saberlo a traves de un hook propio.
-  }, [syncBrowserPath, setPortalVoFilters]);
+  }, [syncBrowserPath, setPortalVoFilters, vasA]);
 
   const getSavedComparisonHref = useCallback(
     (item) =>
@@ -3605,8 +3626,7 @@ export default function App() {
     const prefillFuel = normalizeFuelForSellFlow(normalizeText(context?.fuel));
     const hasVehiclePrefill = Boolean(prefillBrand || prefillModel || prefillYear || prefillMileage || prefillFuel);
 
-    setEntryMode("sell");
-    setStep(-1);
+    vasA("sell");
     setSelectedValuationVehicleSummary(
       hasVehiclePrefill
         ? {
@@ -4336,6 +4356,7 @@ export default function App() {
     },
     currentUser,
     entryMode,
+    vasA,
     isUserLoggedIn,
     listingFilters,
     quickValidationAnswers,
@@ -6159,27 +6180,22 @@ export default function App() {
           isUserLoggedIn={isUserLoggedIn}
           uiLanguage={uiLanguage}
           onSelectVehicle={() => {
-            setEntryMode("vehicleOptions");
-            setStep(-1);
+            vasA("vehicleOptions");
           }}
           onSelectAdvice={() => {
-            setEntryMode("consejo");
-            setStep(-1);
+            vasA("consejo");
           }}
           onSelectBuyStart={() => {
             setAdvisorContext("buy");
-            setEntryMode("buyOptions");
-            setStep(-1);
+            vasA("buyOptions");
           }}
           onResumeAdvice={resumeQuestionnaireDraft}
           onSelectDecision={() => {
-            setEntryMode("decision");
-            setStep(-1);
+            vasA("decision");
           }}
           onSelectSell={() => {
             setSellFlowType("");
-            setEntryMode("sellOptions");
-            setStep(-1);
+            vasA("sellOptions");
           }}
           onSelectSellInfo={() => {
             if (!isUserLoggedIn) {
@@ -6190,8 +6206,7 @@ export default function App() {
             setSellFlowType("report");
             setSelectedValuationVehicleSummary(null);
             setSellAnswers((prev) => ({ ...prev, sellerType: "particular" }));
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onSelectSellManaged={() => {
             if (!isUserLoggedIn) {
@@ -6202,12 +6217,10 @@ export default function App() {
             setSellFlowType("certificate");
             setSelectedValuationVehicleSummary(null);
             setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onSelectService={() => {
-            setEntryMode("serviceOptions");
-            setStep(-1);
+            vasA("serviceOptions");
           }}
           onSelectServiceAutogestor={() => {
             if (!isUserLoggedIn) {
@@ -6215,8 +6228,7 @@ export default function App() {
               openAuthDialog("login", { entryMode: "serviceAutogestor", routePage: "home" });
               return;
             }
-            setEntryMode("serviceAutogestor");
-            setStep(-1);
+            vasA("serviceAutogestor");
           }}
           onSelectServiceMaintenance={() => {
             if (!isUserLoggedIn) {
@@ -6224,8 +6236,7 @@ export default function App() {
               openAuthDialog("login", { entryMode: "serviceMaintenance", routePage: "home" });
               return;
             }
-            setEntryMode("serviceMaintenance");
-            setStep(-1);
+            vasA("serviceMaintenance");
           }}
           onSelectServiceAppointment={() => {
             if (!isUserLoggedIn) {
@@ -6234,8 +6245,7 @@ export default function App() {
               return;
             }
             preparaLaCita();
-            setEntryMode("serviceAppointment");
-            setStep(-1);
+            vasA("serviceAppointment");
           }}
           onSelectServiceMonthlyPlan={() => {
             if (!isUserLoggedIn) {
@@ -6243,8 +6253,7 @@ export default function App() {
               openAuthDialog("login", { entryMode: "serviceMonthlyPlan", routePage: "home" });
               return;
             }
-            setEntryMode("serviceMonthlyPlan");
-            setStep(-1);
+            vasA("serviceMonthlyPlan");
           }}
           onSelectServiceInsurance={() => {
             if (!isUserLoggedIn) {
@@ -6252,24 +6261,21 @@ export default function App() {
               openAuthDialog("login", { entryMode: "serviceInsurance", routePage: "home" });
               return;
             }
-            setEntryMode("serviceInsurance");
-            setStep(-1);
+            vasA("serviceInsurance");
           }}
           onSelectPortalVo={() => {
             if (!isUserLoggedIn) {
               openAuthDialog("register", { entryMode: "portalVo" });
               return;
             }
-            setEntryMode("portalVo");
-            setStep(-1);
+            vasA("portalVo");
             empiezaSinFiltros();
           }}
           onOpenPlans={() => {
             if (typeof window !== "undefined") {
               window.sessionStorage.setItem("movilidad-advisor.plans.scroll-target", "planes");
             }
-            setEntryMode("plans");
-            setStep(-1);
+            vasA("plans");
           }}
           onOpenPlansSection={openPlansSection}
           onOpenLegal={openLegalDocument}
@@ -6288,24 +6294,20 @@ export default function App() {
         <VehicleOptionsPage
           styles={s}
           onSelectBuy={() => {
-            setEntryMode("buyOptions");
-            setStep(-1);
+            vasA("buyOptions");
           }}
           onSelectRenting={() => {
             setAdvisorContext(null);
-            setEntryMode("rentingOptions");
-            setStep(-1);
+            vasA("rentingOptions");
           }}
           onSelectGuide={() => {
             setAdvisorContext(null);
             setAnswers({ perfil: "particular" });
-            setEntryMode("consejo");
-            setStep(-1);
+            vasA("consejo");
           }}
           onGoHome={() => {
             setAdvisorContext(null);
-            setEntryMode(null);
-            setStep(-1);
+            vasA(null);
           }}
         />
       )}
@@ -6316,8 +6318,7 @@ export default function App() {
           onSelectAdvisor={() => {
             setAdvisorContext("renting");
             setAnswers({ perfil: "particular", flexibilidad: "renting" });
-            setEntryMode("consejo");
-            setStep(-1);
+            vasA("consejo");
           }}
           onSelectKnownModel={() => {
             setAdvisorContext("renting");
@@ -6327,13 +6328,11 @@ export default function App() {
               acquisition: "particular",
               hasBrand: "si",
             });
-            setEntryMode("decision");
-            setStep(-1);
+            vasA("decision");
           }}
           onGoBack={() => {
             setAdvisorContext(null);
-            setEntryMode(null);
-            setStep(-1);
+            vasA(null);
           }}
         />
       )}
@@ -6345,8 +6344,7 @@ export default function App() {
           onSelectAdvisor={() => {
             setAdvisorContext("buy");
             setAnswers({ perfil: "particular" });
-            setEntryMode("consejo");
-            setStep(-1);
+            vasA("consejo");
           }}
           onSelectKnownModel={() => openPublicPage("buscarCoche")}
           onOpenMarketplace={() => {
@@ -6356,8 +6354,7 @@ export default function App() {
           }}
           onGoBack={() => {
             setAdvisorContext(null);
-            setEntryMode(null);
-            setStep(-1);
+            vasA(null);
           }}
         />
       )}
@@ -6369,24 +6366,20 @@ export default function App() {
             setSellFlowType("certificate");
             setSelectedValuationVehicleSummary(null);
             setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onSelectReport={() => {
             setSellFlowType("report");
             setSelectedValuationVehicleSummary(null);
             setSellAnswers((prev) => ({ ...prev, sellerType: "particular" }));
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onSelectIDCar={() => {
-            setEntryMode("serviceAutogestor");
-            setStep(-1);
+            vasA("serviceAutogestor");
           }}
           onGoBack={() => {
             setSellFlowType("");
-            setEntryMode(null);
-            setStep(-1);
+            vasA(null);
           }}
         />
       )}
@@ -6395,29 +6388,23 @@ export default function App() {
         <ServiceOptionsPage
           styles={s}
           onSelectInsurance={() => {
-            setEntryMode("serviceInsurance");
-            setStep(-1);
+            vasA("serviceInsurance");
           }}
           onSelectMaintenance={() => {
-            setEntryMode("serviceMaintenance");
-            setStep(-1);
+            vasA("serviceMaintenance");
           }}
           onSelectAppointment={() => {
             preparaLaCita();
-            setEntryMode("serviceAppointment");
-            setStep(-1);
+            vasA("serviceAppointment");
           }}
           onSelectMonthlyPlan={() => {
-            setEntryMode("serviceMonthlyPlan");
-            setStep(-1);
+            vasA("serviceMonthlyPlan");
           }}
           onSelectAutogestor={() => {
-            setEntryMode("serviceAutogestor");
-            setStep(-1);
+            vasA("serviceAutogestor");
           }}
           onGoBack={() => {
-            setEntryMode(null);
-            setStep(-1);
+            vasA(null);
           }}
         />
       )}
@@ -6427,8 +6414,7 @@ export default function App() {
           themeMode={themeMode}
           styles={s}
           onGoBack={() => {
-            setEntryMode("serviceOptions");
-            setStep(-1);
+            vasA("serviceOptions");
           }}
           onGoHome={restart}
         />
@@ -6448,8 +6434,7 @@ export default function App() {
               tipo: context?.appointmentType,
               volverA: "serviceMaintenance",
             });
-            setEntryMode("serviceAppointment");
-            setStep(-1);
+            vasA("serviceAppointment");
           }}
           onManageIdCars={() => {
             if (!isUserLoggedIn || !currentUser?.email) {
@@ -6458,12 +6443,10 @@ export default function App() {
             }
             setSelectedIdCarVehicleId("");
             setSelectedIdCarOpenEditor(false);
-            setEntryMode("idCarsManage");
-            setStep(-1);
+            vasA("idCarsManage");
           }}
           onGoBack={() => {
-            setEntryMode("serviceOptions");
-            setStep(-1);
+            vasA("serviceOptions");
           }}
           onGoHome={restart}
         />
@@ -6474,8 +6457,7 @@ export default function App() {
           themeMode={themeMode}
           styles={s}
           onGoBack={() => {
-            setEntryMode("serviceOptions");
-            setStep(-1);
+            vasA("serviceOptions");
           }}
           onCreateIdCar={() => {
             if (!isUserLoggedIn || !currentUser?.email) {
@@ -6485,8 +6467,7 @@ export default function App() {
 
             setSelectedIdCarVehicleId("");
             setSelectedIdCarOpenEditor(false);
-            setEntryMode("idCarCreate");
-            setStep(-1);
+            vasA("idCarCreate");
           }}
           onManageIdCars={() => {
             if (!isUserLoggedIn || !currentUser?.email) {
@@ -6498,8 +6479,7 @@ export default function App() {
               window.sessionStorage.setItem("movilidad-advisor.idcar.action", "manage");
             }
             setSelectedIdCarVehicleId("");
-            setEntryMode("idCarsManage");
-            setStep(-1);
+            vasA("idCarsManage");
           }}
           onGoHome={restart}
         />
@@ -6509,24 +6489,21 @@ export default function App() {
         <ServiceIdCarsManagePage
           currentUserEmail={currentUser?.email || ""}
           viewMode="list"
-          onRequestAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onRequestAppointment={() => vasA("serviceAppointment")}
           onRequestValuation={() => { navigateToUserDashboardPage("valuations"); }}
           onOpenVehicle={(vehicle, startEditing) => {
             setSelectedIdCarVehicleId(vehicle?.id || "");
             setSelectedIdCarOpenEditor(!!startEditing);
-            setEntryMode("idCarDetail");
-            setStep(-1);
+            vasA("idCarDetail");
           }}
           onCreateNew={() => {
             setSelectedIdCarVehicleId("");
             setSelectedIdCarOpenEditor(false);
-            setEntryMode("idCarCreate");
-            setStep(-1);
+            vasA("idCarCreate");
           }}
           onGoBack={() => {
             setSelectedIdCarVehicleId("");
-            setEntryMode("serviceAutogestor");
-            setStep(-1);
+            vasA("serviceAutogestor");
           }}
           onGoHome={restart}
         />
@@ -6538,11 +6515,10 @@ export default function App() {
           viewMode="detail"
           selectedVehicleId={selectedIdCarVehicleId}
           startEditing={selectedIdCarOpenEditor}
-          onRequestAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onRequestAppointment={() => vasA("serviceAppointment")}
           onRequestValuation={() => { navigateToUserDashboardPage("valuations"); }}
           onGoBack={() => {
-            setEntryMode("idCarsManage");
-            setStep(-1);
+            vasA("idCarsManage");
           }}
           onGoHome={restart}
         />
@@ -6552,17 +6528,15 @@ export default function App() {
         <ServiceIdCarsManagePage
           currentUserEmail={currentUser?.email || ""}
           viewMode="create"
-          onRequestAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onRequestAppointment={() => vasA("serviceAppointment")}
           onRequestValuation={() => { navigateToUserDashboardPage("valuations"); }}
           onCreated={(vehicle) => {
             setSelectedIdCarVehicleId(vehicle?.id || "");
             setSelectedIdCarOpenEditor(false);
-            setEntryMode("idCarDetail");
-            setStep(-1);
+            vasA("idCarDetail");
           }}
           onGoBack={() => {
-            setEntryMode("idCarsManage");
-            setStep(-1);
+            vasA("idCarsManage");
           }}
           onGoHome={restart}
         />
@@ -6593,8 +6567,7 @@ export default function App() {
               postalCode: normalizeText(context?.postalCode),
               quotedPrice: context?.quotedPrice,
             });
-            setEntryMode("serviceAppointmentCalendar");
-            setStep(-1);
+            vasA("serviceAppointmentCalendar");
           }}
           onManageIdCars={() => {
             if (!isUserLoggedIn || !currentUser?.email) {
@@ -6603,12 +6576,10 @@ export default function App() {
             }
             setSelectedIdCarVehicleId("");
             setSelectedIdCarOpenEditor(false);
-            setEntryMode("idCarsManage");
-            setStep(-1);
+            vasA("idCarsManage");
           }}
           onGoBack={() => {
-            setEntryMode(citaVolverA || "serviceOptions");
-            setStep(-1);
+            vasA(citaVolverA || "serviceOptions");
           }}
           onGoHome={restart}
         />
@@ -6618,8 +6589,7 @@ export default function App() {
         <ServiceAppointmentCalendarPage
           bookingDraft={citaBorrador}
           onBack={() => {
-            setEntryMode("serviceAppointment");
-            setStep(-1);
+            vasA("serviceAppointment");
           }}
           onConfirmBooking={async (booking = {}) => {
             const draft = citaBorrador || {};
@@ -6662,8 +6632,7 @@ export default function App() {
           themeMode={themeMode}
           styles={s}
           onGoBack={() => {
-            setEntryMode("serviceOptions");
-            setStep(-1);
+            vasA("serviceOptions");
           }}
           onGoHome={restart}
         />
@@ -6704,34 +6673,27 @@ export default function App() {
           }}
           onOpenSellManagement={() => {
             setSellFlowType("certificate");
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onOpenMarketReport={() => {
             setSellFlowType("report");
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onOpenInsuranceReview={() => {
-            setEntryMode("serviceInsurance");
-            setStep(-1);
+            vasA("serviceInsurance");
           }}
           onOpenBoostListing={() => {
-            setEntryMode("portalVo");
-            setStep(-1);
+            vasA("portalVo");
           }}
           onOpenGuaranteeSeal={() => {
             setSellFlowType("certificate");
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onOpenPremiumPublish={() => {
-            setEntryMode("portalVo");
-            setStep(-1);
+            vasA("portalVo");
           }}
           onTalkToTeam={() => {
-            setEntryMode("contact");
-            setStep(-1);
+            vasA("contact");
           }}
         />
       )}
@@ -6847,7 +6809,6 @@ export default function App() {
               const propia = await ofertaDelMarketplacePorId(idPropio);
               if (propia) {
                 openPortalVoOfferDetail(propia);
-                setStep(-1);
                 return;
               }
             }
@@ -6878,7 +6839,7 @@ export default function App() {
           }}
           onLogout={handleLogout}
           onRequestAppointment={requestUserAppointment}
-          onGoToServiceAppointment={() => { setEntryMode("serviceAppointment"); setStep(-1); }}
+          onGoToServiceAppointment={() => vasA("serviceAppointment")}
           onDeleteAppointment={(id) => {
             const next = userAppointments.filter((a) => a.id !== id);
             writeUserAppointments(next);
@@ -6954,8 +6915,7 @@ export default function App() {
           rankedOffers={rankedOffers}
           formatCurrency={formatCurrency}
           onSwitchToAdvice={() => {
-            setEntryMode("portalVo");
-            setStep(-1);
+            vasA("portalVo");
             setSelectedPortalVoOfferId(null);
           }}
           onOpenVehicleDetail={(offer) => abreLaFichaDelCoche(offer, "decision")}
@@ -7136,18 +7096,15 @@ export default function App() {
             // dicho al pulsar. Sin esto el formulario se abría marcado en
             // «Compra de coche», que es justo lo contrario.
             setTemaDeContacto("venta");
-            setEntryMode("contact");
-            setStep(-1);
+            vasA("contact");
           }}
           onGoBack={() => {
-            setEntryMode("sellOptions");
-            setStep(-1);
+            vasA("sellOptions");
           }}
           onSwitchToCertificate={() => {
             setSellFlowType("certificate");
             setSellAnswers((prev) => ({ ...prev, sellerType: "profesional" }));
-            setEntryMode("sell");
-            setStep(-1);
+            vasA("sell");
           }}
           onGoToBuyKnownModel={() => {
             setAdvisorContext("buy");
@@ -7160,8 +7117,7 @@ export default function App() {
               ageFilter: "all",
               mileageFilter: "all",
             });
-            setEntryMode("decision");
-            setStep(-1);
+            vasA("decision");
           }}
         />
       )}

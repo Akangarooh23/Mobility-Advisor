@@ -125,6 +125,7 @@ export function useAdvisorController({
   setDecisionListingResult,
   setDecisionLoading,
   setEntryMode,
+  vasA,
   setError,
   setListingError,
   setListingFilters,
@@ -193,15 +194,14 @@ export function useAdvisorController({
       setShowAuthMenu(false);
       setShowUserPanel(false);
       setUserDashboardPage(routePage || "home");
-      setEntryMode("userDashboard");
-      setStep(-1);
+      vasA("userDashboard");
       syncBrowserPath(getUserDashboardPath(routePage || "home"));
       return;
     }
 
     setShowAuthMenu((prev) => !prev);
     setShowUserPanel(false);
-  }, [isUserLoggedIn, setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
+  }, [isUserLoggedIn, setShowAuthMenu, setShowUserPanel, vasA, setUserDashboardPage, syncBrowserPath]);
 
   const handleLogout = useCallback(() => {
     /* Esto apaga los dos estados de la sesion: `currentUser` e
@@ -214,14 +214,13 @@ export function useAdvisorController({
     syncBrowserPath("/", "replace");
 
     if (entryMode === "userDashboard") {
-      setEntryMode(null);
-      setStep(-1);
+      vasA(null);
 
       if (typeof window !== "undefined") {
         window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
       }
     }
-  }, [entryMode, onLogoutUser, setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
+  }, [entryMode, onLogoutUser, setShowAuthMenu, setShowUserPanel, vasA, setUserDashboardPage, syncBrowserPath]);
 
   const updateListingFilter = useCallback((key, value) => {
     if (key === "priceRange") {
@@ -279,7 +278,7 @@ export function useAdvisorController({
 
     setSelectedPortalVoOfferId(offer.id);
     syncBrowserPath(`/marketplace-vo/${encodeURIComponent(offer.id)}`, "push");
-    setEntryMode("portalVoDetail");
+    vasA("portalVoDetail");
     trackViewContent({
       vehicleTitle: offer.title || "",
       vehicleId: offer.id,
@@ -296,12 +295,11 @@ export function useAdvisorController({
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [currentUser, metePorDelante, setEntryMode, setSelectedPortalVoOfferId, syncBrowserPath]);
+  }, [currentUser, metePorDelante, vasA, setSelectedPortalVoOfferId, syncBrowserPath]);
 
   const restart = useCallback(() => {
     clearQuestionnaireDraftFn?.();
-    setEntryMode(null);
-    setStep(-1);
+    vasA(null);
     setUserDashboardPage("home");
     syncBrowserPath("/", "replace");
     setAnswers({});
@@ -332,6 +330,7 @@ export function useAdvisorController({
   }, [
     clearQuestionnaireDraftFn,
     resetListingDiscovery,
+    vasA,
     setAdvancedMode,
     setAnswers,
     setApiKeyMissing,
@@ -342,7 +341,6 @@ export function useAdvisorController({
     setDecisionListingLoading,
     setDecisionListingResult,
     setDecisionLoading,
-    setEntryMode,
     setError,
     setLoading,
     setMultiSelected,
@@ -357,7 +355,6 @@ export function useAdvisorController({
     setSellListingLoading,
     setSellListingResult,
     setSellLoading,
-    setStep,
     setUserDashboardPage,
     syncBrowserPath,
   ]);

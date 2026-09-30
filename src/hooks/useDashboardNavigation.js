@@ -12,7 +12,7 @@ export function useDashboardNavigation({
   setShowUserPanel,
   setUserDashboardPage,
   setEntryMode,
-  setStep,
+  vasA,
 }) {
   const syncBrowserPath = useCallback((nextPath, historyMode = "push") => {
     if (typeof window === "undefined") {
@@ -35,14 +35,13 @@ export function useDashboardNavigation({
     setShowAuthMenu(false);
     setShowUserPanel(false);
     setUserDashboardPage(targetPage);
-    setEntryMode("userDashboard");
-    setStep(-1);
+    vasA("userDashboard");
     syncBrowserPath(getUserDashboardPath(targetPage), historyMode);
 
     if (typeof window !== "undefined") {
       window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
     }
-  }, [setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage, syncBrowserPath]);
+  }, [setShowAuthMenu, setShowUserPanel, vasA, setUserDashboardPage, syncBrowserPath]);
 
   const openUserDashboard = useCallback(() => {
     const routePage = typeof window !== "undefined"
@@ -66,8 +65,7 @@ export function useDashboardNavigation({
         if (isUserLoggedIn) {
           setShowAuthMenu(false);
           setShowUserPanel(false);
-          setEntryMode("userDashboard");
-          setStep(-1);
+          vasA("userDashboard");
         }
         return;
       }
@@ -78,7 +76,7 @@ export function useDashboardNavigation({
     handleBrowserNavigation();
     window.addEventListener("popstate", handleBrowserNavigation);
     return () => window.removeEventListener("popstate", handleBrowserNavigation);
-  }, [isUserLoggedIn, setEntryMode, setShowAuthMenu, setShowUserPanel, setStep, setUserDashboardPage]);
+  }, [isUserLoggedIn, setEntryMode, setShowAuthMenu, setShowUserPanel, vasA, setUserDashboardPage]);
 
   return {
     syncBrowserPath,

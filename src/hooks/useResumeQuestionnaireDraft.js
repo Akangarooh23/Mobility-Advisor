@@ -7,6 +7,7 @@ export function useResumeQuestionnaireDraft({
   resetListingDiscovery,
   setQuestionnaireDraft,
   setEntryMode,
+  vasA,
   setStep,
   setAdvancedMode,
   setAnswers,
@@ -20,8 +21,7 @@ export function useResumeQuestionnaireDraft({
     const savedDraft = readQuestionnaireDraft();
 
     if (!savedDraft?.answers) {
-      setEntryMode("consejo");
-      setStep(-1);
+      vasA("consejo");
       return;
     }
 
@@ -58,6 +58,7 @@ export function useResumeQuestionnaireDraft({
     setAnswers,
     setApiKeyMissing,
     setEntryMode,
+    vasA,
     setError,
     setLoading,
     setMultiSelected,

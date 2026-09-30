@@ -1,8 +1,12 @@
 # La arquitectura por dentro — Mobility-Advisor
 
-Escrito el 29 de septiembre de 2026, leyendo el código como quien llega nuevo.
-Todas las cifras de este documento están medidas contra el repositorio y la base
-de producción, no estimadas. Donde no he podido comprobar algo, lo digo.
+Lo que encontraría alguien que entra hoy a este repositorio sin conocerlo, medido
+y no recordado. Todas las cifras salen de contar los ficheros el **30 de
+septiembre de 2026**; los comandos están al pie de cada sección para que se puedan
+volver a medir.
+
+Está escrito para la persona que llegue después. Por eso dice también lo que está
+mal, lo que se decidió a propósito y lo que no he mirado.
 
 ---
 
@@ -10,470 +14,430 @@ de producción, no estimadas. Donde no he podido comprobar algo, lo digo.
 
 ### 1.1 Qué es este repositorio
 
-No es una aplicación: son **cuatro cosas conviviendo en un árbol de ficheros**.
+Cuatro cosas en un solo sitio:
 
-| Carpeta | Qué es | Tamaño |
+| Qué | Dónde | Tamaño |
 |---|---|---|
-| `src/` | La web pública (Create React App) | 71.000 líneas, 84 páginas |
-| `api/` + `lib/api/` | La API sin servidor (funciones de Vercel) | 52 manejadores |
-| `lib/` | El dominio y los almacenes | 56.000 líneas |
-| `scripts/` | Scrapers, migraciones sueltas, tareas de mano | 232 ficheros, 52.000 líneas |
+| La web pública (`www.popcar.com.es`) | `src/` | 170 ficheros, 64.600 líneas |
+| La API sin servidor | `api/` + `lib/api/` | 72 ficheros, 26.600 líneas |
+| La lógica de negocio y los almacenes | `lib/` (incluye `lib/api/`) | 120 ficheros, 35.200 líneas |
+| Los scrapers y utilidades de consola | `scripts/` | **232 ficheros, 52.300 líneas** |
 
-Más `scrapers/`, `db/`, `android/`, `n8n-workflows/` y `migrations/`.
+Las pruebas van al lado del código: 78 ficheros de prueba en `src/` y 134 en
+`lib/`, y **cero en `api/`** —vuelve en §3.1—.
 
-Los cuatro comparten `package.json` (27 dependencias, **124 scripts**) y el mismo
-`node_modules`. Eso significa que el paquete de la web arrastra el mismo árbol de
-dependencias que el scraper de Wallapop, y que cambiar una versión para uno la
-cambia para los cuatro.
+Eso último es la mitad del repositorio y no se despliega: son programas que se
+lanzan a mano o desde n8n. Conviene saberlo antes de sacar conclusiones de un
+`wc -l` global.
+
+La web es Create React App 5. **No hay `react-router`**: la navegación se deduce a
+mano de `window.location.pathname`. Vuelve en §2.4.
 
 ### 1.2 Por dónde entra una petición
 
+`vercel.json` tiene **49 reglas para `/api`**, pero no apuntan a 49 ficheros:
+apuntan a **seis funciones**.
+
 ```
-  navegador / app
-        │
-        ▼
-  vercel.json  ── 49 reglas de reescritura
-        │
-        ├──► /api/market   (23 reglas)  ─┐
-        ├──► /api/user     (17 reglas)   ├─ tres funciones que reparten por ?route=
-        ├──► /api/billing  ( 5 reglas)  ─┘
-        ├──► /api/billing-webhook  (aparte: necesita el cuerpo en crudo)
-        └──► /index.html   (todo lo demás: la web)
-        │
-        ▼
-  lib/api/<algo>-handler.js     52 manejadores
-        │
-        ▼
-  lib/<algo>Store.js  ·  SQL a mano  ·  servicios externos
-        │
-        ▼
-  Postgres (Neon)  ·  Supabase Storage  ·  Stripe  ·  Resend  ·  Gemini
+  22 reglas  ->  /api/market      (24 rutas)
+  19 reglas  ->  /api/user        (21 rutas)
+   5 reglas  ->  /api/billing     ( 5 rutas)
+   1 regla   ->  /api/search-offers
+   1 regla   ->  /api/billing-webhook
+   1 regla   ->  /api/$1          (el resto, directo)
 ```
 
-**Por qué tres funciones y no cincuenta.** Vercel cobra por función desplegada.
-Consolidar es correcto y no se toca. Lo que sobraba era que la mecánica del
-reparto estuviera escrita tres veces; eso ya está arreglado (§4).
+Vercel cobra por función desplegada, así que tres de ellas son **repartidores**:
+miran `?route=` y cargan el manejador que toca desde `lib/api/`. La mecánica del
+reparto vive una sola vez, en `lib/api/enrutador.js`.
+
+Dos detalles que importan:
+
+- **los manejadores se cargan al usarse.** `api/market.js` requería sus 24
+  manejadores arriba del fichero: medido, **311 módulos y 313 ms solo en cargar**,
+  y lo pagaba cada petición a cualquiera de sus rutas. Ahora cada ruta trae una
+  función que hace el `require` cuando toca;
+- **el precio de eso** es que un fallo de sintaxis en un manejador ya no revienta
+  al arrancar, sino al pedir esa ruta. Por eso `lib/api/enrutador.test.js` carga
+  todos los manejadores de las tres puertas y falla en las pruebas, que es antes.
+
+Y una regla más que hay que conocer: `/(.*)` → `/index.html`. Es lo que hace que
+las 24 direcciones públicas funcionen en una carga directa. **Si desaparece, las
+24 dan 404 y ninguna prueba de este repositorio lo nota.**
 
 ### 1.3 Quién guarda qué
 
-Una sola base de Postgres en Neon, **compartida con el ERP**. Las tablas centrales,
-por uso en el código:
+Una sola base: **Neon Postgres**, compartida por la web, la app y el ERP. Por eso
+las migraciones de los tres viven aquí, en `migrations/` (16 ficheros).
 
-| Tabla | Qué es |
-|---|---|
-| `moveadvisor_market_offers` | El pool de anuncios raspados. 2,36 M de filas. La tabla caliente. |
-| `moveadvisor_user_vehicles` | El garaje del cliente |
-| `moveadvisor_market_leads` | El lead, desde que pide hasta que se entrega |
-| `vehicle_visit_bookings` / `_availability` | Las visitas y sus franjas |
-| `moveadvisor_marketplace_vo_offers` | El marketplace propio (VO) |
-| `moveadvisor_users` | Las personas |
-| `erp_*` | Del ERP, pero se leen desde aquí |
+Un solo cliente: `lib/postgres.js`, que **52 ficheros** piden con `elPool()` o
+`elPoolObligatorio()`. Quedan **tres** `new Pool(` a mano:
 
-Ficheros y PDFs en Supabase Storage: `vehicle-files` en abierto para las fotos,
-`erp-documentos` privado con URL firmada para los papeles.
+- `lib/api/billing-ping-handler.js` — una comprobación de vida, deliberada;
+- `lib/inventoryStore.js` — el almacén del inventario, pendiente;
+- `lib/postgres-ssl.js` — es un comentario, no una llamada.
+
+El esquema se cambia **solo** en `migrations/`, aplicado con `npm run migra`. Hay
+un vigilante (`scripts/comprueba-migraciones.js`) que cuenta los ficheros que
+crean tablas por su cuenta y solo deja que el número baje. Hoy son 3 en la web
+(el tope está en 22, se puede bajar) y **26 en el ERP, por encima de su tope de
+25 desde el 24 de septiembre**. Eso último no es de este repositorio pero se mide
+desde aquí, porque la base es la misma.
 
 ### 1.4 Lo que corre solo
 
-Siete tareas en `vercel.json`, todas por `/api/user?route=cron-*`:
+Ocho tareas programadas en `vercel.json`, todas colgando de `/api/user`:
 
 | Cuándo | Qué |
 |---|---|
-| `0 8 * * *` | Recordatorios de cita |
-| `10 * * * *` | Seguimiento de citas |
-| `0 9,17 * * *` | Alertas de mercado |
-| `*/15 * * * *` | Avisar de informes de estado listos |
-| `0 10 * * *` | Vigilar que los scrapers sigan vivos |
-| `20 * * * *` y `40 * * * *` | Refrescar las facetas del buscador |
+| 08:00 | recordatorios de cita |
+| cada hora :10 | seguimiento de citas |
+| 09:00 y 17:00 | alertas de mercado |
+| cada 15 min | informes de estado listos |
+| 10:00 | vigilar los scrapers |
+| cada hora :20 y :40 | facetas del buscador |
+| **cada hora :05** | **avisar de los fallos** (nuevo) |
+
+Todas exigen `CRON_SECRET`: sin secreto configurado **no pasa nadie**. Antes era
+al revés —el secreto habilitaba la defensa en vez de exigirla—, así que olvidarse
+de configurarlo no daba error, solo quitaba la cerradura.
+
+> Medido con: `node -e` sobre `vercel.json`; `find src api lib -name "*.js"`;
+> `grep -rl "elPool" lib/ api/`.
 
 ---
 
-## 2. Zonas críticas
+## 2. El flujo completo de datos
 
-Ordenadas por lo que cuesta que sigan como están.
-
-### 2.1 🔴 `src/App.js`: 127 `useState` en un componente de 6.072 líneas
+### 2.1 Una búsqueda de coche, que es el caso caro
 
 ```
-  fichero completo          7.757 líneas
-  export default App()      empieza en la 1685
-  → el componente           ~6.072 líneas
-  useState dentro           127
-  useEffect dentro           14
-  componentes en el fichero  65
+  la persona contesta el cuestionario
+        │
+        ▼
+  POST /api/analyze          ← el modelo devuelve un perfil     (maxDuration 300)
+        │
+        ▼
+  POST /api/find-listing     ← y aquí está el problema          (maxDuration 300)
+        │
+        ├── html.duckduckgo.com          (buscar)
+        ├── r.jina.ai                    (leer páginas)
+        └── 8 portales: bipicar, idoneo, kinto, leasecom,
+            ayvens, okmobility, swipcar, vamos
+        │
+        ▼
+  se puntúa y se ordena en memoria     (2.860 líneas de lógica pura)
+        │
+        ▼
+  la web lo pinta
 ```
 
-Ciento veintisiete piezas de estado en un mismo ámbito. Cualquiera de ellas puede
-provocar un repintado de todo lo demás, y no hay forma de saber cuál sin leerlo
-entero. No existe un «cambiar el filtro de precio»: existe «tocar uno de los 127
-y ver qué pasa».
+**El navegador espera 295 segundos** (`LO_QUE_ESPERA_EL_NAVEGADOR_MS`). Y no es
+un margen de seguridad: una búsqueda con los siete criterios contestados **tarda
+253 segundos medidos contra producción**. Vuelve en §3.3.
 
-**Y no hay router.** No está `react-router`. La navegación se hace leyendo
-`window.location.pathname` a mano, con funciones como `normalizePublicPath`,
-`resolveEntryModeFromPublicPath` y `readVehicleDetailIdFromPath`. Cada ruta nueva
-es otro `if` dentro del mismo componente.
+### 2.2 El mercado de VO, que es el caso normal
 
-Lo que sí está bien: las 84 páginas se cargan con `lazy()`, y hay una capa de
-cliente API (`src/utils/apiClient.js`) **con una prueba que la vigila**. De las 35
-llamadas `fetch` de `src/`, **cero** escriben la ruta a pelo. Eso está resuelto.
+```
+  /marketplace-vo
+        │
+        ▼
+  GET /api/market?route=marketplace-vo     ← página de 15, desde Postgres
+        │
+        ▼
+  moveadvisor_marketplace_vo_offers        ← la tabla dedicada
+```
 
-> **Corrección de lo que puse aquí al escribir este informe.** Dije que la prueba
-> estaba en rojo por `LoQueTeFaltaDelEncargo.js:58`, que declara
-> `ruta = "/api/mandato-firmado"`, y que eso estaba roto dentro del APK. **Era
-> falso**: esa ruta se usa como `fetch(rutaApi(ruta))`, así que lleva la base y
-> funciona. Lo que estaba mal era la regla del comprobador.
->
-> Al arreglarla apareció lo de verdad, que la regla anterior **no veía**:
-> `src/components/AvailabilityEditor.js` hacía
-> `const API = apiBase || "/api/visit-availability"` y de ahí salían cuatro
-> `fetch` sin base — y ninguno de los cuatro sitios que montan ese componente
-> pasa `apiBase`. Dentro del APK, poner franjas de visita fallaba sin decir por
-> qué. Arreglado, con la regla reescrita y una prueba que fija las dos formas.
+Rápido, paginado y sin red externa. La diferencia con §2.1 es la que hay entre
+leer una tabla propia y rascar ocho portales en vivo.
 
-### 2.2 🔴 Dos esquemas de base de datos a la vez
+### 2.3 Quién eres
 
-Hay **12 migraciones** en `migrations/`, con huella sha256 y registro en
-`migraciones_aplicadas`. Bien.
+```
+  navegador ──cookie moveadvisor_session──▶ api/auth ──▶ moveadvisor_users
+                                                │
+  la web además guarda el usuario en localStorage
+  (para no ver la portada un instante al recargar)
+```
 
-Y hay **25 ficheros que crean esquema en caliente**, dentro de las peticiones:
+Dos fuentes, y `useLaSesion` es quien las mantiene de acuerdo: escribe en el
+navegador y en el estado **a la vez**, en `entra()` y `sale()`. Antes eran dos
+estados movidos por separado en cuatro ficheros.
 
-| Fichero | Sentencias DDL |
+### 2.4 Y una dirección, cómo se convierte en pantalla
+
+```
+  window.location.pathname
+        │
+        ▼
+  src/utils/rutas.js          ← 24 direcciones públicas, tabla única
+        │                        (+ las de /panel, que resuelve offerHelpers)
+        ▼
+  entryMode (una cadena)  +  step === -1
+        │
+        ▼
+  el JSX de App.js elige qué pantalla pinta
+```
+
+Esto es lo que hace `react-router` en otros proyectos, y aquí lo hace un efecto de
+120 líneas con promesas anidadas. Vuelve en §3.4.
+
+---
+
+## 3. Zonas críticas
+
+Ordenadas por lo que costaría que fallasen, no por lo feas que son.
+
+### 3.1 🔴 `api/find-listing.js` — 4.628 líneas sin una sola prueba propia
+
+Es el corazón del producto: decide **qué coches ve la gente**. Y de las 18
+funciones de `api/`, **ninguna tiene fichero de prueba propio**.
+
+Pero la medición cambia el plan. De sus **114 funciones, 106 son puras**: 2.860
+líneas sin red, sin `process.env` y sin `await`. Solo 8 tocan el mundo exterior,
+y una de ellas —`findListing`— son **995 líneas en una sola función**.
+
+O sea: parece intestable y es tres cuartas partes lógica pura. `scoreListingForProfile`
+(140 líneas), `buildRankedListingResponse` (164), `buildVehicleCandidates` (132),
+`buildQueries` (86) y `buildWhyMatches` (91) son «entra un perfil y una oferta,
+sale una puntuación». Se prueban en milisegundos.
+
+**Qué haría**: sacar las 106 a `lib/` y probarlas ahí, empezando por las cinco de
+arriba. Lo que quede —`findListing`— partirlo en fases con nombre: buscar,
+filtrar, puntuar, responder.
+
+### 3.2 🔴 395 `useState` en `src/pages`
+
+Aquí está el hallazgo que más cambia desde la versión anterior de este documento,
+y lo encontré midiendo mal primero: con `-maxdepth 1` salían 287, pero `src/pages`
+tiene carpetas dentro —`userDashboard/`, `adviceResults/`— y el recuento de verdad
+es peor.
+
+El trabajo sobre `App.js` bajó sus estados de 127 a 40, pero el reparto real es:
+
+| Dónde | `useState` |
 |---|---|
-| `lib/billingStore.js` | 78 |
-| `api/auth.js` | 37 |
-| `lib/inventoryStore.js` | 23 |
-| `lib/quiero-comprarlo.js` | 16 |
-| `lib/api/leads-handler.js` | 16 |
+| `src/pages` (64 ficheros) | **395** |
+| `src/hooks` (29 ficheros) | 82 |
+| `src/components` (20 ficheros) | 59 |
+| `src/App.js` | 40 |
 
-Las dos describen el mismo esquema. Ninguna manda sobre la otra.
+De los **576 `useState` del front, 395 están en las pantallas** y 82 en los hooks,
+que es donde deberían estar.
 
-Y el atajo con el que `billingStore` evita repetirlo lo dice todo, en su propio
-comentario:
+Y en las pantallas grandes la densidad es **peor** que la que tenía `App.js`:
 
-> *«Quien añada una columna nueva tiene que cambiar **también** esta consulta. Si
-> no, el atajo salta con la columna vieja, se salta todos los ALTER de abajo y la
-> columna nueva no se crea nunca en producción — y el fallo no se ve al arrancar,
-> se ve al guardar.»*
-
-Eso es un trinquete manual que falla en silencio y en producción. Hay una prueba
-que lo vigila, lo cual es mejor que nada, pero el arreglo de verdad es que el
-esquema tenga un solo dueño.
-
-**Y tiene coste hoy, no en abstracto.** El 24 de septiembre, con la base ocupada,
-en los registros del ERP se veían pasar `CREATE TABLE IF NOT EXISTS erp_peritaciones`
-y `CREATE INDEX IF NOT EXISTS idx_erp_audit_log_resource` **en peticiones de
-pantalla**, cada una a 660 ms. Con la base tranquila no se nota; con la base
-ocupada, cada carga se pone a la cola detrás de una sentencia de esquema.
-
-### 2.3 🟠 49 clientes de Postgres distintos
-
-```
-  ficheros en lib/ + api/ que hacen `new Pool(...)`   49
-  con `max:` declarado                                21
-  sin declararlo (pg pone 10 por defecto)             28
-  copias literales de la función getPool()            29
-```
-
-En una función sin servidor esto se paga en conexiones. Una instancia caliente que
-atienda varias rutas puede acabar con varios pools abiertos a la vez contra la
-misma base, cada uno con su propio límite. Neon tiene un tope, y cuando se toca no
-se ve como «faltan conexiones»: se ve como el 500 que dio el ERP el 24 de
-septiembre, cuando su pool se rindió a los 5 segundos esperando una libre.
-
-### 2.4 🟡 Dos maneras de saber quién llama
-
-> **Corrección, tras mirarlo de cerca.** Esto estaba en rojo en la primera
-> versión de este informe, dando a entender que unos sitios se fiaban del correo
-> que llega en la petición. **No es así**: comprobados los once, ninguno acepta
-> el correo de la URL ni del cuerpo; todos usan solo el de la sesión. Lo que hay
-> es duplicación de la regla, no un agujero. Baja a amarillo.
-
-
-Existe `lib/api/identidad.js`, con `identidadDeLaPeticion()`. Lo usan **19**
-ficheros.
-
-Y sigue vivo el anterior, `authHandler.getSessionUserFromRequest()`, en **13**.
-No son equivalentes: el segundo devuelve el **correo** y con él se consulta. El
-primero trabaja con el identificador del usuario.
-
-Esa es exactamente la migración que hizo la migración `0006-el-correo-deja-de-ser-la-atadura`,
-y está a medias. Mientras lo esté, cambiar de correo es una operación con dos
-significados según por qué puerta entre la petición.
-
-Además, la llamada se hace con `?.`:
-
-```js
-const sessionPayload = await authHandler.getSessionUserFromRequest?.(req);
-```
-
-Si ese export desapareciera, esto no falla: devuelve `undefined`, el correo queda
-vacío y la respuesta es un 401. Cierra en seguro, que es lo correcto, pero un
-fallo de programación se disfrazaría de sesión caducada y nadie lo encontraría.
-
-### 2.5 🟠 Un almacén de SQL Server enchufado a manejadores vivos
-
-`lib/sqlserverMobilityStore.js`, 2.618 líneas, habla con SQL Server
-**lanzando `sqlcmd.exe` con `execFileSync`** — un proceso externo, de forma
-bloqueante, desde dentro de una petición. Escribe la consulta a un fichero
-temporal cuando es larga.
-
-Lo importan tres ficheros, y dos son manejadores en producción:
-`user-saved-handler` y `user-preferences-handler`.
-
-En Vercel no hay `sqlcmd`. Y el resultado no es un error, es peor:
-
-```js
-if (!shouldUseSqlServerMobility()) {
-  if (method === "GET") {
-    return res.status(200).json({ ok: true, comparisons: [], fallback: true });
-  }
-  return res.status(503).json({ error: "Backend de movilidad no configurado." });
-}
-```
-
-**Guardar comparaciones y las preferencias del usuario contestan 200 con la lista
-vacía.** Para quien lo usa, no es «esto está roto»: es «no tengo nada guardado».
-
-*(Comprobado en el código. No he verificado contra producción si `AUTH_PROVIDER`
-está puesto en Vercel — no tengo acceso a esas variables —, pero el binario no
-existe en ese entorno, así que el camino no puede completarse.)*
-
-Y el escape de esas consultas es `String(value).replace(/'/g, "''")`: concatenación
-de cadenas. Hoy es inalcanzable; el día que alguien levante este camino, deja de
-serlo.
-
-### 2.6 🟡 Dos funciones que son un programa cada una
-
-| Fichero | Líneas | Funciones dentro |
+| Fichero | Líneas | Estados |
 |---|---|---|
-| `api/find-listing.js` | 4.607 | 114 |
-| `api/analyze.js` | 2.068 | 49 |
-| `lib/billingStore.js` | 4.344 | — |
-| `lib/inventoryStore.js` | 3.240 | — |
+| `UserDashboardVehicles.js` | 3.340 | 32 |
+| `ServiceIdCarsManagePage.js` | 2.676 | 31 |
+| `DecisionPage.js` | 2.060 | **37** |
+| `SellReportMarketPage.js` | 1.958 | 31 |
+| `PortalVoDetailPage.js` | 1.770 | 24 |
 
-`find-listing.js` mezcla en un solo fichero: un buscador contra DuckDuckGo, un
-mapa escrito a mano de compañía→dominio, el emparejado de anuncios, el cálculo de
-medianas y la ordenación por calidad-precio. Cada una de esas cosas es
-comprobable por separado y ninguna lo es hoy.
+`DecisionPage.js` tiene **más estados que `App.js`** en la cuarta parte de líneas.
+Y `src/pages` tiene **64 ficheros con 20 pruebas**.
 
-### 2.7 🟡 La resolución de rutas mira la URL entera
+**Qué haría**: la misma receta, que ya está probada quince veces —medir el grupo,
+sacarlo a un hook con la regla escrita, y una prueba con el nombre del defecto que
+la medición encuentre—. Con una diferencia: `UserDashboardVehicles` recibe **15
+props**. Ahí el problema no son los estados, es que no hay frontera; antes de
+mover estado hay que decidir si esa pantalla debería leer del hook de datos en vez
+de recibirlo masticado.
 
-Cuando no viene `?route=`, se resuelve así:
+### 3.3 🟠 Una función de 300 segundos es un techo de escalabilidad
 
-```js
-const url = String(req.url || "").toLowerCase();
-if (url.includes("leads")) return "leads";
-```
+`find-listing` y `analyze` están declarados con `maxDuration: 300`. La búsqueda
+tarda 253 segundos medidos.
 
-`req.url` incluye la query. Una petición a `/api/user?route=&algo=/leads` resuelve
-«leads». En producción las 49 reglas ponen siempre el `?route=`, así que esto casi
-nunca decide nada — pero está ahí, y el orden de la lista es lo único que impide
-que `import-lead` se coma a `import-offers`.
+Eso no es solo una mala experiencia —cuatro minutos mirando una pantalla de
+carga—: es el límite de cuánta gente cabe. Cada búsqueda ocupa una función
+durante cuatro minutos, y las funciones concurrentes se pagan y se acaban. Cien
+personas buscando a la vez son cien funciones de cuatro minutos.
 
-**No lo he cambiado**, porque arreglarlo cambia comportamiento. Lo correcto es
-mirar solo el camino, no la query. Va en el plan (§3).
+**Qué haría, y no es un refactor**: sacar la búsqueda de la petición. Se acepta el
+encargo, se devuelve un identificador, se trabaja en una cola y la web pregunta o
+recibe un aviso. Y por debajo, cachear: los ocho portales no cambian sus precios
+cada minuto, así que rascarlos en vivo por cada persona es pagar ocho veces lo
+mismo.
 
----
+Es el cambio más grande de esta lista y el único que no se puede hacer sin
+decidir producto: qué se le enseña a alguien mientras espera.
 
-## 3. Estrategia de refactorización
+### 3.4 🟠 No hay router
 
-Ordenada por relación entre lo que arregla y lo que arriesga. La red de pruebas
-—**1.454 pruebas en verde en 7 segundos**— es lo que hace viable todo esto.
+La navegación se deduce a mano: 22 lecturas de `pathname`, 37 escrituras, y un
+efecto de 120 líneas con promesas anidadas que incluye un comentario avisando de
+que poner `entryMode` antes de pedir la oferta **entra en bucle**.
 
-### Ya hecho (29 de septiembre de 2026)
+Lo que ya está hecho para poder abordarlo:
 
-**0. Juntar el reparto de rutas y cargar los manejadores al usarse.** §4.
-De 313 ms y 311 módulos por arranque en frío a 4 ms y 3.
+- la tabla de rutas vive en `src/utils/rutas.js`, sin React y sin `window`, con
+  **85 pruebas** que describen lo que hace hoy;
+- «ir a una pantalla» es **una función**, `vasA(modo)`, en 89 sitios. Antes eran
+  dos instrucciones —`setEntryMode(X); setStep(-1);`— escritas **87 veces**.
 
-**1. Un solo cliente de Postgres.** De **49** a uno, con dos excepciones que
-llevan el motivo escrito. Ocho de ellos abrían un `Pool` nuevo **en cada
-llamada** —`viewingStore` cinco veces por petición—. Con trinquete:
-`lib/un-solo-cliente-de-postgres.test.js`.
+Con esas dos cosas, migrar a `react-router` pasa a ser «cambiar el cuerpo de una
+función» en vez de «reescribir 87 manejadores y un efecto de 120 líneas a la vez».
 
-**2. Que el esquema tenga un solo dueño.** Cruzado lo que el código crea en
-caliente contra la base y contra `migrations/`: 31 tablas ya declaradas, 2 que
-existían en producción sin migración, 6 que no existían en ninguna parte. La
-migración `0013` las declara todas. Con trinquete:
-`lib/el-esquema-tiene-un-dueno.test.js`.
+**Qué haría**: eso, **después del lanzamiento**. Es lo que decide en qué pantalla
+aterriza quien llega de un correo o de Google, y `/marketplace-vo/:id` tiene
+además una regla especial en servidor (la vista previa al compartir) que no se
+puede romper.
 
-Por ahí apareció que **descargar una factura en PDF estaba roto en producción**
-(`column i.rectifica_numero does not exist`), porque esas columnas solo las
-creaba un camino que nunca se había ejecutado. Arreglado y comprobado.
+### 3.5 🟡 SQL Server sigue cargándose, y con `execFileSync`
 
-**3. Las comparaciones guardadas y las preferencias, a Postgres.** Eran las dos
-únicas rutas sin alternativa a SQL Server, y contestaban 200 con la lista vacía.
-Las tres tablas de Postgres ya existían, con cero filas: no había funcionado
-nunca.
+`api/erp-catalog.js` y `api/vehicle-catalog.js` conservan `require("mssql")` **y
+`execFileSync` para lanzar `sqlcmd`**, gobernados por `VEHICLE_CATALOG_PROVIDER`
+—una variable que está **vacía en `.env.example` y ausente en `.env.local`**—. Las
+dos rutas van a Postgres de verdad.
 
-**4. Las franjas de visita en la app**, que hacían cuatro `fetch` sin
-`API_BASE`, y la regla de `comprueba-rutas-api` que se equivocaba en las dos
-direcciones a la vez.
+Que sea inalcanzable hoy no es garantía. Un `execFileSync` en una función sin
+servidor bloquea el proceso y ejecuta un binario externo; que lo despierte una
+variable mal puesta es un riesgo que no compensa mantener.
 
-### Siguiente, por orden
+**Qué haría**: comprobar en el panel de Vercel que la variable no está, y
+**borrar** —las ramas, el `execFileSync` y la dependencia—. Hay un vigilante
+(`lib/nadie-lanza-sqlcmd.test.js`) que hoy solo deja menguar el número; pasaría a
+exigir cero.
 
-**5. Quitar el DDL redundante de las peticiones.** *(riesgo bajo ahora)*
+### 3.6 🟡 Dos pantallas que son un programa cada una
 
-Ya no es peligroso: el trinquete garantiza que las migraciones declaran todo, así
-que el `CREATE TABLE IF NOT EXISTS` de los manejadores es redundante y se puede
-quitar almacén a almacén. Son 224 sentencias en 25 ficheros, `billingStore` con
-78 y `api/auth` con 37.
-
-**6. Terminar de unificar la identidad.** *(riesgo bajo, cosmético)*
-
-Llevar los ficheros que quedan de `getSessionUserFromRequest` a
-`identidadDeLaPeticion`, y quitar el `?.` para que una avería suene como una
-avería en vez de como una sesión caducada. No corre prisa: ninguno se fía del
-correo de la petición.
-
-**7. Decidir qué queda del almacén de SQL Server.** *(decisión, no código)*
-
-Ya solo lo usa `billingStore`, y allí sí hay camino de Postgres al lado: SQL
-Server es una alternativa que solo se enciende con `AUTH_PROVIDER`. Son 2.618
-líneas que lanzan `sqlcmd.exe` de forma bloqueante. Borrarlas es una decisión,
-no una urgencia.
-
-**8. Partir `find-listing.js` y `analyze.js`.** *(riesgo bajo, trabajo largo)*
-
-Sacar a `lib/` lo que ya es dominio —el buscador externo, el emparejado, las
-medianas— y dejar en `api/` la función que orquesta. Se puede hacer pieza a pieza,
-y cada pieza que sale gana pruebas propias.
-
-**9. Poner un router en la web y partir `App.js`.** *(el más caro)*
-
-No se hace de una sentada. El camino es sacar bloques de estado del componente a
-hooks propios (`useAdvisorAnswers`, `useVehicleDetail`), que ya es el patrón de los
-24 ficheros de `src/hooks/`. Cuando el estado esté fuera, meter `react-router` es
-un cambio pequeño.
-
-### Lo que NO recomiendo tocar
-
-- **Las tres funciones que reparten.** Es la forma correcta de vivir con el modelo
-  de precios de Vercel.
-- **Los nombres en castellano.** Son consistentes y describen el dominio. Un
-  renombrado masivo es riesgo puro sin retorno.
-- **`migrations/` + `migra.mjs`.** Está bien hecho: huella, transacción por
-  fichero, trinquete. Es el modelo al que traer lo demás.
-- **`src/utils/apiClient.js`.** Resuelto y vigilado.
+`api/analyze.js` (2.068 líneas) y `api/auth.js` (1.873) son las otras dos
+funciones grandes sin prueba propia. `analyze` tiene además una cascada de cinco
+intentos de interpretar el JSON que devuelve el modelo, cada uno con su `catch`
+vacío —y eso está bien: que uno falle es lo normal y el siguiente lo intenta—.
 
 ---
 
-## 4. El código, antes y después
+## 4. Estrategia de refactorización
 
-La muestra que ya está aplicada: el reparto de rutas.
+### 4.1 Lo que ya está hecho
 
-### El problema
+Dieciséis rebanadas, del 29 al 30 de septiembre. El método fue siempre el mismo:
+**medir el grupo antes de moverlo**, y escribir una prueba con el nombre del
+defecto que la medición encontrara. En catorce de las dieciséis apareció uno real.
 
-Tres ficheros con la misma mecánica copiada: `resolveRoute` idéntico, la misma
-llamada a `aplicaCors`, un `switch` de veinte casos y su 404. Cambiar cómo se
-resuelve una ruta obligaba a acordarse de los tres.
+`src/App.js`: **127 → 40 estados**, 7.757 → 7.328 líneas.
+Pruebas: **667 → 934** en el front, **~1.580 → 1.653** en el backend.
 
-Y se notaba que había pasado: `api/billing.js` resolvía `"webhook"` para una ruta
-que su `switch` no tenía. La rama llevaba ahí sin hacer nada, tapada por el 404.
+Lo que la medición sacó a la luz, que es el motivo de trabajar así:
 
-Además, `api/market.js` requería sus 24 manejadores arriba del todo, con sus
-almacenes y sus generadores de PDF detrás.
+| Qué se movía | Qué se encontró |
+|---|---|
+| la búsqueda de ofertas | tres listas distintas de «esto ya no vale»; la línea de cobertura seguía en pantalla con los números de la búsqueda anterior, 253 segundos o para siempre |
+| el mercado de VO | el paginador resaltaba una página que no había llegado |
+| los consentimientos | la regla «quitar el legal quita los otros cuatro» vivía en un `onChange`, y la condición «están los cinco» estaba escrita tres veces en diecisiete líneas |
+| recuperar la cuenta | dos copias de «ya estás dentro» que **no coincidían**: una no volvía a donde estabas y no contaba el acceso en el embudo |
+| el diálogo de acceso | `authForm` se vaciaba de **cuatro formas**; la razón social era el único campo que se perdía al reabrir |
+| la sesión | dos estados para el mismo hecho, movidos en cuatro ficheros; y 20 líneas muertas con una tercera copia de «ya estás dentro» |
+| la navegación | «abrir la ficha» escrito cuatro veces, y a una le faltaba una línea |
 
-### Antes
+Y aparte del refactor, tres cosas que no eran deuda sino fallos:
 
-```js
-// api/market.js  — 24 require en la cabecera
-const marketPriceHandler = require("../lib/api/market-price-handler");
-const marketplaceVoHandler = require("../lib/api/marketplace-vo-handler");
-// … 22 más
+- **el acceso se veía con la eñe partida**: 38 letras con doble codificación en
+  los mensajes que ve quien **no** consigue entrar;
+- **no había forma de enterarse de un fallo**: ni seguimiento de errores, ni
+  avisos. `billing-account` se tragaba el `UPDATE` que activa el plan —Stripe
+  cobra y la base puede no enterarse— y `vehicle-publish` se traga **seis
+  `UPDATE`**, precio incluido, y responde `{ ok: true }`;
+- **una migración con `CONCURRENTLY` no podía aplicarse nunca**, porque el runner
+  metía todo en una transacción. Bloqueaba también a las siguientes.
 
-function resolveRoute(req) {                    // copiado en los otros dos
-  const explicitRoute = String(req.query?.route || "").trim().toLowerCase();
-  if (explicitRoute) return explicitRoute;
-  const url = String(req.url || "").toLowerCase();
-  if (url.includes("market-price")) return "price";
-  // … 14 más
-}
+### 4.2 El orden que seguiría ahora
 
-module.exports = async function marketRouter(req, res) {
-  if (aplicaCors(req, res)) return undefined;
-  switch (resolveRoute(req)) {
-    case "price": return marketPriceHandler(req, res);
-    // … 23 más
-    default: return res.status(404).json({ error: "Market route not found" });
-  }
-};
-```
+**Antes del lanzamiento** — nada que pueda romper lo que funciona:
 
-### Después
+1. **Cerrar las dos decisiones de producto** (§5).
+2. Comprobar que el seguimiento de errores funciona de punta a punta.
 
-```js
-// api/market.js — una tabla, y los require dentro
-const { creaEnrutador } = require("../lib/api/enrutador");
+**Las dos semanas siguientes:**
 
-const ALIAS = [
-  ["market-price", "price"],
-  ["import-lead", "import-lead"],     // antes que import-offers, y no es casualidad
-  // …
-];
+3. **§3.5, borrar SQL Server.** Barato, y quita un `execFileSync` de un endpoint.
+4. **§3.1, probar las 106 funciones puras de `find-listing`.** Es lo único crítico
+   sin red, y donde un fallo cuesta dinero directamente.
 
-const RUTAS = {
-  price: () => require("../lib/api/market-price-handler"),
-  vo:    () => require("../lib/api/marketplace-vo-handler"),
-  // …
-};
+**Después del lanzamiento:**
 
-module.exports = creaEnrutador({
-  rutas: RUTAS,
-  alias: ALIAS,
-  noEncontrada: "Market route not found",
-});
-```
+5. **§3.2, las cinco pantallas grandes.** El patrón está hecho quince veces.
+6. **§3.4, `react-router`.**
+7. **§3.3, sacar la búsqueda de la petición.** El más grande, y el que necesita
+   decisión de producto.
 
-Y en `lib/api/enrutador.js`, la comprobación que convierte la avería de
-`billing.js` en algo que no se puede escribir:
+### 4.3 Lo que NO recomiendo tocar
 
-```js
-for (const [trozo, ruta] of alias) {
-  if (!Object.prototype.hasOwnProperty.call(rutas, ruta)) {
-    throw new Error(
-      `creaEnrutador: el alias "${trozo}" apunta a la ruta "${ruta}", que no existe`
-    );
-  }
-}
-```
-
-### Qué se gana, medido
-
-| | antes | después |
-|---|---|---|
-| `api/market.js`, arranque en frío | **313 ms** | **4 ms** |
-| módulos cargados | **311** | **3** |
-| `resolveRoute` escrito | 3 veces | 1 |
-| alias apuntando a rutas que no existen | 1, en silencio | imposible |
-
-### Qué se comprobó antes de darlo por bueno
-
-- **Las rutas son las mismas**: 24 / 19 / 5, comparadas contra `HEAD`.
-- **Los alias son los mismos y en el mismo orden**, comparados contra `HEAD`. La
-  única baja es `billing-webhook`, que acababa en el mismo 404 por los dos caminos.
-- **1.454 pruebas en verde.**
-- **El paquete de Vercel sigue completo**: trazado con `@vercel/nft`, la misma
-  herramienta que usa Vercel, para confirmar que los `require` dentro de una
-  función se siguen incluyendo. Entran los 29 ficheros de `lib/api/` de market,
-  los 19 de user y los 7 de billing.
-
-### El precio, dicho en voz alta
-
-Cargar los manejadores al arrancar tenía una virtud: un fallo de sintaxis en
-cualquiera reventaba el despliegue, alto y claro. Cargándolos al usarse, ese fallo
-esperaría a que alguien pidiera esa ruta.
-
-Por eso `lib/api/enrutador.test.js` carga los 45 manejadores de las tres puertas y
-comprueba que cada uno devuelve una función. El ruido se ha movido de producción a
-las pruebas, que es antes y más barato — pero es un cambio de sitio, no una
-desaparición, y conviene saberlo.
+- **Los 40 estados que quedan en `App.js`.** Caben en una pantalla, están
+  agrupados y comentados. Es un componente grande, que no es lo mismo que deuda.
+- **Los tres repartidores.** Que 49 reglas apunten a seis funciones es una
+  decisión correcta: Vercel cobra por función.
+- **Los cinco `catch` vacíos de `api/analyze.js`.** Son la cascada de intentos de
+  interpretar el JSON del modelo. Registrarlos sería ruido que tapa lo demás.
+- **`scripts/`.** 232 ficheros que no se despliegan. Tienen sus propios
+  comprobadores (`npm run test:marca`, `test:wallapop`, …) y su riesgo es otro.
 
 ---
 
-## 5. Lo que no he mirado
+## 5. Lo que hace falta decidir, y no es mío
 
-- `scrapers/`, `db/`, `android/`, `n8n-workflows/`.
-- Los 232 ficheros de `scripts/`, más allá de contarlos.
-- El rendimiento de las consultas, salvo la que rompía el panel del ERP
-  (arreglada el 24 de septiembre con la migración `0011`).
-- Los otros tres repositorios: `carswise-erp-backoffice` (435 ficheros),
-  `popcar-pocket-advisor` (260) y `Carswise-check` (113).
+Dos cosas que encontré, que no he cambiado porque cambiarlas es decidir producto:
+
+1. **Se puede registrar sin aceptar las condiciones.** El bloque de las cinco
+   casillas solo se dibuja mientras se enseña el aviso de cookies, y ese aviso
+   desaparece en cuanto alguien lo contestó una vez. Quien vuelve ve el formulario
+   **sin casillas**, y el servidor acepta `consentLegalAt` a nulo
+   (`api/auth.js:1193`). La red es el aviso de revisión, pero salta **al entrar**,
+   no al registrarse: entre registrarse y el siguiente acceso, esa cuenta existe
+   sin condiciones aceptadas. Está escrito en
+   `src/hooks/useLosConsentimientosDelRegistro.js`.
+
+2. **Los seis `UPDATE` del publicador.** Ahora dejan rastro, pero seguir adelante
+   con `{ ok: true }` cuando uno falla es una decisión: hace falta una transacción
+   y decidir si un fallo debe deshacer la publicación.
+
+Y una que falta por hacer y es pequeña: cuando falla una página del mercado que no
+es la primera, el clic **no hace nada**. Ya no miente —antes resaltaba una página
+que no había llegado— pero hay que decidir qué se enseña.
+
+---
+
+## 6. Lo que no he mirado
+
+Para que nadie lea este documento como si cubriera todo:
+
+- **`scripts/`** — 232 ficheros, 52.300 líneas. Los scrapers, el scoring de
+  importación, las facetas. Es la mitad del repositorio.
+- **`api/analyze.js`** por dentro — sé que son 2.068 líneas y que no tiene prueba
+  propia; no he leído su lógica.
+- **El rendimiento de la base** más allá de los dos índices que se arreglaron.
+  No he hecho un repaso de planes de consulta.
+- **La seguridad**, más allá de lo que salió de paso: el `execFileSync`, los
+  `CRON_SECRET` y el ReDoS que yo mismo metí y arreglé. No es una auditoría.
+- **Los otros tres repositorios**: `carswise-erp-backoffice` (435 ficheros),
+  `popcar-pocket-advisor` (260) y `Carswise-check` (113). El ERP es el que usa el
+  equipo todos los días, y es el que nadie ha abierto.
+
+---
+
+## Cómo volver a medir esto
+
+```bash
+# Forma del repositorio
+find src api lib -name "*.js" ! -name "*.test.js" | wc -l
+
+# Dónde vive el estado.
+# SIN -maxdepth: src/pages tiene carpetas dentro (userDashboard/, adviceResults/)
+# y con -maxdepth 1 salen 287 en vez de 395.
+for d in src src/pages src/hooks src/components; do
+  echo -n "$d: "
+  find $d -name "*.js" ! -name "*.test.js" \
+    -exec grep -c "= useState(" {} + | awk -F: '{s+=$NF} END {print s+0}'
+done
+
+# Entradas y funciones
+node -e 'const v=require("./vercel.json");
+  console.log(v.rewrites.filter(r=>r.source.startsWith("/api")).length + " reglas");
+  console.log(v.crons.length + " crons")'
+
+# Las dos suites
+npm run test:todo
+```

@@ -58,8 +58,13 @@ const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   console.log("\n  el workflow");
-  comprueba("el id tiene 16 caracteres", String(wf.id).length === 16,
-    wf.id + " (" + String(wf.id).length + ")");
+  /*
+   * El id tiene que ser el que n8n ya tiene, no uno inventado de 16
+   * caracteres. Con uno inventado, la importacion crea una COPIA y quedan
+   * dos workflows con dos crones pidiendo lo mismo a wallapop.
+   */
+  comprueba("el id es el que n8n asigno", wf.id === "ddnBIkp12vd6YhAQ",
+    wf.id + " (" + String(wf.id).length + " caracteres)");
   comprueba("nace apagado", wf.active === false);
 
   const http = wf.nodes.find((n) => n.type.endsWith("httpRequest"));

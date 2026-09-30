@@ -371,11 +371,19 @@ const conexiones = {
 
 const wf = {
   /*
-   * El id tiene que tener 16 caracteres. Sin el, n8n crea una COPIA al
-   * importar en vez de sustituir, y quedan dos workflows con dos crones
-   * haciendo el mismo trabajo.
+   * EL ID QUE LE DIO n8n, no uno inventado.
+   *
+   * Tiene que tener 16 caracteres, pero eso no basta: tiene que ser
+   * EXACTAMENTE el que n8n ya tiene guardado. La primera version llevaba
+   * «WallapopConf0001» y al importarla el 30-sep-2026 n8n la ignoro y le
+   * asigno el suyo. Si se dejara el inventado, la siguiente importacion
+   * crearia una COPIA en vez de sustituir: dos workflows, dos crones y el
+   * doble de peticiones a wallapop, y n8n lo da por bueno sin avisar.
+   *
+   * Se saca de la URL al abrirlo en n8n, o de su base:
+   *   SELECT id, name FROM workflow_entity WHERE name LIKE '%Confirmar%'
    */
-  id: "WallapopConf0001",
+  id: "ddnBIkp12vd6YhAQ",
   name: "Wallapop – Confirmar vivas por vendedor",
   active: false,
   nodes: nodos,

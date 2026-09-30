@@ -10,6 +10,9 @@
  *   07:30  carswise-duplicados   reconstruye la tabla de duplicados
  *   08:00  carswise-visibles     decide qué se le puede enseñar a un cliente
  *
+ * Y aparte, cada cinco minutos: carswise-n8n-vivo, que comprueba que n8n
+ * sigue en pie y lo levanta si no. Ver el bloque de abajo.
+ *
  * El orden NO es estético: hay una dependencia real. `recalcula-visibles`
  * marca ofertas con el motivo `duplicada`, y ese motivo sale de la tabla que
  * reconstruye `agrupar-duplicados`. Si corriera antes, estaría decidiendo con
@@ -95,6 +98,36 @@ module.exports = {
       script: "scripts/recalcula-visibles.js",
       args: ["--aplica"],
       cron_restart: "0 8 * * *",
+    },
+    {
+      /*
+       * ── El guardián de n8n ────────────────────────────────────────────
+       *
+       * n8n se cayó tres veces la semana del 24 al 30 de septiembre y las
+       * tres se descubrieron por casualidad. Entre el 28 y el 29 dejó 157
+       * ejecuciones encoladas sin arrancar, y el verificador de wallapop
+       * perdió trece pasadas seguidas.
+       *
+       * Esto mira el puerto 5678 cada cinco minutos y lo levanta si no
+       * responde: convierte una parada de dos días en una de cinco minutos.
+       * El aviso que había -lib/vigila-scrapers.js- mira si ENTRA CATÁLOGO,
+       * tarda dos días en decidirlo y comprueba una vez al día, así que una
+       * parada de hasta cuarenta y ocho horas se le cuela entera.
+       *
+       * Cada pasada deja un latido en `moveadvisor_latidos_n8n`. Eso cubre
+       * lo que el guardián no puede: si la máquina entera está apagada no
+       * hay guardián, pero desde fuera se ve que el último latido es de hace
+       * tres horas.
+       *
+       * Va a TODAS HORAS, también de madrugada: los workflows corren de
+       * 08:00 a 00:00, pero n8n tiene que estar en pie antes de las ocho
+       * para que el primer cron lo encuentre.
+       */
+      ...comun,
+      name: "carswise-n8n-vivo",
+      script: "scripts/vigila-n8n.js",
+      args: ["--levanta"],
+      cron_restart: "*/5 * * * *",
     },
   ],
 };

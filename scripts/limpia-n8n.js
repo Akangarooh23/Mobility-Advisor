@@ -38,7 +38,7 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
+const { execSync, spawnSync } = require("child_process");
 const { DatabaseSync } = require("node:sqlite");
 
 const DB = path.join(require("os").homedir(), ".n8n", "database.sqlite");
@@ -79,6 +79,23 @@ function n8nParado() {
 const ps = (cmd) => execSync('powershell -NoProfile -Command "' + cmd.replace(/"/g, '\\"') + '"',
   { encoding: "utf8", timeout: 60000 });
 
+/*
+ * ── El freno de mano ──────────────────────────────────────────────────────
+ *
+ * scripts/vigila-n8n.js corre en pm2 cada cinco minutos y levanta n8n si no
+ * responde. Sin avisarle, nos lo levantaría por debajo justo mientras
+ * compactamos, con el fichero abierto por los dos: base corrupta.
+ *
+ * El fichero se borra en un `finally`, así que se quita aunque esto reviente
+ * a mitad. Si se quedara puesto, el guardián dejaría de vigilar en silencio,
+ * que es peor que no tenerlo.
+ */
+const FRENO = path.join(require("os").homedir(), ".n8n", "no-me-levantes");
+const ponFreno = () => fs.writeFileSync(FRENO,
+  "Lo puso scripts/limpia-n8n.js el " + new Date().toISOString()
+  + "\nMientras exista, scripts/vigila-n8n.js no levanta n8n.\n");
+const quitaFreno = () => { try { fs.unlinkSync(FRENO); } catch { /* ya no estaba */ } };
+
 /** Para n8n, su cmd y su task runner. Devuelve si había algo que parar. */
 function paraN8n() {
   const antes = n8nParado();
@@ -94,13 +111,29 @@ function paraN8n() {
   return true;
 }
 
-/** Lo levanta. Con el límite de concurrencia, que no se hereda de la sesión. */
+/**
+ * Lo levanta. Con el límite de concurrencia, que no se hereda de la sesión.
+ *
+ * DESPRENDIDO, y no con execSync: éste espera a que se cierren las tuberías
+ * de salida del hijo, y el n8n recién arrancado las hereda y no las cierra
+ * nunca. El guardián se quedaba colgado hasta agotar el tiempo -«spawnSync
+ * cmd.exe ETIMEDOUT»- sin llegar a hacer nada.
+ */
 function levantaN8n() {
   console.log("\n  LEVANTANDO n8n");
-  ps("$env:N8N_CONCURRENCY_PRODUCTION_LIMIT = '3'; "
+  spawnSync("powershell", ["-NoProfile", "-Command",
+    "$env:N8N_CONCURRENCY_PRODUCTION_LIMIT = '3'; "
     + "Start-Process cmd.exe -ArgumentList '/c','n8n start' -WorkingDirectory $env:USERPROFILE "
     + "-RedirectStandardOutput \"$env:USERPROFILE\\.n8n\\arranque.log\" "
-    + "-RedirectStandardError \"$env:USERPROFILE\\.n8n\\arranque.err.log\" -WindowStyle Hidden");
+    + "-RedirectStandardError \"$env:USERPROFILE\\.n8n\\arranque.err.log\" -WindowStyle Hidden"],
+  /*
+   * `stdio: "ignore"` es la pieza: sin tuberias que capturar no hay nada
+   * que esperar, y spawnSync vuelve en cuanto Start-Process ha lanzado. Con
+   * execSync se quedaba colgado -el n8n nuevo hereda las tuberias y no las
+   * cierra nunca- y con spawn desprendido moria con el padre, que termina en
+   * decimas.
+   */
+  { stdio: "ignore", windowsHide: true, timeout: 30000 });
   /* Tarda entre uno y dos minutos en registrar los 53 triggers. */
   for (let i = 0; i < 60; i++) {
     execSync("ping -n 4 127.0.0.1 > nul", { shell: true });
@@ -180,9 +213,12 @@ function limpia() {
       process.exit(1);
     }
     console.log("\n  PARANDO n8n");
+    ponFreno();
+    console.log("      freno de mano puesto: el guardián no lo levantará");
     loHeParado = paraN8n();
     if (!n8nParado()) {
       console.log("      no se ha podido parar; no se toca la base\n");
+      quitaFreno();
       process.exit(1);
     }
   }
@@ -210,6 +246,12 @@ function limpia() {
         process.exitCode = 1;
       }
     }
+    /*
+     * El freno se quita SIEMPRE, también si lo de arriba ha fallado. Dejarlo
+     * puesto apagaría el guardián en silencio, y un guardián que no vigila y
+     * no lo dice es peor que no tenerlo.
+     */
+    quitaFreno();
   }
   console.log("");
 })().catch((e) => { console.error("\nERROR:", e.message); process.exit(1); });

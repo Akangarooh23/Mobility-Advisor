@@ -1,0 +1,89 @@
+-- El planificador creía que «Madrid y diésel» era raro
+--
+-- ## Lo que pasaba, con el plan delante
+--
+-- La consulta que le dice al consejero qué modelos hay para un perfil —diésel en
+-- Madrid, 5.000-30.000 €— daba este plan:
+--
+--     Index Scan using ix_mmo_activas_provincia_combustible
+--       (cost=0.43..100.80 rows=24) (actual rows=69426)
+--
+-- **Estimaba 24 filas donde había 69.426.** Se equivocaba por 2.900 veces.
+--
+-- El motivo es que las columnas están correlacionadas y el planificador las trata
+-- como independientes: multiplica «cuántos anuncios son de Madrid» por «cuántos
+-- son diésel» y sale un número diminuto. En la realidad, en Madrid hay mucho
+-- diésel.
+--
+-- Y esa estimación no es un detalle estético: es lo que decide el plan. Creyendo
+-- que solo va a traer 24 filas, al planificador le parece gratis ir a buscar cada
+-- una al montón —24 saltos aleatorios—. Cuando resulta que son 69.426, esos saltos
+-- son **67.000 lecturas aleatorias**, y en almacenamiento de red como el de Neon
+-- eso son segundos.
+--
+-- ## Lo que arregla esto
+--
+-- Estadísticas extendidas sobre las tres expresiones que se usan juntas. Con
+-- ellas, Postgres guarda cuántas filas hay **de verdad** para cada combinación en
+-- vez de multiplicar frecuencias.
+--
+-- Medido, antes y después:
+--
+--     antes:   rows=24     (actual 69426)   -> error de 2.900x
+--     despues: rows=16786  (actual 23083)   -> error de 1,4x
+--
+-- Con esa información el planificador elige un `Parallel Bitmap Heap Scan` en vez
+-- de perseguir filas una a una.
+--
+-- No ocupa espacio de datos ni se mantiene en cada escritura: son unas cuantas
+-- muestras que recalcula `ANALYZE`. Sobre una tabla que recibe 38 millones de
+-- actualizaciones, esa diferencia importa.
+--
+-- ## Lo que NO arregla, y hay que decirlo
+--
+-- El tiempo. El caso amplio —tres provincias y dos combustibles— sigue tardando
+-- segundos, porque la consulta lee hasta **20.000 filas** para contar qué modelos
+-- son comunes. Eso no lo arregla ninguna estadística ni ningún índice: es la forma
+-- de la pregunta, y cambiarla es trabajo de código.
+--
+-- ## Dos cosas que se probaron y se descartaron
+--
+-- Queda escrito para que nadie las repita creyendo que son obvias:
+--
+--   1. **Una vista materializada** con `(provincia, combustible, banda de precio)`,
+--      como las `mmo_modelos` y `mmo_facetas` que ya refresca un cron. **Mal**:
+--      esa consulta puede filtrar por hasta **catorce** dimensiones —marca, año,
+--      kilómetros, potencia, carrocería, tipo de vendedor, país y cuatro filtros
+--      de calidad—. Una vista de tres claves daría cuentas **equivocadas**, y una
+--      recomendación con un stock que no es el que dice es peor que una lenta.
+--
+--   2. **Dos índices cubridores**, uno con `price` al final y otro con
+--      `updated_at DESC` al final, los dos con `INCLUDE (brand, model, …)` para
+--      responder sin tocar el montón. **El planificador no usó ninguno**: 0
+--      lecturas en ambos. Y el segundo, 131 MB, **empeoró** el caso estrecho de
+--      6,7 a 11 segundos de forma reproducible —tres medidas casi idénticas—,
+--      probablemente por echar de la caché las páginas que sí se usaban. Los dos
+--      se tiraron.
+--
+-- ## Y por qué no se puede afinar más esto hoy
+--
+-- Midiendo la misma consulta tres veces seguidas salió **4.384, 5.920 y 18.721
+-- milisegundos**. Una varianza de cuatro veces. Con ese ruido de fondo no se puede
+-- demostrar una mejora del 20 % con un puñado de `EXPLAIN` a mano.
+--
+-- Lo que sí promedia miles de llamadas reales es `pg_stat_statements`, que **no
+-- está instalada** —las extensiones son `plpgsql` y `unaccent`, y Neon la tiene
+-- disponible—. Encenderla es lo primero que habría que hacer antes de seguir
+-- optimizando, y es una línea.
+--
+-- Lo de aquí se defiende sin cronómetro: la estimación pasa de errar 2.900 veces a
+-- errar 1,4, y eso es una mejora en la información con la que se decide, no una
+-- medida de reloj.
+
+CREATE STATISTICS IF NOT EXISTS st_mmo_provincia_combustible_precio
+  ON lower(COALESCE(province, '')), lower(COALESCE(fuel, '')), price
+  FROM moveadvisor_market_offers;
+
+-- Sin esto las estadísticas existen pero están vacías hasta el siguiente
+-- autovacuum, y el planificador sigue decidiendo con lo de antes.
+ANALYZE moveadvisor_market_offers;

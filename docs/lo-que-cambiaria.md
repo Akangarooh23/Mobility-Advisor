@@ -9,7 +9,8 @@ que está mal.
 3 coches**. Está pre-lanzamiento. Nada de lo que hay aquí está haciendo daño
 ahora mismo; varias cosas empiezan a hacerlo el día que haya tráfico.
 
-Las zonas revisadas van marcadas. Las que faltan están al final, con su tamaño.
+Las once zonas están revisadas. Lo que queda, que ya no es leer código, está al
+final.
 
 ---
 

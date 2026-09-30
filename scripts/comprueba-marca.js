@@ -311,9 +311,27 @@ if (sitioUrlVigente) {
  * Una ruta muerta en el sitemap no rompe la web: la ensena vacia a quien llegue
  * desde Google, que es peor, porque nadie la ve desde dentro.
  */
+/*
+ * La tabla vivia en src/App.js y se mudo a su propio modulo. Esta comprobacion
+ * se quedo leyendo el fichero viejo, no la encontro, y dejo la validacion en
+ * rojo siete commits seguidos.
+ *
+ * Que avisara en vez de pasar en silencio es lo unico que funciono aqui: un
+ * comprobador que no encuentra lo que busca y se calla es peor que no tenerlo,
+ * porque da por bueno lo que ya no mira. Por eso el fichero esta en una
+ * constante y el aviso lo nombra: el dia que se vuelva a mudar, el mensaje
+ * dira exactamente donde se estaba mirando.
+ */
+const DONDE_VIVEN_LAS_RUTAS = "src/utils/rutas.js";
+
 const rutasDeLaApp = () => {
-  const app = fs.readFileSync(path.join(RAIZ, "src/App.js"), "utf8");
-  const bloque = /const PUBLIC_ROUTE_BY_ENTRY_MODE = \{([\s\S]*?)\n\};/.exec(app);
+  let fuente;
+  try {
+    fuente = fs.readFileSync(path.join(RAIZ, DONDE_VIVEN_LAS_RUTAS), "utf8");
+  } catch {
+    return null;
+  }
+  const bloque = /const PUBLIC_ROUTE_BY_ENTRY_MODE = \{([\s\S]*?)\n\};/.exec(fuente);
   if (!bloque) return null;
   const rutas = new Set(["/"]);
   for (const m of bloque[1].matchAll(/:\s*"([^"]+)"/g)) rutas.add(m[1]);
@@ -322,7 +340,8 @@ const rutasDeLaApp = () => {
 
 const rutas = rutasDeLaApp();
 if (!rutas) {
-  apunta("src/App.js", 0, "", "no encuentro PUBLIC_ROUTE_BY_ENTRY_MODE: esta comprobacion ya no mira nada");
+  apunta(DONDE_VIVEN_LAS_RUTAS, 0, "",
+    "no encuentro PUBLIC_ROUTE_BY_ENTRY_MODE aqui: o se ha mudado otra vez, o esta comprobacion ya no mira nada");
 } else {
   const sitemap = fs.readFileSync(path.join(RAIZ, "public/sitemap.xml"), "utf8");
   sitemap.split(/\r?\n/).forEach((linea, i) => {

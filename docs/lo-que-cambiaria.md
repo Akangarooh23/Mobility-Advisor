@@ -669,6 +669,236 @@ miles de llamadas. Está encendida y hay `npm run consultas-lentas`.
 
 ---
 
+## Zona 10 — `api/auth.js` entero ✔ revisada
+
+1.873 líneas, leídas de arriba abajo. Las nueve acciones —`login`, `register`,
+`logout`, `change_password`, `request_password_reset`, `reset_password`,
+`get_consents`, `update_consents`, `save_consents`— más el `GET` que contesta
+quién eres.
+
+Lo primero, porque importa: **esto está bien escrito**. El login tiene freno en
+base por correo y por IP, un solo mensaje para «no existe» y «contraseña mala»
+—con su comentario explicando que la diferencia es una lista de clientes—, las
+sesiones son un testigo aleatorio guardado en hash, todo el SQL va
+parametrizado, los correos y las IP se enmascaran en el registro. Los hallazgos
+de abajo son cosas que faltan, no cosas hechas mal.
+
+### 🔴 10.1 — Cambiar la contraseña no echa a nadie de las otras sesiones
+
+Ni `change_password` ni `reset_password` borran las demás sesiones del usuario.
+Lo único que se borra en el reset es la fila que guardaba el código:
+
+```js
+await updateUserPasswordPostgres({ userId: user.id, passwordSalt, passwordHash });
+await deleteSessionByIdPostgres(resetSessionId);   // la del código, no las del usuario
+```
+
+Y no hay ningún `DELETE FROM moveadvisor_sessions WHERE user_id = …` en todo el
+fichero —lo busqué—.
+
+Por qué es lo peor de la zona: **recuperar la contraseña es justo lo que hace
+alguien que cree que le han entrado**. Hace el reset, cree que ha cerrado la
+puerta, y la cookie del otro sigue sirviendo. Y sigue sirviendo **para siempre**:
+la sesión es deslizante —30 días que se renuevan en cada petición, §10.6— sin
+tope absoluto, así que basta con usarla una vez al mes.
+
+**El arreglo es una línea** y el índice ya existe
+(`ix_moveadvisor_sessions_user_id`): antes de crear la sesión nueva,
+
+```sql
+DELETE FROM moveadvisor_sessions WHERE user_id = $1
+```
+
+en las dos acciones. Eso sí cambia lo que nota la gente —te desloguea del móvil
+al cambiar la contraseña en el portátil—, así que lo decides tú; pero es lo que
+hace todo el mundo y es lo que la gente espera de ese botón.
+
+### 🟠 10.2 — `register` contesta si un correo tiene cuenta
+
+El login se cuida mucho de no decirlo. Y luego `register` contesta esto:
+
+```js
+if (existingUser) {
+  return res.status(409).json({ error: "Ya existe una cuenta con ese correo." });
+}
+```
+
+Con una lista de correos y una petición por cada uno se sabe quién tiene cuenta
+aquí, sin acertar ni una contraseña. **El trabajo de `login` queda deshecho por
+el de al lado.**
+
+Y `register` **no tiene freno de ningún tipo**: los únicos `FRENO.pide` del
+fichero están en `login` y en `request_password_reset` (líneas 1416, 1417, 1758,
+1759). Así que el barrido se puede hacer tan rápido como aguante la máquina, y
+además se pueden crear cuentas sin límite.
+
+**Qué haría**, en dos pasos que se pueden hacer por separado:
+
+1. Añadir `registro` y `registroPorIp` a `LIMITES` en `lib/freno.js` y un
+   `FRENO.pide` al principio de `register`. Es media hora y no cambia nada de lo
+   que ve nadie.
+2. Para el 409, lo que hacen las tiendas grandes: contestar lo mismo que en el
+   alta buena y mandar un correo al dueño de la dirección diciendo que alguien
+   ha intentado registrarse con ella. Eso ya es decisión de producto.
+
+### 🟠 10.3 — El mensaje único del login se delata por el tiempo
+
+El comentario dice, literalmente: *«se cuenta antes de comprobar nada, para que
+un intento fallido cueste igual que uno acertado y no se pueda medir la
+diferencia»*. **No se cumple.** El código es:
+
+```js
+const acierta = Boolean(user) && hashPassword(password, user.passwordSalt) === user.passwordHash;
+```
+
+Si la cuenta no existe, `user` es `null`, el `&&` corta y `hashPassword` **no se
+llama**. Si existe, se llama. Y medido en esta máquina:
+
+```
+scryptSync 64B, 7 pasadas:  43,7  43,8  44,1  46,2  46,4  46,6  47,9 ms
+```
+
+**46 milisegundos de diferencia** entre un correo que existe y uno que no. Eso
+se mide desde cualquier parte con promediar unas cuantas peticiones: está muy
+por encima del ruido de la red. O sea, el 401 idéntico no sirve de nada porque
+el reloj lo cuenta.
+
+**El arreglo** es el de siempre: calcular el hash igual cuando no hay usuario,
+contra una sal de pega, y tirar el resultado.
+
+```js
+const SAL_DE_PEGA = crypto.randomBytes(16).toString("hex");
+const hashRecibido = hashPassword(password, user?.passwordSalt || SAL_DE_PEGA);
+const acierta = Boolean(user) && hashRecibido === user.passwordHash;
+```
+
+Cuesta 46 ms en el caso que antes era gratis. Es el precio de que los dos casos
+se parezcan.
+
+### 🟠 10.4 — El 500 de auth devuelve el mensaje de error de Postgres
+
+```js
+} catch (err) {
+  return res.status(500).json({
+    ok: false,
+    error: "Error interno del servidor. Intentalo de nuevo.",
+    details: normalizeText(err?.message) || "Unexpected auth handler error",
+```
+
+Es el mismo fallo que los tres de facturación (§5): `err.message` de Postgres
+lleva nombres de tabla, de columna, de restricción y a veces el valor que
+falló. En el endpoint de autenticación es donde más se busca esa información.
+
+`details` fuera, y el error a `registra()` —que ya existe y ya guarda en
+`moveadvisor_errores`—.
+
+### 🟡 10.5 — Los códigos de recuperación viven en la tabla de sesiones
+
+El reset no tiene tabla propia: se guarda como una fila de
+`moveadvisor_sessions` marcada poniendo el literal `RESET` en la columna
+`user_agent`.
+
+```sql
+WHERE user_id = $1 AND token_hash = $2 AND user_agent = 'RESET' AND expires_at > NOW()
+```
+
+Miré si se puede abusar —mandar `User-Agent: RESET` al entrar, y usar el testigo
+de tu sesión como código de recuperación— y **no se puede**, porque el `user_id`
+está en el `WHERE`: como mucho te resetearías tu propia contraseña, que ya
+podrías. Está bien.
+
+Pero la seguridad de esto depende **de esa única cláusula**. Quien mañana añada
+un «cerrar todas las sesiones» y escriba la condición del `user_agent` al revés,
+o quien haga una consulta de sesiones por testigo sin el `user_id`, abre una
+puerta sin darse cuenta. Una columna `tipo` o una tabla aparte cuesta una
+migración y quita el truco de en medio.
+
+### 🟡 10.6 — Cada petición autenticada escribe en la base
+
+`resolveSessionUser` alarga la caducidad **en cada acceso válido**:
+
+```js
+const newExpiresAt = getSessionExpiryIso();
+await extendSessionExpiryPostgres(session.id, newExpiresAt);
+```
+
+Es lo normal en una sesión deslizante, pero significa que **no hay ni una lectura
+de sesión que no escriba**: un `UPDATE` por carga de página y por usuario. Hoy,
+con 7 usuarios, da igual. Con tráfico es la tabla más escrita del sistema por
+algo que no lo necesita.
+
+**Qué haría**: alargarla solo cuando quede menos de la mitad del plazo. Misma
+sesión deslizante, una escritura de cada muchas. Y de paso poner un **tope
+absoluto** —90 días desde que se creó, se use o no—, que es la otra mitad de
+§10.1.
+
+### 🟡 10.7 — Seis caracteres de contraseña
+
+`password.length < 6`, en el alta y en el cambio. Para 2026 es poco —la
+recomendación estándar son 8 como mínimo, sin reglas de composición—, y aquí la
+gente sube su coche y sus papeles. No hay comprobación contra las contraseñas
+más usadas.
+
+Subirlo a 8 es una línea. Y **está bien puesto donde está**: la comprobación va
+en el alta y en el cambio, no en el login, así que quien ya tiene una de 6 sigue
+entrando y se le pide la nueva cuando la cambie.
+
+### ⚪ 10.8 — Tres campos del alta se leen del cuerpo sin parsear
+
+Veinte campos se leen de `body`, que es `parseBody(req.body)`. Pero tres se leen
+de `req.body` directamente:
+
+```js
+const clientType = String(req.body?.clientType || "individual");
+const company_name = String(req.body?.company_name || "");
+```
+
+Si el cuerpo llega como cadena en vez de objeto —que es para lo que existe
+`parseBody`—, esos tres se pierden en silencio: un alta de empresa se guardaría
+como particular, sin razón social y sin un error. Hoy Vercel entrega el JSON ya
+parseado, así que no pasa; el día que cambie el camino de entrada, sí.
+
+### ⚪ 10.9 — Tres restos
+
+- `execFileSync` se importa en la línea 5 y **no se usa en ninguna parte**. En el
+  fichero de autenticación, un `require("child_process")` que no hace nada es lo
+  primero que quitaría.
+- `let _pgPool = null;` en la 586, tampoco se usa: quedó de cuando había pool
+  propio, antes de `elPoolObligatorio()`.
+- La línea 12 tiene el guion largo roto —el mismo destrozo de codificación que
+  vigila el test de las tildes en `src/`; este fichero no entra—. Y el fichero
+  empieza con un BOM (`ef bb bf`).
+
+### ✅ 10.10 — Cosas que miré y están bien
+
+- **Los ocho `Map` de frenos en memoria no gotean.** Iba a apuntarlo como fuga
+  —una instancia caliente acumulando una entrada por cada correo y cada IP— y
+  `runSecurityMaintenance()` se llama al principio de cada petición y **borra las
+  claves**, no solo los sellos de tiempo (`cleanupLimiterBucket`, línea 545).
+  Séptima vez que doy algo por ausente y está unas líneas más arriba.
+- **Todo el SQL va parametrizado.** Ni una interpolación en las doce consultas.
+- **Comparar hashes con `===` no es un problema aquí.** No es tiempo constante,
+  pero lo que se compara es un digest de 64 bytes que el atacante no controla:
+  para aprovechar el tiempo habría que ir adivinando el hash byte a byte, y cada
+  byte cambia el resultado entero. Distinto de §10.3, donde lo que se mide no es
+  la comparación sino si se hace o no.
+- **Una contraseña gigante no tumba nada.** Pensé que `scryptSync` sobre una
+  cadena enorme sería un ahogo fácil. Medido: 4 millones de caracteres cuestan
+  80 ms contra los 44 de una normal, menos del doble. Y el cuerpo de la petición
+  ya lo limita Vercel.
+- **`AUTH_COOKIE_SECURE` está bien resuelto.** Por omisión `Secure` en
+  producción y en Vercel, sin él en local, con el comentario explicando por qué
+  era al revés antes. Y tiene pruebas: `cookieSegura` se exporta solo para eso.
+- **La sesión por `Authorization: Bearer` es el mismo papel en otro sobre**, no
+  un segundo mecanismo: mismo `sessionId.token`, misma fila, misma comprobación.
+- **El secreto de sesión por omisión no permite falsificar nada.** Iba a
+  apuntarlo como grave —`AUTH_SESSION_SECRET` tiene un valor de reserva escrito
+  en el repositorio— y no lo es: el testigo no va firmado, es aleatorio y se
+  busca por su hash en la tabla. El secreto es un pimiento, no una llave. Sin un
+  testigo válido no hay nada que firmar.
+
+---
+
 ## Lo que falta por revisar
 
 Con su tamaño, para que nadie lea esto como si cubriera todo:
@@ -676,7 +906,6 @@ Con su tamaño, para que nadie lea esto como si cubriera todo:
 | Zona | Tamaño | Qué buscar |
 |---|---|---|
 | `scripts/`, la parte no destructiva | 229 ficheros | los scrapers: qué rascan y qué escriben |
-| `api/auth.js` por dentro | 1.873 líneas | revisado por fuera, no leído entero |
 
 Y lo que no entra en ninguna zona y tampoco he hecho: las **cabeceras de
 seguridad** (hay `docs/cabeceras-de-seguridad.md`, no he verificado que se

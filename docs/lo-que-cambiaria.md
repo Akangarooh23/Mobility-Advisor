@@ -381,7 +381,7 @@ que no merece un cerrojo; queda apuntado para que nadie lo descubra creyendo que
 grave.
 
 
-### 🔴 5.7 — Si Postgres falla, el garaje contesta que sí y se lo queda en memoria
+### 🟠 5.7 — Si Postgres falla, el garaje contestaba que sí — **las escrituras arregladas, las lecturas no**
 
 Esto lo encontré **después** de dar la zona 5 por revisada, y por eso está al
 final: revisé el dinero —los precios, los planes, las carreras— y no revisé
@@ -459,16 +459,20 @@ async function addGarageVehicleByEmail(email = "", vehicle = {}) {
 ```
 
 En las dos de escribir es que sí o que sí: un guardado que falla no puede
-contestar que fue bien. En las dos de leer cambia lo que ve la persona —un aviso
-de error en vez de un garaje vacío—, y eso es mejor, pero se nota, así que es
-decisión de producto.
+contestar que fue bien. **Hechas**: `addGarageVehicleByEmail` y
+`removeGarageVehicleByEmail` ya no caen al almacén local cuando hay base; la caída
+solo queda para cuando no hay `DATABASE_URL`, que es desarrollar en local.
+
+En las dos de leer cambia lo que ve la persona —un aviso de error en vez de un
+garaje vacío—, y eso es mejor, pero se nota, así que **sigue siendo tu decisión**
+junto con las otras cinco de §5.8.
 
 Y de fondo: **31 `catch {}` vacíos en este fichero**. Cuatro son estos. Los
 demás hay que mirarlos uno a uno, porque `registra()` ya existe y no hay motivo
 para que ninguno siga tragándose el porqué.
 
 
-### 🔴 5.8 — Diez acciones contestan «guardado» cuando la base ha dicho no
+### ✅ 5.8 — Ocho acciones contestaban «guardado» cuando la base había dicho no — **arreglado**
 
 §5.7 era el garaje. Esto es lo mismo en **todo el área del cliente**, y lo encontré
 al repasar los 31 `catch {}` de `lib/billingStore.js` uno a uno, que era lo que
@@ -504,27 +508,34 @@ Si el `INSERT` falla, el `catch` devuelve `[]` y la respuesta es:
 
 **HTTP 200, `ok: true`, y la palabra «guardada».** Nada se guardó.
 
-Las diez que escriben, con su mensaje literal:
+Las ocho que escriben, con su mensaje literal:
 
-| Acción | Lo que contesta |
+| Acción | Lo que contestaba |
 |---|---|
 | `appointment_add` | «Cita guardada.» |
 | `appointment_delete` | «Cita eliminada.» |
 | `valuation_add` | **«Tasacion guardada.»** |
-| `maintenance_add` | «Mantenimiento guardado.» |
-| `insurance_upsert` | «Seguro actualizado.» |
 | `vehicle_state_upsert` | «Estado de vehiculo actualizado.» |
 | `saved_offer_add` | «Oferta guardada.» |
 | `saved_offer_remove` | «Oferta eliminada.» |
 | `garage_add` | (sin mensaje, pero 200 y `ok: true`) |
 | `garage_remove` | «Vehiculo eliminado.» |
 
+**Corrección.** Escribí diez y son ocho: puse `maintenance_add` y
+`insurance_upsert` en la lista y esas dos **ya estaban bien**. Sus funciones no
+tienen `catch`: llaman a Postgres y dejan pasar el error, que es exactamente lo
+que había que hacer con las otras seis. Me equivoqué al contarlas con una lista
+escrita a mano en vez de mirar cada función, y me di cuenta al ir a arreglarlas.
+
+Y resultaron ser la prueba de que el arreglo era el correcto: lo único que hice
+fue dejar las demás como esas dos.
+
 Y las siete que leen —`appointments_list`, `valuations_list`,
 `maintenances_list`, `insurances_list`, `vehicle_states_list`,
 `saved_offers_list` y el re-listado de `appointment_delete`— contestan **lista
 vacía**: no «no he podido mirar», sino «no tienes nada».
 
-**Dieciséis acciones en total.** Y la peor es `valuation_add`: la tasación es el
+**Quince acciones en total.** Y la peor es `valuation_add`: la tasación es el
 producto.
 
 Además el array vacío se devuelve al navegador, así que la pantalla enseña la
@@ -553,10 +564,15 @@ async function addAppointmentByEmail(email = "", appointment = {}) {
 Y el manejador contesta 503 con un mensaje que se pueda leer. **Un guardado que
 falla no puede contestar en pasado.**
 
-En las siete de leer cambia lo que ve la gente —un aviso en vez de una lista
-vacía— y eso es decisión de producto, pero es la misma frase escrita en otro sitio
-de este repositorio y la tenía delante: *«No poder mirar no es lo mismo que no ser
-nuestro.»*
+**Hecho, las ocho.** El `catch` fuera, y `billing-account-handler.js` envuelto:
+si algo levanta, va a `registra()` y contesta 503 con *«No hemos podido
+guardarlo. Vuelve a intentarlo en un momento.»* Un 503 y no un 500 porque lo que
+ha pasado es que la base no pudo atender, y eso se reintenta.
+
+**Las siete de leer siguen igual, y es tu decisión.** Cambian lo que ve la gente:
+un aviso de error en vez de una lista vacía. Yo lo cambiaría, y es la misma frase
+que ya está escrita en este repositorio: *«No poder mirar no es lo mismo que no
+ser nuestro.»*
 
 ### ✅ 5.9 — Y los otros quince `catch {}` de ese fichero están bien
 
@@ -890,7 +906,7 @@ sesiones son un testigo aleatorio guardado en hash, todo el SQL va
 parametrizado, los correos y las IP se enmascaran en el registro. Los hallazgos
 de abajo son cosas que faltan, no cosas hechas mal.
 
-### 🔴 10.1 — Cambiar la contraseña no echa a nadie de las otras sesiones
+### ✅ 10.1 — Cambiar la contraseña no echaba a nadie de las otras sesiones — **hecho**
 
 Ni `change_password` ni `reset_password` borran las demás sesiones del usuario.
 Lo único que se borra en el reset es la fila que guardaba el código:
@@ -916,9 +932,17 @@ tope absoluto, así que basta con usarla una vez al mes.
 DELETE FROM moveadvisor_sessions WHERE user_id = $1
 ```
 
-en las dos acciones. Eso sí cambia lo que nota la gente —te desloguea del móvil
-al cambiar la contraseña en el portátil—, así que lo decides tú; pero es lo que
-hace todo el mundo y es lo que la gente espera de ese botón.
+en las dos acciones. **Puesto**, con `deleteAllSessionsForUserPostgres` y su
+versión local, y llamado **antes** de crear la sesión nueva: al revés se borraría
+también la que se acaba de dar y la persona se quedaría fuera de su propio cambio
+de contraseña. La prueba comprueba ese orden, no solo que la llamada exista.
+
+En el reset sustituye al borrado de la fila del código, porque esa fila lleva el
+`user_id` del usuario —así la encuentra `findValidResetPostgres`— y el borrado por
+usuario ya se la lleva.
+
+Sí cambia lo que nota la gente: te desloguea del móvil al cambiar la contraseña en
+el portátil. Es lo que hace todo el mundo y es lo que se espera de ese botón.
 
 ### 🟠 10.2 — `register` contesta si un correo tiene cuenta — **el freno hecho, el 409 no**
 
@@ -1331,7 +1355,7 @@ el título de una zona es lo único que mucha gente lee.
 
 Salieron seis cosas, y la primera es la más cara de todo este documento.
 
-### 🔴 12.1 — La tasación tiene un plan B de hace 47 días, y entra sin avisar
+### ✅ 12.1 — La tasación tenía un plan B de hace 47 días que entraba sin avisar — **hecho**
 
 `readInventoryUniverse` en `lib/inventoryStore.js`, que es de donde salen los
 comparables con los que se valora el coche de alguien:
@@ -1383,12 +1407,18 @@ el peor de los dos: el filtro no encontró nada y la respuesta es un universo de
 
 El único rastro es el campo `source: "local-json"`, y nadie lo mira.
 
-**Qué haría**, y esto no es una opinión de estilo: **quitar la tercera rama**.
-Cero comparables es una respuesta legítima y hay que darla. Si Postgres falla,
-que levante —`registra()` ya existe—. El fichero solo tiene sentido para
-desarrollar sin base, y eso se decide con `hasPostgresConnection()`, igual que
-en §5.7. Es el mismo fallo que el garaje, en el sitio donde más se paga: el
-precio es el producto.
+**Hecho, y en dos sitios.** `readPostgresInventory` levanta en vez de devolver
+`[]`, que es lo que hacía indistinguibles «no hay comparables» y «no he podido
+preguntar». Y `readInventoryUniverse` sale por el fichero **solo** cuando no hay
+`DATABASE_URL` —desarrollar en local—; con base, cero comparables se devuelve como
+cero, con `source: "postgres-sin-comparables"` para que se sepa que está vacío
+porque no hay y no porque falló algo.
+
+Antes de tocarlo comprobé que la tasación aguanta un universo vacío, porque si no
+habría cambiado un precio malo por una división por cero: la escalera de criterios
+ya ensancha cinco veces, y `percentile` de una lista vacía devuelve `null`,
+`tukeyFence` devuelve una valla abierta y `removeOutliers` devuelve `[]`. Las
+estadísticas salen en `null`, que es lo que hay que decir.
 
 ### 🟡 12.2 — Una tabla de otro repositorio, vacía, y un `catch` que lo tapa
 

@@ -756,6 +756,32 @@ async function extendSessionExpiryPostgres(id, newExpiresAt) {
   );
 }
 
+/**
+ * Echa al usuario de todas sus sesiones.
+ *
+ * ## Por qué hace falta
+ *
+ * No existía. Cambiar la contraseña —ni recuperarla— no cerraba ninguna sesión
+ * más que la del propio navegador que la cambiaba, y la sesión es deslizante:
+ * treinta días que se renuevan en cada petición, sin tope absoluto. Así que una
+ * cookie robada valía indefinidamente con usarla una vez al mes.
+ *
+ * Y recuperar la contraseña es justo lo que hace alguien que cree que le han
+ * entrado. Hacía el reset, se quedaba tranquilo, y el otro seguía dentro.
+ *
+ * La tabla tiene índice por `user_id` (`ix_moveadvisor_sessions_user_id`), así
+ * que esto es una lectura de índice y un borrado de unas pocas filas.
+ *
+ * ## Se llama ANTES de crear la sesión nueva
+ *
+ * Si se llamara después, se borraría también la que se acaba de dar y el usuario
+ * se quedaría fuera de su propio cambio de contraseña.
+ */
+async function deleteAllSessionsForUserPostgres(userId) {
+  const pool = getPgPool();
+  await pool.query(`DELETE FROM moveadvisor_sessions WHERE user_id = $1`, [userId]);
+}
+
 async function deleteSessionByIdPostgres(id) {
   const pool = getPgPool();
   await pool.query(`DELETE FROM moveadvisor_sessions WHERE id = $1`, [id]);
@@ -814,6 +840,14 @@ function updateSessionLastSeenLocal(id) {
 function deleteSessionByIdLocal(id) {
   const db = readSessionsDb();
   db.sessions = db.sessions.filter((item) => normalizeText(item?.id) !== normalizeText(id));
+  writeSessionsDb(db);
+}
+
+/** Lo mismo que `deleteAllSessionsForUserPostgres`, para el proveedor local. */
+function deleteAllSessionsForUserLocal(userId) {
+  const buscado = normalizeText(userId);
+  const db = readSessionsDb();
+  db.sessions = db.sessions.filter((item) => normalizeText(item?.userId) !== buscado);
   writeSessionsDb(db);
 }
 
@@ -1402,6 +1436,21 @@ async function _authHandlerInner(req, res) {
       updateUserPasswordLocal({ userId: sessionUser.id, passwordSalt: newSalt, passwordHash: newHash });
     }
 
+    /*
+     * Y fuera todas las sesiones, incluida la de aquí.
+     *
+     * Cambiar la contraseña sin cerrar sesiones no cierra nada: quien tuviera una
+     * cookie la sigue teniendo. Abajo se crea una nueva para quien acaba de
+     * cambiarla, así que esta persona no nota más que seguir dentro; lo que nota
+     * es que se le cierra el móvil, y eso es exactamente lo que ha pedido al darle
+     * a ese botón.
+     */
+    if (usePostgres) {
+      await deleteAllSessionsForUserPostgres(sessionUser.id);
+    } else {
+      deleteAllSessionsForUserLocal(sessionUser.id);
+    }
+
     const refreshedUser = usePostgres
       ? await findUserByIdPostgres(sessionUser.id)
       : findUserByIdLocal(sessionUser.id);
@@ -1639,12 +1688,25 @@ async function _authHandlerInner(req, res) {
     const newSalt = crypto.randomBytes(16).toString("hex");
     const newHash = hashPassword(newPassword, newSalt);
 
+    /*
+     * Se borran **todas** las sesiones del usuario, no solo la fila del código.
+     *
+     * Antes era `deleteSessionByIdPostgres(resetSessionId)`: eso quita el código
+     * usado —que hay que quitarlo— y deja intactas las sesiones abiertas. Quien
+     * recupera la contraseña casi siempre lo hace porque cree que alguien ha
+     * entrado en su cuenta; dejarle las sesiones del otro abiertas convierte el
+     * botón en un gesto vacío.
+     *
+     * El borrado por `user_id` incluye la fila del código, porque esa fila lleva
+     * el `user_id` del usuario —así la encuentra `findValidResetPostgres`—, así
+     * que no hace falta borrarla aparte.
+     */
     if (usePostgres) {
       await updateUserPasswordPostgres({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
-      await deleteSessionByIdPostgres(resetSessionId);
+      await deleteAllSessionsForUserPostgres(user.id);
     } else {
       updateUserPasswordLocal({ userId: user.id, passwordSalt: newSalt, passwordHash: newHash });
-      deleteSessionByIdLocal(resetSessionId);
+      deleteAllSessionsForUserLocal(user.id);
     }
 
     const refreshedUser = usePostgres

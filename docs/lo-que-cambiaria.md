@@ -46,6 +46,7 @@ Los haría en una tarde, en este orden, y cada uno con su prueba:
 
 | | Qué | Dónde | Cuánto |
 |---|---|---|---|
+| A0 | **El índice único de las rectificativas** en el ERP: hoy dos peticiones a la vez emiten **dos abonos** del mismo importe | §20.1 | 20 min |
 | A1 | El `DELETE FROM … WHERE user_id` ya está; falta **quitar `mantenimiento-activas.json`** o vaciar su `DELETE`, que hoy borraría 52.768 ofertas si alguien lo enciende | §13.2 | minutos |
 | A2 | **Reexportar el avisador de fallos de n8n** al repositorio: la copia guardada manda desde `onboarding@resend.dev` | §13.1 | minutos |
 | A3 | El `catch` del guardián de n8n: que **un fallo de Postgres no impida levantar n8n** —el enfriamiento, a un fichero local— | §15.1 | 1 h |
@@ -2549,6 +2550,103 @@ Casi todo: 80.232 líneas y he mirado cuatro cosas concretas. No he entrado en
 peritaciones o facturación, ni en sus 20 guiones `comprueba-*`, ni en cómo
 autentica. Lo de arriba es lo que se ve pasándole el checklist de este documento,
 no una revisión.
+
+---
+
+## Zona 20 — Las facturas del ERP ✔ revisada
+
+Fui a la numeración porque en España tiene que ser correlativa y sin huecos —Real
+Decreto 1619/2012— y porque una carrera en un contador de facturas no es un fallo
+de estilo. El contador está bien. Lo que hay alrededor, no del todo.
+
+### 🟠 20.1 — Dos rectificativas de la misma factura, si se piden a la vez
+
+`routes/invoice-download.ts`, la ruta que emite una rectificativa:
+
+```ts
+const existing = await query(`… WHERE rectifies_id = $1`);
+if (existing.rows.length) {
+  res.status(409).json({ ok: false, error: 'already_rectified', … });
+  return;
+}
+const rectId = await nextInvoiceNumber('RECT');
+await query(`INSERT INTO moveadvisor_provider_invoices (…) VALUES (…)`, [rectId, …, -origAmount, …]);
+```
+
+Comprobar y luego actuar, sin nada en medio que lo haga atómico. Dos peticiones a
+la vez pasan las dos el `SELECT`, cogen **dos números RECT distintos** y hacen dos
+`INSERT` que **los dos funcionan**, porque la clave primaria es el propio número y
+son distintos.
+
+Y miré si alguna restricción lo salvaba: en `db/schema.ts`,
+`moveadvisor_provider_invoices` tiene `id VARCHAR(40) PRIMARY KEY` y **ni un
+`UNIQUE`** sobre `rectifies_id` ni sobre `invoice_number`.
+
+El resultado no es un duplicado cosmético: son **dos abonos del mismo importe**
+—`-origAmount` dos veces— contra una factura que solo se emitió una vez. Eso sale
+en el modelo 303 y hay que explicarlo.
+
+**El arreglo son dos líneas y la primera es la que importa**:
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS ux_provider_invoices_rectifies
+  ON moveadvisor_provider_invoices (rectifies_id)
+  WHERE rectifies_id IS NOT NULL;
+```
+
+Con eso el segundo `INSERT` falla limpio y el 409 pasa a ser verdad en vez de una
+apariencia. Lo segundo, envolver las dos sentencias en una transacción.
+
+### 🟡 20.2 — El número se coge fuera de cualquier transacción, y no hay ninguna en todo el ERP
+
+`nextInvoiceNumber()` y el guardado del número son **dos sentencias sueltas**:
+
+```ts
+invoiceNumber = await nextInvoiceNumber('SUBS');
+await query(`UPDATE moveadvisor_user_invoices SET cw_invoice_number = $1 WHERE id = $2`, …);
+```
+
+Si el proceso muere entre las dos —o el `UPDATE` falla— el número queda consumido y
+ninguna factura lo lleva: **un hueco en la serie**, que es justo lo que la ley no
+quiere. La ventana es estrecha, pero en la rectificativa es más ancha, porque lo que
+va después es un `INSERT` de doce columnas con una clave ajena.
+
+Y lo de fondo: **no hay ni una transacción en toda la API del ERP.** Busqué `BEGIN`,
+`withTransaction` y `transaction(` en los 40.752 líneas de `apps/api` y los únicos
+resultados son `BEGIN:VCALENDAR` y `BEGIN:VEVENT`, de un fichero de calendario.
+
+### ✅ 20.3 — El contador en sí está bien hecho, y es lo difícil
+
+Esto es lo que esperaba encontrar mal y está bien:
+
+```sql
+INSERT INTO moveadvisor_invoice_counters (series, year, last_n)
+VALUES ($1, $2, 1)
+ON CONFLICT (series, year) DO UPDATE
+  SET last_n = moveadvisor_invoice_counters.last_n + 1
+RETURNING last_n
+```
+
+Una sola sentencia, así que dos peticiones simultáneas se serializan en el bloqueo
+de la fila y **no puede salir el mismo número dos veces**. Es la forma correcta, la
+misma que usa `lib/freno.js` en el otro repositorio para contar intentos.
+
+Y el camino de las facturas de suscripción es **idempotente**: si la fila ya tiene
+`cw_invoice_number`, se reutiliza en vez de coger otro. Así que un reintento tras un
+fallo de Supabase no gasta un número, que es el error obvio y no lo comete.
+
+### ✅ 20.4 — Y las facturas ya no están en un cubo público
+
+Lo leí de pasada y merece quedar apuntado, porque es un acierto con su motivo
+escrito:
+
+> *«Era el mismo que el de las fotos, que es público porque las fotos tienen que
+> serlo. Una factura no: lleva nombre, NIF, dirección y matrícula, y con la
+> dirección delante se abría sin sesión.»*
+
+Ahora van a `erp-documentos`, el cubo privado, y el nombre del fichero lleva un
+trozo aleatorio **porque las facturas van numeradas seguidas** y con la numeración
+se adivina la siguiente.
 
 ---
 

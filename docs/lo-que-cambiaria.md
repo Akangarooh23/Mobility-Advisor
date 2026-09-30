@@ -1946,6 +1946,94 @@ Lo digo con detalle porque es lo que no hay que tocar al arreglar lo de arriba.
 
 ---
 
+## Zona 16 — Las pruebas ✔ revisada
+
+Todo lo que se ha arreglado en esta revisión queda sujeto por pruebas, así que la
+pregunta siguiente es si las pruebas sujetan. No es retórica: **esta misma sesión
+escribí dos que no cazaban nada** —unas de rutas generadas a partir de la tabla
+que probaban, y una cuyo ayudante devolvía `{}` como cuerpo de función y pasaba
+mirando el vacío—. Si eso pasa dos veces en un día, toca mirar las 217 que ya
+estaban.
+
+**217 ficheros, 2.479 pruebas declaradas.** Y el resultado es bueno: una sola
+laguna, y está arreglada.
+
+### ✅ 16.1 — Ni una prueba que no pueda fallar, y solo dos sin afirmar
+
+De las 2.479, **dos no tienen ninguna afirmación**, y las dos a propósito:
+
+```js
+test("un error de red no revienta el guardado de su coche", async () => {
+  global.fetch = async () => { throw new Error("ECONNREFUSED"); };
+  await AVISA.avisaDeLaFicha(conFicha);   // no lanza
+});
+```
+
+La prueba es «esto no debe levantar», y `node:test` la suspende si levanta. Es
+legítimo. Lo único que cambiaría es escribirlo con `assert.doesNotReject`, para
+que la intención esté en el código y no en un comentario al final de la línea.
+
+Y además: **cero pruebas saltadas**, cero `.todo`, cero `.only` olvidado, cero
+afirmaciones imposibles de fallar del tipo `assert.ok(true)`, y **cero ficheros de
+prueba que no toquen el proyecto** —los 217 importan algo de `lib/`, `src/` o
+`api/`, o leen un fuente—. 44 de ellos solo leen el fuente sin ejecutarlo, que es
+el patrón de las pruebas de forma.
+
+### ✅ 16.2 — Y fallan cuando el código cambia: seis de seis
+
+«Tener una afirmación» es un listón bajo. La única pregunta que importa de una
+prueba es si se pone roja cuando el código se rompe, y eso no se contesta
+leyéndola. Así que rompí el código a propósito, en un clon, con seis averías **del
+tipo que este sistema ya ha sufrido**:
+
+| Lo que se estropeó | La prueba que debía gritar | |
+|---|---|---|
+| un manejador cierra el pool compartido | `nadie-cierra-el-pool-compartido` | ✅ falló |
+| un guion destructivo pierde su `--borra` | `nada-borra-sin-pedir-permiso` | ✅ falló |
+| vuelve un `execFileSync("sqlcmd")` | `nadie-lanza-sqlcmd` | ✅ falló |
+| se rompe una tilde en `lib/marca.js` | `las-tildes-no-se-rompen-dos-veces` | ✅ falló |
+| el login vuelve a devolver 404 si no existe la cuenta | `el-login-no-dice-quien-existe` | ✅ falló |
+| desaparece una tarea de `vercel.json` | `las-tareas-programadas-existen` | ❌ **siguió verde** |
+
+Cinco de seis a la primera. Y de las dos que sobrevivieron en la primera vuelta,
+una era **mi mutación mal hecha**: escribí `p.end()` sobre un parámetro cualquiera
+y la prueba busca `/(pool|Pool)\w*\.end\(\)/`; `p` no es el pool compartido por
+ninguna lectura, así que no cazarlo era lo correcto. Reescrita como
+`const pool = elPool(); await pool.end();`, la cazó.
+
+### ✅ 16.3 — La laguna que había, y era la mitad del caso — **arreglada**
+
+`las-tareas-programadas-existen.test.js` recorre las tareas de `vercel.json` y
+comprueba que cada una llega a su manejador. Nació de una avería real y grande:
+`/api/cron-vigila-scrapers` estaba declarada y **no existía**; Vercel la llamaba
+cada día, recibía la página web con un 200 y se quedaba contento, mientras la
+alarma que vigila si entra catálogo llevaba un mes sin ejecutarse.
+
+Pero al recorrer **lo declarado**, solo cubre una dirección. Quité la primera tarea
+del fichero y las pruebas pasaron igual: con una menos, las siete que quedan siguen
+siendo válidas. O sea que faltaba justo la mitad que no hace ruido, y es la mitad
+peligrosa — lo dice su propio vecino `lib/vigila-scrapers.js`: *«Un fallo grita;
+una ausencia no hace ruido.»*
+
+**Puesta la lista de las ocho que tienen que estar**, con dos comprobaciones en los
+dos sentidos: ninguna desaparece, y una nueva en `vercel.json` obliga a apuntarla
+—si no, tampoco estaría vigilada—. Con eso, la sexta mutación también falla: **seis
+de seis**.
+
+### Lo que esto dice del resto
+
+No he mutado las 2.479; he mutado seis guardias escogidas por ser las que protegen
+las averías más caras que ha tenido este sistema. Cinco funcionaban y la sexta no,
+y la que no funcionaba llevaba dentro exactamente el tipo de hueco que se pasa por
+alto: **la prueba mira lo que hay, no lo que debería haber**.
+
+Ese es el patrón que buscaría en las otras: cualquier prueba que recorra una lista
+del propio fichero que examina —`for (const x of LO_QUE_HAY)`— caza lo que está mal
+puesto y no caza lo que falta. Es el mismo error que la tabla de rutas que generé
+desde la tabla que probaba.
+
+---
+
 ## Lo que queda, que ya no es leer código
 
 Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es

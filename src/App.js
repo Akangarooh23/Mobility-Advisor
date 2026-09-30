@@ -26,7 +26,6 @@ import { useQuestionnaireStepVisualSync } from "./hooks/useQuestionnaireStepVisu
 import { useRepasoDelPanel } from "./hooks/useRepasoDelPanel";
 import { useResumeQuestionnaireDraft } from "./hooks/useResumeQuestionnaireDraft";
 import { useSavedRecommendations } from "./hooks/useSavedRecommendations";
-import { useAuthDialogControls } from "./hooks/useAuthDialogControls";
 import { useAuthSessionReset } from "./hooks/useAuthSessionReset";
 import { usePlanCheckout } from "./hooks/usePlanCheckout";
 import { useAppPreferences } from "./hooks/useAppPreferences";
@@ -37,6 +36,7 @@ import { useRevisionDeConsentimientos } from "./hooks/useRevisionDeConsentimient
 import { useLosConsentimientosDelRegistro } from "./hooks/useLosConsentimientosDelRegistro";
 import { useElCambioDeContrasena } from "./hooks/useElCambioDeContrasena";
 import { useLaRecuperacionDeLaCuenta } from "./hooks/useLaRecuperacionDeLaCuenta";
+import { useElDialogoDeAcceso, FORMULARIO_DE_ACCESO_VACIO, queFaltaParaEntrar } from "./hooks/useElDialogoDeAcceso";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -1498,23 +1498,6 @@ function readMarketplaceVoIdFromPath(pathname = "") {
   try { return decodeURIComponent(segment); } catch { return segment; }
 }
 
-/*
- * El formulario de acceso vacio, con SUS SEIS CLAVES.
- *
- * Estaba escrito de tres maneras distintas: seis claves al arrancar, cinco al
- * terminar de recuperar la contrasena y tres al entrar o al salir. Las que
- * faltan quedan en `undefined`, y un `value={undefined}` convierte un campo
- * controlado en no controlado a mitad de vida.
- */
-export const FORMULARIO_DE_ACCESO_VACIO = {
-  name: "",
-  apellidos: "",
-  phone: "",
-  email: "",
-  password: "",
-  company_name: "",
-};
-
 function getPublicPathForEntryMode(entryMode = "") {
   return PUBLIC_ROUTE_BY_ENTRY_MODE[entryMode] || "/";
 }
@@ -1775,6 +1758,8 @@ export default function App() {
    * `useElMercadoVo` lo necesita para decir quien ve el catalogo.
    */
   const [currentUser, setCurrentUser] = useState(null);
+  /* En minusculas y sin espacios, que es como se compara en todas partes. */
+  const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
   /* Los nueve del mercado de VO viven en `useElMercadoVo`, con la funcion que
      pide una pagina y los tres efectos que la piden. */
   const {
@@ -1863,7 +1848,6 @@ export default function App() {
   const [showHeaderMobileNav, setShowHeaderMobileNav] = useState(false);
   /* `currentUser` se declara mas arriba: `useElMercadoVo` lo necesita para
      decir quien esta mirando el catalogo. */
-  const [authDialogMode, setAuthDialogMode] = useState("");
   /* Los tres de recuperar la cuenta viven en `useLaRecuperacionDeLaCuenta`. El
      reinicio de los tres estaba escrito cinco veces en tres ficheros. */
   const {
@@ -1876,12 +1860,29 @@ export default function App() {
     pideQueEscribaElCodigo,
     olvidaElAviso,
   } = useLaRecuperacionDeLaCuenta();
-  const [authTargetPage, setAuthTargetPage] = useState("home");
-  const [authTargetEntryMode, setAuthTargetEntryMode] = useState("");
-  const [authForm, setAuthForm] = useState(FORMULARIO_DE_ACCESO_VACIO);
-  const [clientType, setClientType] = useState("individual");
-  const [authError, setAuthError] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
+  /* Los siete del dialogo de acceso viven en `useElDialogoDeAcceso`, junto con
+     abrirlo y cerrarlo -que eran `useAuthDialogControls`- y las seis
+     comprobaciones del registro. */
+  const {
+    authDialogMode, setAuthDialogMode,
+    authForm, setAuthForm,
+    clientType,
+    authError, setAuthError,
+    authLoading, setAuthLoading,
+    authTargetPage,
+    authTargetEntryMode, setAuthTargetEntryMode,
+    escribe: escribeEnElAcceso,
+    eligeTipoDeCliente,
+    openAuthDialog,
+    closeAuthDialog,
+    alternaEntreEntrarYRegistrarse,
+    olvidaTodo: olvidaElDialogoDeAcceso,
+  } = useElDialogoDeAcceso({
+    currentUserEmail,
+    cierraLosMenus: () => { setShowAuthMenu(false); setShowUserPanel(false); },
+    olvidaElPlanPendiente: () => setPendingPlanCheckoutId(""),
+    vuelveAlAcceso,
+  });
   /* Los cinco del cambio de contrasena viven en `useElCambioDeContrasena`, con
      las cuatro comprobaciones que deciden si se llega a llamar al servidor. */
   const {
@@ -2484,7 +2485,6 @@ export default function App() {
 
   const currentStep = activeSteps[step];
   const totalSteps = activeSteps.length;
-  const currentUserEmail = normalizeText(currentUser?.email).toLowerCase();
 
   const { marketAlertMatches, newAlertMatchesCount, pendingAlertNotifications } = useMarketAlertInsights({
     marketAlerts,
@@ -2523,7 +2523,8 @@ export default function App() {
     setIsUserLoggedIn(false);
     setAuthRequired(true);
     setAuthDialogMode("login");
-  }, []);
+    // Viene de `useElDialogoDeAcceso`. Es estable, pero ESLint no lo ve.
+  }, [setAuthDialogMode]);
 
   const {
     userAppointments,
@@ -2643,20 +2644,6 @@ export default function App() {
     setSaveFeedback,
   });
 
-  const { openAuthDialog, closeAuthDialog } = useAuthDialogControls({
-    currentUserEmail,
-    setAuthDialogMode,
-    vuelveAlAcceso,
-    setAuthTargetPage,
-    setAuthTargetEntryMode,
-    setAuthError,
-    setShowAuthMenu,
-    setShowUserPanel,
-    setAuthForm,
-    setPendingPlanCheckoutId,
-    setAuthLoading,
-  });
-
   /**
    * Sus coches son suyos: a `/mis-coches` sin sesión se le pide entrar.
    *
@@ -2677,7 +2664,7 @@ export default function App() {
     if (!sesionComprobada) return;
     if (entryMode !== "idCarsManage" || isUserLoggedIn) return;
     openAuthDialog("login", { entryMode: "idCarsManage", routePage: "home" });
-  }, [entryMode, isUserLoggedIn, sesionComprobada, openAuthDialog]);
+  }, [entryMode, isUserLoggedIn, sesionComprobada, openAuthDialog, setAuthDialogMode]);
 
   /**
    * Abre uno de los dos flujos de venta: el informe de mercado o la venta
@@ -2765,13 +2752,10 @@ export default function App() {
 
   const { resetLoggedUser } = useAuthSessionReset({
     setCurrentUser,
-    setAuthDialogMode,
     vuelveAlAcceso,
-    setAuthError,
-    setAuthLoading,
+    olvidaElDialogoDeAcceso,
     setPendingPlanCheckoutId,
     olvidaElCambioDeContrasena,
-    setAuthForm,
   });
 
   /**
@@ -2888,6 +2872,9 @@ export default function App() {
   }, [
     authTargetEntryMode, authTargetPage, entryMode, pendingPlanCheckoutId,
     startSubscriptionCheckout, syncBrowserPath, vuelveAlAcceso,
+    // Los `set...` vienen de `useElDialogoDeAcceso`. Son estables -salen de
+    // `useState`- pero ESLint no puede saberlo a traves de un hook propio.
+    setAuthDialogMode, setAuthForm, setAuthTargetEntryMode,
   ]);
 
   const submitAuthForm = useCallback(async (event) => {
@@ -3005,33 +2992,21 @@ export default function App() {
       } catch {}
     }
 
-    if (mode === "register" && clientType === "business" && !authForm.company_name) {
-      setAuthError("Indica la razón social de tu empresa.");
-      return;
-    }
+    /* Las seis comprobaciones viven en `queFaltaParaEntrar`, que se puede probar
+       sin montar nada. Se le dan los valores ya normalizados. */
+    const falta = queFaltaParaEntrar({
+      modo: mode,
+      tipoDeCliente: clientType,
+      name: payload.name,
+      apellidos: payload.apellidos,
+      phone: payload.phone,
+      email: payload.email,
+      password: payload.password,
+      companyName: authForm.company_name,
+    });
 
-    if (mode === "register" && clientType === "individual" && !payload.name) {
-      setAuthError("Indica tu nombre para crear la cuenta.");
-      return;
-    }
-
-    if (mode === "register" && clientType === "individual" && !payload.apellidos) {
-      setAuthError("Indica tus apellidos para crear la cuenta.");
-      return;
-    }
-
-    if (mode === "register" && !payload.phone) {
-      setAuthError("Indica tu número de teléfono para crear la cuenta.");
-      return;
-    }
-
-    if (!payload.email) {
-      setAuthError("Indica tu correo electrónico.");
-      return;
-    }
-
-    if (!payload.password) {
-      setAuthError("Indica tu contraseña.");
+    if (falta) {
+      setAuthError(falta);
       return;
     }
 
@@ -3078,6 +3053,8 @@ export default function App() {
     authForm,
     authRecoveryCode,
     authRecoveryMode,
+    // Salen de `useElDialogoDeAcceso`, y son estables.
+    setAuthError, setAuthLoading,
     // Salen de `useLaRecuperacionDeLaCuenta`.
     olvidaElAviso,
     pideQueEscribaElCodigo,
@@ -5609,7 +5586,7 @@ export default function App() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <button
                       type="button"
-                      onClick={() => { setClientType("individual"); setAuthForm((p) => ({ ...p, company_name: "" })); }}
+                      onClick={() => eligeTipoDeCliente("individual")}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         border: clientType === "individual" ? "1.5px solid var(--acento)" : "1px solid var(--gris-300)",
@@ -5621,7 +5598,7 @@ export default function App() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setClientType("business"); setAuthForm((p) => ({ ...p, name: "", apellidos: "" })); }}
+                      onClick={() => eligeTipoDeCliente("business")}
                       style={{
                         padding: "9px 10px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer",
                         border: clientType === "business" ? "1.5px solid var(--acento)" : "1px solid var(--gris-300)",
@@ -5642,7 +5619,7 @@ export default function App() {
                           type="text"
                           autoComplete="given-name"
                           value={authForm.name}
-                          onChange={(event) => setAuthForm((prev) => ({ ...prev, name: event.target.value }))}
+                          onChange={(event) => escribeEnElAcceso("name", event.target.value)}
                           placeholder="Tu nombre"
                           style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                         />
@@ -5653,7 +5630,7 @@ export default function App() {
                           type="text"
                           autoComplete="family-name"
                           value={authForm.apellidos}
-                          onChange={(event) => setAuthForm((prev) => ({ ...prev, apellidos: event.target.value }))}
+                          onChange={(event) => escribeEnElAcceso("apellidos", event.target.value)}
                           placeholder="Tus apellidos"
                           style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                         />
@@ -5666,7 +5643,7 @@ export default function App() {
                         type="text"
                         autoComplete="organization"
                         value={authForm.company_name}
-                        onChange={(event) => setAuthForm((prev) => ({ ...prev, company_name: event.target.value }))}
+                        onChange={(event) => escribeEnElAcceso("company_name", event.target.value)}
                         placeholder="Nombre de tu empresa"
                         style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                       />
@@ -5679,7 +5656,7 @@ export default function App() {
                       type="tel"
                       autoComplete="tel"
                       value={authForm.phone}
-                      onChange={(event) => setAuthForm((prev) => ({ ...prev, phone: event.target.value }))}
+                      onChange={(event) => escribeEnElAcceso("phone", event.target.value)}
                       placeholder="Ej: 612 345 678"
                       style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                     />
@@ -5693,7 +5670,7 @@ export default function App() {
                   type="email"
                   autoComplete="email"
                   value={authForm.email}
-                  onChange={(event) => setAuthForm((prev) => ({ ...prev, email: event.target.value }))}
+                  onChange={(event) => escribeEnElAcceso("email", event.target.value)}
                   placeholder="nombre@correo.com"
                   style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                 />
@@ -5705,7 +5682,7 @@ export default function App() {
                   type="password"
                   autoComplete={authDialogMode === "register" ? "new-password" : "current-password"}
                   value={authForm.password}
-                  onChange={(event) => setAuthForm((prev) => ({ ...prev, password: event.target.value }))}
+                  onChange={(event) => escribeEnElAcceso("password", event.target.value)}
                   placeholder={authRecoveryMode === "confirm" ? "Nueva contraseña (mínimo 6 caracteres)" : "Mínimo 6 caracteres"}
                   style={{ background: "var(--blanco)", color: "var(--gris-900)", border: "1px solid var(--gris-300)", borderRadius: 10, padding: "11px 12px" }}
                 />
@@ -5879,7 +5856,7 @@ export default function App() {
                       return;
                     }
 
-                    setAuthDialogMode((prev) => (prev === "register" ? "login" : "register"));
+                    alternaEntreEntrarYRegistrarse();
                   }}
                   style={{
                     background: "var(--gris-50)",

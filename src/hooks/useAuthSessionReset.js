@@ -4,30 +4,24 @@ import { clearAuthUser } from "../utils/storage";
 
 export function useAuthSessionReset({
   setCurrentUser,
-  setAuthDialogMode,
   vuelveAlAcceso,
-  setAuthError,
-  setAuthLoading,
+  olvidaElDialogoDeAcceso,
   setPendingPlanCheckoutId,
   olvidaElCambioDeContrasena,
-  setAuthForm,
 }) {
   const resetLoggedUser = useCallback(() => {
     void postAuthJson({ action: "logout" }).catch(() => {});
     clearAuthUser();
     setCurrentUser(null);
-    setAuthDialogMode("");
     vuelveAlAcceso();
-    setAuthError("");
-    setAuthLoading(false);
+    /* Y el dialogo con su formulario. Aqui se vaciaba con TRES claves de las
+       seis, asi que apellidos, telefono y razon social quedaban en
+       `undefined` despues de cada salida. */
+    olvidaElDialogoDeAcceso();
     setPendingPlanCheckoutId("");
     olvidaElCambioDeContrasena();
-    setAuthForm({ name: "", email: "", password: "" });
   }, [
-    setAuthDialogMode,
-    setAuthError,
-    setAuthForm,
-    setAuthLoading,
+    olvidaElDialogoDeAcceso,
     vuelveAlAcceso,
     olvidaElCambioDeContrasena,
     setCurrentUser,

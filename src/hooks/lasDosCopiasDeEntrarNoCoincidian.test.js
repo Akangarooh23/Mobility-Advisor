@@ -91,24 +91,57 @@ describe("ya estás dentro: una sola copia", () => {
   test("y vacía el formulario con sus seis claves, no con tres ni con cinco", () => {
     // Las que falten quedan en `undefined`, y eso descontrola un campo.
     expect(YA_ESTA_DENTRO).toContain("...FORMULARIO_DE_ACCESO_VACIO");
-    expect(APP).toMatch(/export const FORMULARIO_DE_ACCESO_VACIO = \{/);
 
-    const forma = APP.slice(
-      APP.indexOf("export const FORMULARIO_DE_ACCESO_VACIO = {"),
-      APP.indexOf("function getPublicPathForEntryMode")
+    // La forma vive con el diálogo, que es quien la usa en casi todos los sitios.
+    const DIALOGO = fs.readFileSync(path.join(__dirname, "useElDialogoDeAcceso.js"), "utf8");
+    expect(DIALOGO).toMatch(/export const FORMULARIO_DE_ACCESO_VACIO = \{/);
+
+    const forma = DIALOGO.slice(
+      DIALOGO.indexOf("export const FORMULARIO_DE_ACCESO_VACIO = {"),
+      DIALOGO.indexOf("export const PARTICULAR")
     );
     for (const clave of ["name", "apellidos", "phone", "email", "password", "company_name"]) {
       expect(forma).toContain(`${clave}: ""`);
     }
   });
 
-  test("y ya no queda ningún formulario vacío escrito a mano", () => {
+  test("y nadie escribe un formulario vacío a mano, en ningún fichero", () => {
     /*
-     * Eran tres formas distintas. Si vuelve a aparecer una, vuelve el
-     * `undefined`.
+     * Eran CUATRO formas distintas -seis claves al arrancar, cinco al abrir el
+     * diálogo, cinco al cerrarlo y tres al salir de la cuenta- y las tres
+     * incompletas dejaban claves en `undefined`.
+     *
+     * La primera versión de esta prueba solo miraba `App.js`, y por eso no vio
+     * que `useAuthSessionReset` seguía con la de tres claves. Ahora se barre
+     * `App.js` y todos los hooks: cualquier `setAuthForm({` con un objeto
+     * literal escrito a mano salta, y la forma buena se escribe extendiendo la
+     * constante.
      */
-    expect(APP).not.toContain('setAuthForm({ name: "", email:');
-    expect(APP).not.toContain('setAuthForm({ name: "", apellidos: "", phone: "", email:');
+    const aBarrer = [
+      path.join(__dirname, "..", "App.js"),
+      ...fs.readdirSync(__dirname)
+        .filter((n) => n.endsWith(".js") && !n.endsWith(".test.js"))
+        .map((n) => path.join(__dirname, n)),
+    ];
+
+    const culpables = [];
+
+    for (const fichero of aBarrer) {
+      const fuente = fs.readFileSync(fichero, "utf8");
+      // `setAuthForm({ name: ...` — un literal a mano. Con `...` de la constante
+      // o con `(prev) =>` no es uno.
+      for (const [linea] of fuente.matchAll(/setAuthForm\(\{\s*[a-z]/gi)) {
+        culpables.push(`${path.basename(fichero)}: ${linea.trim()}`);
+      }
+    }
+
+    expect(culpables).toEqual([]);
+  });
+
+  test("y la forma buena se usa extendiéndola, no copiándola", () => {
+    const DIALOGO = fs.readFileSync(path.join(__dirname, "useElDialogoDeAcceso.js"), "utf8");
+    // Al abrir, al cerrar y al salir de la cuenta.
+    expect(DIALOGO.split("FORMULARIO_DE_ACCESO_VACIO").length - 1).toBeGreaterThanOrEqual(4);
   });
 });
 
@@ -215,7 +248,7 @@ describe("y los cinco reinicios son uno", () => {
      * vuelve a aparecer, vuelve el riesgo de añadir un cuarto estado y ponerlo
      * solo en tres sitios.
      */
-    const ficheros = ["App.js", "hooks/useAuthDialogControls.js", "hooks/useAuthSessionReset.js"];
+    const ficheros = ["App.js", "hooks/useElDialogoDeAcceso.js", "hooks/useAuthSessionReset.js"];
 
     for (const rel of ficheros) {
       const fuente = fs.readFileSync(path.join(__dirname, "..", rel), "utf8");

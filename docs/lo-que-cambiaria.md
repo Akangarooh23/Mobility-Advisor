@@ -279,16 +279,194 @@ Ya estaba en la revisión anterior y sigue en pie:
 
 ---
 
+## Zona 4 — `api/analyze.js` y `api/find-listing.js` ✔ revisada
+
+### 🔴 4.1 — `/api/analyze` era un proxy abierto a la cuenta de Gemini *(arreglado: `e8e59c0`)*
+
+Acepta `body.prompt` —una cadena **arbitraria** de quien llama—, el navegador
+construye el prompt entero (`src/utils/analysisFlows.js`) y el servidor lo relaya
+a Gemini sin mirarlo, añadiéndole instrucciones detrás. 8.192 tokens de salida por
+llamada, con reintento, en una función de 300 segundos. Y accesible por el comodín
+`/api/$1`, **sin sesión, sin clave interna y sin freno**.
+
+Cualquiera podía usar la clave de Gemini como si fuera suya, sin límite.
+
+Lo que más duele no es la factura: si alguien genera contenido que viola las
+políticas de Google a través de esa clave, **el incumplimiento es del proyecto**.
+Eso no se paga, se pierde. Y hay una tercera consecuencia, invisible: al agotarse
+la cuota el análisis cae al respaldo determinista, que contesta 200 con un análisis
+de aspecto normal. Quemar la cuota empeora el producto **sin que nada dé error**
+—lo dice un comentario del propio fichero.
+
+**`find-listing`**, igual de abierto: cada llamada golpea siete portales,
+DuckDuckGo y r.jina.ai durante hasta 300 segundos. Ahí lo caro es que alguien
+puede hacer que **los portales de los que depende el producto bloqueen las IPs de
+Vercel**.
+
+**Arreglado con freno por IP y no con sesión**, porque el cuestionario no la exige
+y pedirla rompería el flujo anónimo: 20 análisis y 12 búsquedas por IP y hora, más
+un tope de 40.000 caracteres de prompt. Los dos frenos viven juntos en
+`lib/lo-que-cuesta-dinero.js`, no uno en cada endpoint.
+
+### 🟡 4.2 — El arreglo de fondo, que sí es un cambio
+
+Que **el prompt lo construya el servidor** a partir de `answers`, que ya recibe.
+Eso convierte el endpoint en «dame un consejo para este perfil» en vez de «ejecuta
+este texto». No lo hice porque cambia comportamiento.
+
+### 🟡 4.3 — SSRF por los resultados del buscador
+
+El servidor descarga las URLs que aparecen en los resultados de DuckDuckGo, y
+`extractSearchResults` **solo excluye duckduckgo.com**: no hay lista blanca de
+dominios. Para dirigir la búsqueda haría falta texto libre en el cuestionario, y
+las 29 preguntas son de opciones fijas, así que **no es explotable hoy**. Es una
+trampa armada: el día que haya un campo de texto libre, lo es.
+
+---
+
+## Zona 5 — `lib/billingStore.js` ✔ revisada
+
+**Conclusión: es la parte mejor cuidada del repositorio.** Se dice porque saber
+dónde NO hace falta esfuerzo vale tanto como saber dónde sí.
+
+### ✅ 5.1 — El dinero está bien representado
+
+`numeric` en las columnas de Postgres —el tipo correcto, sin coma flotante— y
+**céntimos como enteros** en el código (`{ hasta: 1, centimos: 199 }`). Ni un
+`parseFloat` sobre un importe.
+
+### ✅ 5.2 — El cálculo tiene 11 pruebas
+
+`lib/tasacion.test.js` cubre los tramos, los saltos, que la gratuita descuente un
+coche **y no el tramo**, que descuente una vez y no una por coche, que ningún
+importe cobrado caiga por debajo del mínimo de Stripe, y que una flota de más de 99
+no tenga precio.
+
+### ✅ 5.3 — La gratuita no se regala otra vez cambiando de correo
+
+`contarTasacionesDe` cuenta por `user_id` —con el correo solo como respaldo para
+filas viejas— y **nadie puede cambiar su correo**: no hay ningún `UPDATE` de esa
+columna. Y ante un fallo al contar, **cobra**, con el motivo escrito: «equivocarse
+cobrando se ve y se devuelve; equivocarse regalando no se ve».
+
+### 🟡 5.4 — Tres funciones de dinero sin prueba directa
+
+`updateBillingState`, `contarTasacionesDe` y `appendOrUpdateInvoice`. La última la
+leí y es correcta (`ON CONFLICT` idempotente). Las otras dos deciden qué plan tiene
+alguien y si se le cobra.
+
+### ⚪ 5.5 — Dos precios tipados como texto
+
+`moveadvisor_user_vehicles.price` y `moveadvisor_user_market_alerts.max_price` son
+`character varying`. **Nadie ordena ni compara por ellas** —comprobado—, así que es
+un olor y no un fallo. Con texto, «9000» ordena por encima de «10000».
+
+### ⚪ 5.6 — La gratuita se puede pedir dos veces a la vez
+
+Dos clics simultáneos ven los dos `cuantas === 0`. La exposición es **1,99 €**, así
+que no merece un cerrojo; queda apuntado para que nadie lo descubra creyendo que es
+grave.
+
+---
+
+## Zona 6 — Las 64 pantallas ✔ revisada
+
+38.938 líneas, **395 `useState`**, 30 que piden datos.
+
+### 🟡 6.1 — Cuatro funciones del garaje, copiadas, con seis comportamientos
+
+El garaje del usuario se cachea en `localStorage`, y las funciones que lo leen y
+escriben están **copiadas**, no importadas:
+
+| Función | Copias | Versiones distintas |
+|---|---:|---:|
+| `getGarageStorageKey` | 7 | 1 |
+| `getDashboardGarageStorageKey` | 3 | 1 |
+| **`readGarageVehicles`** | **7** | **6** |
+| `writeGarageVehiclesCache` | 3 | 3 |
+
+Y hay **tres sitios de almacenamiento**: la clave del garaje, la del panel y un
+prefijo genérico sin correo. Cada pantalla mira en un subconjunto distinto:
+
+- `ServiceAppointment` y `ServiceMaintenance` leen **las dos** claves y mezclan;
+- `ServiceIdCarsManage` lee la del garaje y, si está vacía, cae al **prefijo
+  genérico**, que hoy **nadie escribe**;
+- `UserDashboardVehicles` y `UserDashboardOperations` leen **solo** la del garaje.
+
+**No hay fallo hoy**, y lo comprobé: todos los que escriben escriben la clave del
+garaje, así que el dato siempre aterriza donde todos miran. Lo que queda es la
+fragilidad: la corrección depende de un invariante que **nadie ha escrito** —«todo
+el que escriba tiene que escribir la clave del garaje»—. Rómpelo en una pantalla y
+otra enseña un garaje vacío, en silencio, a alguien que sí tiene coches.
+
+Y no está cubierto: `lib/el-garaje-es-de-su-dueno.test.js` prueba el garaje del
+**servidor** —propiedad por correo en Postgres—, no esta caché.
+
+**Qué haría**: un módulo, `src/utils/elGarajeGuardado.js`, con `laClave`, `lee` y
+`escribe`, importado por las siete. Y decidir si la clave del panel hace falta: hoy
+la escriben dos pantallas y **nadie depende de ella en exclusiva**.
+
+### 🟡 6.2 — `normalizeText` definida en 10 pantallas
+
+Y `src/utils/offerHelpers.js` **ya la exporta**. Diez copias de una función que
+existe. Igual `Logo` (5 pantallas) y `fmtDia` (3).
+
+### 🟡 6.3 — 2.725 objetos de estilo en línea
+
+`style={{ … }}` escrito 2.725 veces, 251 de ellas en `UserDashboardVehicles.js`.
+Dos consecuencias: cada uno crea un objeto nuevo en cada pintada —lo que anula
+cualquier `React.memo` de los hijos— y **no hay sistema de diseño**: cambiar un
+color son 2.725 sitios.
+
+### ✅ 6.4 — Los estados de carga y error están mejor de lo que parece
+
+Cinco pantallas salieron «sin estado de carga» con mi patrón y al mirarlas eran
+falsos positivos. `ConfirmarVisitaPage` —el enlace que llega por correo— tiene una
+**máquina de estados** con cinco ramas (`confirmando`, `hecha`, `ocupada`,
+`caducada`, `fallo`), que es mejor que un booleano. Mi patrón buscaba la palabra
+«cargando».
+
+---
+
+## Zona 7 — `scripts/`, la parte destructiva ✔ revisada
+
+### 🔴 7.1 — Un `node scripts/reset-…` borraba 2,8 millones de filas *(arreglado: `357fa8f`)*
+
+Tres de los ocho guiones destructivos no pedían nada. El peor terminaba en un
+`(async () => { … })()`: bastaba ejecutarlo para hacer
+`DELETE FROM moveadvisor_market_offers` —**el 88% de la base**— y reponer 42 filas
+escritas a mano. Dentro de una transacción, así que **el desastre es el éxito**.
+
+Dos se borraron porque **no tenían propósito**: eran de mayo y abril, de la época
+de SQL Server. El tercero era peor de lo que yo mismo dije: `erp_appointments`
+**está viva en la base principal** y la mudanza a `ERP_DATABASE_URL` que anunciaba
+el commit de julio **nunca se hizo** —esa variable no existe en ningún sitio.
+
+El de leasys se quedó con `--borra`, y dice a qué base apunta antes de nada.
+
+### 🟠 7.2 — 87 ofertas de un proveedor que ya no existe, servidas a los usuarios
+
+No hay **ni una línea** de código que mencione leasys, y hay **87 ofertas
+`leasys-%`** vivas en el marketplace. Nadie las verifica. Si se borran o se marcan
+inactivas es decisión de producto.
+
+### 🟡 7.3 — 119 guiones leen `DATABASE_URL` sin distinguir entorno
+
+Y en la máquina de trabajo esa variable apunta a **producción**. El vigilante nuevo
+cubre los destructivos; los otros escriben, y un error ahí se arregla, pero
+conviene saberlo antes que después.
+
+---
+
 ## Lo que falta por revisar
 
 Con su tamaño, para que nadie lea esto como si cubriera todo:
 
 | Zona | Tamaño | Qué buscar |
 |---|---|---|
-| 4. `api/analyze.js` | 2.068 líneas | inyección de prompt, control de coste del modelo |
-| 5. `lib/billingStore.js` | 3.599 líneas | sin prueba propia, y es dinero |
-| 6. Las 64 pantallas | 38.900 líneas | estado, validación de formularios, estados de error |
-| 7. `scripts/` | 232 ficheros, 52.300 líneas | los scrapers y lo que tocan de la base |
+| `scripts/`, la parte no destructiva | 229 ficheros | los scrapers: qué rascan y qué escriben |
+| Los planes de consulta | — | más allá de los dos índices ya arreglados |
+| `api/auth.js` por dentro | 1.873 líneas | revisado por fuera, no leído entero |
 
 Y lo que no entra en ninguna zona y tampoco he hecho: revisar los **planes de
 consulta** más allá de los dos índices arreglados, y las **cabeceras de

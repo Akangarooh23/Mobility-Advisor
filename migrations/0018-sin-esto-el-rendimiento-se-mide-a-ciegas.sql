@@ -1,0 +1,45 @@
+-- Sin esto, el rendimiento se mide a ciegas
+--
+-- ## Por qué existe esta migración
+--
+-- Al revisar los planes de consulta hice esto: medir a mano, con `EXPLAIN
+-- (ANALYZE)`, un puñado de consultas que me parecían las importantes.
+--
+-- Midiendo **la misma consulta tres veces seguidas** salió:
+--
+--     4.384 ms     5.920 ms     18.721 ms
+--
+-- Cuatro veces de varianza. Con ese ruido de fondo no se puede demostrar nada: yo
+-- creé un índice cubridor de 131 MB, la primera medición pareció buena, y tres
+-- medidas después resultó que **empeoraba** el caso estrecho de 6,7 a 11 segundos.
+-- Lo tiré. Si me hubiera fiado de la primera medición, ese índice se habría
+-- quedado ahí, cobrándose su mantenimiento en cada una de los 38 millones de
+-- escrituras de la tabla, y haciendo daño.
+--
+-- Eso es lo que resuelve `pg_stat_statements`: no mide una vez, **acumula miles de
+-- llamadas reales** y promedia el ruido. Y sobre todo, contesta la pregunta que
+-- ningún `EXPLAIN` a mano contesta: *cuál* de las consultas del sistema se lleva
+-- el tiempo. Todo lo que encontré lo encontré buscando donde se me ocurrió mirar.
+--
+-- ## Lo que cuesta
+--
+-- Poco: unas cuantas estructuras en memoria compartida —hasta 5.000 consultas
+-- distintas, que es el valor que trae Neon— y un poco de trabajo por consulta.
+-- `track_planning` está en `off`, que es lo que evita la parte cara.
+--
+-- Y no guarda datos de nadie: normaliza los literales, así que lo que se ve es
+-- `WHERE email = $1`, no el correo.
+--
+-- ## Cómo se usa
+--
+--     npm run consultas-lentas
+--
+-- Lo primero que enseña es lo que más tiempo TOTAL consume, que casi nunca es lo
+-- más lento: una consulta de 40 ms llamada cien mil veces pesa más que una de diez
+-- segundos llamada dos.
+--
+-- Para empezar de cero después de un cambio:
+--
+--     SELECT pg_stat_statements_reset();
+
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;

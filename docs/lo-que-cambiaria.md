@@ -31,6 +31,112 @@ tamaño, está al final.
 
 ---
 
+## El plan, en cuatro montones
+
+Los 97 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
+encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
+
+**Treinta y cuatro están cerrados** —✅, y de ésos catorce se arreglaron en esta
+revisión—. De los 63 que quedan, esto es el orden en que yo los tocaría.
+
+### A — Arreglos de código pequeños. Ninguno cambia lo que ve un cliente
+
+Los haría en una tarde, en este orden, y cada uno con su prueba:
+
+| | Qué | Dónde | Cuánto |
+|---|---|---|---|
+| A1 | El `DELETE FROM … WHERE user_id` ya está; falta **quitar `mantenimiento-activas.json`** o vaciar su `DELETE`, que hoy borraría 52.768 ofertas si alguien lo enciende | §13.2 | minutos |
+| A2 | **Reexportar el avisador de fallos de n8n** al repositorio: la copia guardada manda desde `onboarding@resend.dev` | §13.1 | minutos |
+| A3 | El `catch` del guardián de n8n: que **un fallo de Postgres no impida levantar n8n** —el enfriamiento, a un fichero local— | §15.1 | 1 h |
+| A4 | **Caducidad al freno de mano** (media hora) y el PID dentro | §15.3 | 20 min |
+| A5 | `registra()` en el `catch` de `el-motor-de-la-ficha`, para que se sepa que está apagado | §12.2 | 20 min |
+| A6 | Exigir `?route=` en los tres enrutadores y **404 sin él** | §12.4 | 1 h |
+| A7 | `timingSafeEqual` en el secreto compartido del ERP | §19.5 | 20 min |
+| A8 | Escapar `<` como `<` en el JSON-LD, que hoy no es explotable pero es una trampa | §6 | 5 min |
+| A9 | Firmar `/api/whatsapp` **aquí**: el ERP ya lo hace y este lado no | §3.1, §19.6 | 2 h |
+| A10 | Subir la contraseña mínima a 8 | §10.7 | 5 min |
+| A11 | Los tres campos del alta de empresa, ya hechos; falta **quitar las 7 entradas muertas** de `package.json` y las 3.406 líneas de Python de SQL Server | §11.5, §18.2 | 1 h |
+| A12 | `*.log` al `.gitignore` y quitar los seis del índice | §18.1 | 5 min |
+| A13 | Las 9 claves ajenas sin índice: **gratis ahora**, que las tablas están vacías | §1.2 | 30 min |
+
+### B — Decisiones tuyas. No son trabajo, son un sí o un no
+
+Ninguna la puedo tomar yo, y tres de ellas bloquean el lanzamiento:
+
+1. 🔴 **`AUTH_EXPOSE_RESET_CODE` en Vercel**, verificada como falsa o ausente. En
+   `.env.local` está en `true`, y con ese valor la API devuelve el código de
+   recuperación de cualquier cuenta. Es una comprobación de treinta segundos.
+2. 🔴 **`AUTH_BILLING_REQUIRE_SESSION` que no esté en `false`** en Vercel.
+3. 🟠 **Las siete lecturas** que devuelven lista vacía cuando la base falla (§5.8).
+   Cambiarlo enseña un aviso de error en vez de «no tienes nada». Yo lo cambiaría.
+4. 🟠 **Los 87 `leasys-%`** vivos en el marketplace, de un proveedor que ningún
+   código nombra (§7.2): borrar o marcar inactivos.
+5. 🟠 **El 409 del alta** (§10.2): hoy dice si un correo tiene cuenta. Cerrarlo es
+   contestar lo mismo que en un alta buena y avisar por correo al dueño.
+6. 🟡 **Los dos crones de facetas**, de cada hora a una vez al día tras la carga de
+   las 07h: 46 minutos diarios de escaneo y dos vaciados de caché por hora (§9.4).
+7. 🟡 **Los 126 MB de `moveadvisor_market_dealers`** que nada de lo desplegado lee
+   (§12.5): si no hacen falta, es el único sitio donde se gana caché gratis.
+8. 🟡 **El consentimiento del alta** (lo documenta `useLosConsentimientosDelRegistro.js`).
+9. 🟡 **Si el ERP lleva su propia base de datos.** Un commit de julio dice que sí y
+   `ERP_DATABASE_URL` no existe.
+10. ⚪ **Entrar en la lista de precarga de HSTS** (§17.5). Es de una sola dirección.
+11. ⚪ **Borrar los 7 `tmp_*` de `scripts/`** y el flujo vacío de n8n (§11.6, §13.4).
+
+### C — Tareas que no son leer código ni arreglar una línea
+
+- 🔴 **Dejar `pg_stat_statements` unos días y volver a `npm run consultas-lentas`.**
+  Es lo primero de toda la lista. Qué índices tirar de los 523 MB (§1.1), si subir
+  `work_mem` (§9.2), si pagar más memoria de Neon (§9.1): **nada de eso se decide sin
+  esos números**, y mis medidas a mano fallaron cuatro veces —la última porque un
+  `SET` no llega donde yo creía (§19.4)—.
+- 🟠 **Un `npm run` que exporte los 61 flujos de n8n por su API.** A mano no va a
+  pasar; §13.1 es la prueba.
+- 🟡 **Un cron semanal** que lance `test:cabeceras` (§17.4), y el `report-uri` de la
+  CSP apuntando a `/api/error`, que ya existe entero (§17.3).
+- 🟡 **Añadir la tabla de latidos de n8n** a `cron-avisa-de-los-fallos`, que ya manda
+  correos desde Vercel: es la mitad del diseño que falta (§15.2).
+- 🟡 **Averiguar quién escribe a las 07h.** Lo achaqué a los scrapers y demostré que
+  no es eso (§13.5). Lo dirá `pg_stat_statements`.
+
+### D — Trabajo de fondo, con coste real. Aquí hay que elegir
+
+- 🔴 **El 36,8 % de acierto de caché** (§9.1). La base pesa 7.294 MB contra 128 MB de
+  `shared_buffers` y 3 GB de caché de Neon. **No se arregla con SQL**: o el conjunto
+  de trabajo se hace más pequeño —tirar los 523 MB de índices muertos, archivar
+  ofertas viejas— o se paga una instancia con más memoria. De aquí sale la mitad de
+  lo demás: los 8,6 segundos del consejero (§8.1), los 253 de la búsqueda (§8.2) y
+  que nada se pueda medir a mano.
+- 🟠 **La tercera vista materializada** `(provincia, combustible, banda de precio)`
+  (§8.3). El patrón ya existe y funciona —leer `mmo_modelos` tarda 58 ms—; esto
+  convierte 8,6 segundos en milisegundos. Es el arreglo grande con mejor relación
+  esfuerzo/resultado, y la decisión de diseño es la banda de precio.
+- 🟠 **Las 280 sentencias de esquema del ERP** y su falta de migraciones (§19.1). Hoy
+  no hay divergencia —lo medí, 10 columnas de 1.391 y todas en tablas `erp_*`— pero
+  dos repositorios definiendo las mismas tablas es una avería esperando el día en
+  que no coincidan.
+- 🟡 **La duplicación de `src/`**: cuatro funciones del garaje con seis
+  comportamientos (§6.1), `normalizeText` en 10 pantallas (§6.2), 2.725 estilos en
+  línea (§6.3). No rompe nada; se paga en cada cambio.
+- 🟡 **Los dos frenos de ritmo**, y que el de memoria no frena en serverless (§3.4);
+  y que las defensas vivan en capas distintas (§3.3).
+
+### E — Lo que ya está arreglado en esta revisión
+
+Catorce, y cada uno con su prueba y su commit. Los cinco que más importan:
+
+1. **Ocho manejadores cerraban el pool compartido** y tiraban la instancia entera.
+2. **`/api/analyze` era un proxy abierto** a la cuenta de Gemini.
+3. **Un `node scripts/reset-…`** borraba 2,8 millones de filas sin preguntar.
+4. **Ocho acciones contestaban «guardado»** con un 200 cuando la base había dicho no
+   (§5.8), y la tasación **tasaba con precios del 14 de agosto** presentándolos como
+   de hoy (§12.1).
+5. **Cambiar la contraseña no cerraba ninguna sesión** (§10.1), el login **decía por
+   el reloj** qué correos existen (§10.3), y el CI **no corría 2.624 pruebas** (§11.1).
+
+---
+
 ## Zona 1 — Base de datos ✔ revisada
 
 108 tablas, **7.294 MB** —7,12 GB—, y el 88% es una sola:
@@ -2402,6 +2508,39 @@ pasar, con el aviso explicando dónde se pone.
 Vale la pena decirlo porque en este repositorio `/api/whatsapp` **no verifica
 ninguna firma** (§3). Los dos lados hablan con Meta y solo uno comprueba quién
 llama.
+
+### ✅ 19.7 — La autorización del ERP está bien, y mejor que la de aquí
+
+Vine buscando el fallo clásico y **no está**. Primero conté: `requireAuth` aparece
+en **un solo sitio** de 281 rutas, y ningún `app.use(requireAuth)` delante de los
+38 routers. Eso parecía el hallazgo más grave de toda la revisión.
+
+No lo era: el ERP usa `requireRole`, no `requireAuth`, y `requireRole` llama a
+`requireAuth` por dentro antes de mirar el rol. Medido ruta por ruta —la primera
+medida contaba el fichero entero y daba 262 de 265, que no vale—:
+
+| | |
+|---|---:|
+| Rutas | **264** |
+| Con comprobación propia | **255** |
+| Sin ninguna | **9** |
+
+Y las nueve son las que deben estarlo: los cinco de `auth.ts` (login, refresh,
+logout, olvidé la contraseña, resetear), `health`, y los webhooks. Los dos de
+`/cron/` sí comprueban, con un `autorizado(req)` que mi lista de señales no
+conocía.
+
+Además los roles son de privilegio mínimo de verdad, no decorativos:
+`/contabilidad` solo `admin`, `/billing` `admin` y `operations`, `/users` los
+cuatro. Y **`JWT_SECRET` se valida con `z.string().min(16)`**: sin él la
+aplicación no arranca. Aquí, en cambio, `AUTH_SESSION_SECRET` tiene un valor de
+reserva escrito en el repositorio (§10.10) — que no permite falsificar nada, pero
+la disciplina del ERP es la buena.
+
+Lo único que le pondría: `jwt.verify(token, secreto, { algorithms: ['HS256'] })`.
+Sin fijar el algoritmo se acepta el que diga el token; con un secreto de texto
+`jsonwebtoken` ya limita a HMAC, así que no es explotable hoy, pero fijarlo cuesta
+nada.
 
 ### Lo que NO he revisado del ERP
 

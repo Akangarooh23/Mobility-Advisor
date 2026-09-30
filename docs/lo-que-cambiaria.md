@@ -2650,6 +2650,82 @@ se adivina la siguiente.
 
 ---
 
+## Zona 21 — El dinero del ERP ✔ revisada
+
+Después de §20 fui a la aritmética, que es donde un error no se ve y se acumula.
+**Busqué tres fallos concretos y los tres estaban ya resueltos**, con el
+razonamiento escrito en el código. Lo apunto porque saber que el dinero está bien
+hecho vale tanto como encontrar que no.
+
+### ✅ 21.1 — Los importes van en `NUMERIC`, no en coma flotante
+
+`base_amount NUMERIC(10,2)`, `invoice_amount NUMERIC(10,2)`,
+`iva_amount NUMERIC(12,2)`, `iva_rate NUMERIC(5,4)`. Decimal exacto, que es el
+tipo correcto: `REAL` o `DOUBLE` para dinero es el error clásico y no está.
+
+(Mobility guarda en céntimos enteros y el ERP en `NUMERIC` con dos decimales. Son
+dos soluciones buenas del mismo problema, y conviven porque cada uno manda en sus
+tablas.)
+
+### ✅ 21.2 — La cuota se calcula restando, y está dicho por qué
+
+Esto es lo que iba buscando. Si la base sale de `total / 1,21` y la cuota de
+`base × 0,21`, **son dos redondeos independientes** y para ciertos importes
+`base + cuota` se separa un céntimo del total. En una factura española eso está
+mal: base + cuota tiene que dar el total.
+
+`lib/comision-de-financiacion.ts`:
+
+```ts
+const base = dosDecimales(total / (1 + IVA_GENERAL / 100));
+/*
+ * La cuota, restando y no multiplicando.
+ *
+ * […] con dos redondeos independientes la factura se separa un céntimo para
+ * ciertos importes, y el guardián de `provider-billing` admite dos céntimos de
+ * holgura — así que no saltaría y la factura estaría mal sin que nadie se enterara.
+ */
+return { total: dosDecimales(total), base, cuota: dosDecimales(total - base), … };
+```
+
+`cuota = total - base`. Y el comentario va más lejos que el arreglo: dice que el
+guardián que debería cazarlo **no lo cazaría**, porque tiene holgura. Eso es
+entender un fallo, no solo taparlo.
+
+### ✅ 21.3 — Y esa holgura de dos céntimos está en el lado correcto
+
+Iba a apuntarla como sospechosa —una tolerancia en una comprobación de dinero suele
+estar tapando algo—. Es lo contrario. `routes/provider-billing.ts`:
+
+```sql
+WHERE id = $1 AND direction = 'received'
+  AND ( $6::numeric IS NULL
+        OR ABS(COALESCE($5::numeric, base_amount) + $6::numeric - invoice_amount) <= 0.02 )
+```
+
+Solo aplica a `direction = 'received'`: facturas que **nos manda un proveedor** y
+que teclea una persona, donde el redondeo del proveedor puede no ser el nuestro.
+Exigir un cuadre exacto ahí rechazaría facturas válidas. Lo que emitimos nosotros
+va por el camino exacto de §21.2.
+
+Y está puesta **en el `WHERE` de un `UPDATE`**, así que la base la hace cumplir; no
+es una comprobación en JavaScript que alguien pueda saltarse llamando por otro
+lado. Cuando no cuadra, `rowCount` es 0 y el código distingue *«o no existe, o la
+cuota no cuadra»* en vez de dar un error genérico.
+
+### Lo que esto dice, y lo que no
+
+Tres sitios, tres aciertos. No he revisado la contabilidad entera del ERP —queda
+`lib/apuntes.ts`, `lib/coste.ts`, `lib/cierre-del-encargo.ts`, los trámites y los
+gastos—, así que esto no es «el dinero del ERP está bien»: es «los tres fallos
+clásicos que fui a buscar no están, y el código explica por qué».
+
+Lo que sí digo es que **el patrón de §20.1 no se repite aquí**. Aquella carrera de
+las rectificativas no era descuido con el dinero: era falta de una restricción en la
+base, en un sitio donde el resto del razonamiento está bien hecho.
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

@@ -1781,7 +1781,7 @@ export default function App() {
   const {
     portalVoFilters, setPortalVoFilters,
     portalVoModalityMode,
-    portalVoOffersLive, setPortalVoOffersLive,
+    portalVoOffersLive,
     marketplaceVoPage,
     marketplaceVoTotal,
     marketplaceVoLoading,
@@ -2052,27 +2052,52 @@ export default function App() {
     }
   }, [syncBrowserPath]);
 
-  const goToPublicHeaderPage = useCallback((nextEntryMode) => {
-    setShowHeaderMobileNav(false);
-    openPublicPage(nextEntryMode);
-  }, [openPublicPage]);
+  /*
+   * Tres envoltorios que no envolvian nada.
+   *
+   * Los tres hacian `setShowHeaderMobileNav(false)` y llamaban a
+   * `openPublicPage`, que YA lo hace en su primera linea. Se quedan como lo
+   * que eran: la misma funcion con el destino puesto.
+   */
+  const goToPublicHeaderPage = openPublicPage;
+  const goToHomeHeaderPage = useCallback(() => openPublicPage(null), [openPublicPage]);
+  const goToAboutHeaderPage = useCallback(() => openPublicPage("aboutCarswise"), [openPublicPage]);
 
-  const goToHomeHeaderPage = useCallback(() => {
-    setShowHeaderMobileNav(false);
-    openPublicPage(null);
-  }, [openPublicPage]);
+  /**
+   * Abre la ficha de un coche, y recuerda de donde se vino.
+   *
+   * Estaba escrito tres veces, siete lineas cada una, y lo unico que cambiaba
+   * era `volverA`. El boton de volver de la ficha lee eso: con una copia mal
+   * puesta, volver te saca a otra pantalla.
+   */
+  const abreLaFichaDelCoche = useCallback((oferta, volverA) => {
+    setVehicleDetailOffer(oferta);
+    setVehicleDetailBackTarget(volverA);
+    setEntryMode("vehicleDetail");
+    syncBrowserPath(buildVehicleDetailSharePath(oferta), "push");
+    setStep(-1);
 
-  const goToAboutHeaderPage = useCallback(() => {
-    setShowHeaderMobileNav(false);
-    openPublicPage("aboutCarswise");
-  }, [openPublicPage]);
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
+    }
+  }, [syncBrowserPath]);
+
+  /**
+   * Vuelve al mercado, que es donde se cae cuando un enlace no lleva a nada.
+   *
+   * Estaba escrito cinco veces en la misma rama: sin id en la direccion, sin
+   * ficha que ensenar, y en los tres sitios donde puede fallar la peticion.
+   */
+  const vuelveAlMercado = useCallback(() => {
+    setEntryMode("portalVo");
+    setStep(-1);
+  }, []);
 
   const openPlansSection = useCallback((sectionId = "planes") => {
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem("movilidad-advisor.plans.scroll-target", sectionId);
     }
 
-    setShowHeaderMobileNav(false);
     openPublicPage("plans");
   }, [openPublicPage]);
 
@@ -2334,8 +2359,7 @@ export default function App() {
       if (pathEntryMode === "portalVoDetail") {
         const offerId = readMarketplaceVoIdFromPath(window.location.pathname);
         if (!offerId) {
-          setEntryMode("portalVo");
-          setStep(-1);
+          vuelveAlMercado();
           return;
         }
         // Check if offer is already in the live cache
@@ -2379,16 +2403,12 @@ export default function App() {
                   setEntryMode("portalVoDetail");
                   setStep(-1);
                 } else {
-                  setEntryMode("portalVo");
-                  setStep(-1);
+                  vuelveAlMercado();
                 }
               })
-              .catch(() => { setEntryMode("portalVo"); setStep(-1); });
+              .catch(vuelveAlMercado);
           }
-        }).catch(() => {
-          setEntryMode("portalVo");
-          setStep(-1);
-        });
+        }).catch(vuelveAlMercado);
         return;
       }
 
@@ -2412,8 +2432,7 @@ export default function App() {
         }
 
         if (!deepLinkedOffer) {
-          setEntryMode("portalVo");
-          setStep(-1);
+          vuelveAlMercado();
           return;
         }
 
@@ -2439,7 +2458,7 @@ export default function App() {
     applyRouteFromPath();
     window.addEventListener("popstate", applyRouteFromPath);
     return () => window.removeEventListener("popstate", applyRouteFromPath);
-  }, [portalVoOffersLive, syncBrowserPath, metePorDelante]);
+  }, [portalVoOffersLive, syncBrowserPath, metePorDelante, vuelveAlMercado]);
 
   useEffect(() => {
     if (typeof document === "undefined" || typeof window === "undefined") {
@@ -4435,7 +4454,6 @@ export default function App() {
     setResultView,
     setSaveFeedback,
     setSelectedPortalVoOfferId,
-    setPortalVoOffersLive,
     setSellAiResult,
     setSellAnswers,
     setSellError,
@@ -4450,6 +4468,9 @@ export default function App() {
     syncBrowserPath,
     onAuthRequest: openAuthDialog,
     onLogoutUser: resetLoggedUser,
+    /* Para que la ficha encuentre las ofertas del bloque de concesionarios, que
+       no vienen en las paginas que sirve el servidor. */
+    metePorDelante,
   });
 
   useListingBootstrap({
@@ -6811,14 +6832,7 @@ export default function App() {
           uiLanguage={uiLanguage}
           onGoBack={() => openPublicPage("buyOptions")}
           onOpenOffer={(offer) => {
-            setVehicleDetailOffer(offer);
-            setVehicleDetailBackTarget("buscarCoche");
-            setEntryMode("vehicleDetail");
-            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
-            setStep(-1);
-            if (typeof window !== "undefined") {
-              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-            }
+            abreLaFichaDelCoche(offer, "buscarCoche");
           }}
         />
       )}
@@ -6944,14 +6958,7 @@ export default function App() {
               } catch {}
             }
             fullOffer = fullOffer || sparseOffer;
-            setVehicleDetailOffer(fullOffer);
-            setVehicleDetailBackTarget("advice");
-            setEntryMode("vehicleDetail");
-            syncBrowserPath(buildVehicleDetailSharePath(fullOffer), "push");
-            setStep(-1);
-            if (typeof window !== "undefined") {
-              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-            }
+            abreLaFichaDelCoche(fullOffer, "advice");
           }}
           onNavigate={navigateToUserDashboardPage}
           onRestart={() => {
@@ -7042,15 +7049,7 @@ export default function App() {
             setStep(-1);
             setSelectedPortalVoOfferId(null);
           }}
-          onOpenVehicleDetail={(offer) => {
-            setVehicleDetailOffer(offer);
-            setVehicleDetailBackTarget("decision");
-            setEntryMode("vehicleDetail");
-            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
-            if (typeof window !== "undefined") {
-              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-            }
-          }}
+          onOpenVehicleDetail={(offer) => abreLaFichaDelCoche(offer, "decision")}
           onRestart={restart}
         />
       )}
@@ -7359,14 +7358,7 @@ export default function App() {
           ResolvedOfferImage={ResolvedOfferImage}
           toggleSavedRecommendation={toggleSavedRecommendation}
           openOfferInProductSheet={(offer) => {
-            setVehicleDetailOffer(offer);
-            setVehicleDetailBackTarget("advice");
-            setEntryMode("vehicleDetail");
-            syncBrowserPath(buildVehicleDetailSharePath(offer), "push");
-            setStep(-1);
-            if (typeof window !== "undefined") {
-              window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 60);
-            }
+            abreLaFichaDelCoche(offer, "advice");
           }}
           openOfferInNewTab={openOfferInNewTab}
           saveCurrentComparison={saveCurrentComparison}

@@ -12,7 +12,9 @@ ahora mismo; varias cosas empiezan a hacerlo el día que haya tráfico.
 Las once zonas están revisadas, y **eso no quiere decir que esté todo mirado**.
 Son 170.166 líneas sin contar pruebas: leí entero lo que podía hacer daño y medí
 el resto con comprobaciones dirigidas. §5.7 es la prueba de que eso no es lo
-mismo — lo encontré después de dar la zona 5 por buena. Lo que queda, con su
+mismo — lo encontré después de dar la zona 5 por buena—. Y §13 no se pudo revisar
+leyendo: lo que hace un flujo de n8n depende de si **eso** es lo que corre, así que
+está comparado contra la instancia de verdad. Lo que queda, con su
 tamaño, está al final.
 
 ---
@@ -1431,6 +1433,183 @@ hecho a mano esperando a que alguien reconecte esto.
 
 ---
 
+## Zona 13 — `n8n-workflows/` y lo que de verdad corre ✔ revisada
+
+60 ficheros, 22.598 líneas. Y aquí no valía leer los ficheros: lo que importa de
+un flujo de n8n es si **eso** es lo que se está ejecutando. n8n estaba levantado
+en el 5678 y la clave del `.env.local` funciona, así que comparé los 60 ficheros
+contra los 61 flujos que hay dentro, uno a uno, por su contenido.
+
+Me costó tres intentos y los dos primeros los di por buenos antes de mirarlos
+(§13.6). El resultado, después de quitar el ruido:
+
+### 🟠 13.1 — El avisador de fallos que corre es mejor que la copia guardada
+
+De las 60 parejas, **una divergencia de verdad en un flujo activo**, y es
+justamente el que avisa cuando fallan los demás: `⚠️ Error Handler – Aviso por
+Email`.
+
+| | Lo que corre | `n8n-workflows/error-notify-email.json` |
+|---|---|---|
+| Líneas del `jsCode` | 37 | 15 |
+| Remitente | `avisos@popcarmobility.com` | **`onboarding@resend.dev`** |
+| `reply_to` | `hola@popcarmobility.com` | no lleva |
+| Parte de texto plano | sí | **no** |
+
+Alguien lo mejoró en la interfaz de n8n y no lo volvió a exportar. El que corre
+lleva incluso el comentario de por qué añade el texto plano: *«Un correo que solo
+lleva HTML puntúa peor en los filtros, y es de las pocas señales que están en
+nuestra mano.»*
+
+**Por qué es un hallazgo y no una curiosidad.** Esa carpeta es la copia de
+seguridad. Para el único flujo cuyo trabajo es contarte que algo se ha roto, la
+copia de seguridad es peor que el original: si alguien reimporta ese fichero, los
+avisos vuelven al remitente de pruebas de Resend y pierden el texto plano. Y
+reimportar encima **duplica el flujo** en vez de reemplazarlo, así que acabarías
+con dos avisadores, uno bueno y uno malo.
+
+**Qué haría**: exportar ese flujo otra vez y commitear. Y, en general, que la
+exportación no dependa de que alguien se acuerde: `npm run` con la llamada al API
+de n8n y los 61 ficheros al disco.
+
+### 🟠 13.2 — Un `DELETE` sin límite sobre la tabla de 2,8 millones, guardado y esperando
+
+`n8n-workflows/mantenimiento-activas.json`, nodo «PG: Recalcular is_active»:
+
+```sql
+-- Limpieza diaria: borrar ofertas basura de mercado (precio < 2000 EUR)
+DELETE FROM moveadvisor_market_offers WHERE price < 2000;
+```
+
+Disparador diario a las 07:00. Hoy eso borraría **52.768 ofertas** —lo conté—, de
+las que 52.736 tienen un precio de verdad:
+
+| Portal | Ofertas por debajo de 2.000 € |
+|---|---:|
+| wallapop | 22.860 |
+| autoscout24 | 10.867 |
+| milanuncios | 10.558 |
+| coches.net | 8.237 |
+| el resto | 214 |
+
+**No está corriendo, y lo comprobé por dos caminos que no se apoyan uno en otro.**
+En n8n el flujo se llama `Mantenimiento – Borrar ofertas por debajo de 2.000 €` y
+está **parado**. Y en la base:
+
+- la oferta barata más antigua es del **2 de julio**, y si eso se ejecutara a
+  diario no sobreviviría ninguna de más de un día;
+- `n_tup_del` de la tabla es **8.487** en toda su vida, contra 2.484.006
+  inserciones. Un borrado diario de 50.000 filas dejaría millones.
+
+Así que está apagado. Lo que queda es un fichero destructivo esperando a que
+alguien lo importe y lo encienda, y de paso una pregunta de producto: un coche de
+1.500 € es un coche. Si la idea es no enseñarlos, eso es `is_active = false`, no
+un `DELETE` —hay una columna `visible_desde` y toda la maquinaria de
+presentables—. Borrarlos garantiza que el scraper los vuelva a traer mañana.
+
+### 🟡 13.3 — Tres flujos a las 07:00 exactas, y uno de ellos sin avisador
+
+Los minutos están escalonados con cuidado en todos los demás —`:00`, `:05`,
+`:10`, `:15`, `:20`, `:25`…, portal por portal—, lo que es trabajo bien hecho
+(§13.5). La excepción son tres, los tres «universales», que arrancan a la misma
+hora y el mismo minuto:
+
+```
+07:00  mantenimiento-activas      (parado)
+07:00  universal-derivar          ACTIVO
+07:00  universal-enrich-color     (parado)
+```
+
+Hoy solo corre uno, así que no se pisan. Pero los tres son los que recorren la
+tabla entera en vez de un portal, y son los que hay que separar el día que se
+enciendan los otros dos.
+
+Y de los tres, `universal-enrich-color` es **uno de los dos flujos sin
+`errorWorkflow`** de los 60 (el otro es `workshops-enrich-google-places`; el
+tercero sin él es el propio avisador, que es lo correcto). Si se encienden, fallan
+en silencio.
+
+### 🟡 13.4 — Un flujo vacío, creado el 21 de septiembre y nunca terminado
+
+En n8n hay 61 flujos y en el repositorio 60. El que sobra:
+
+```
+Importación – Publicar (regla de la ficha)
+  activo: false   nodos: 0   conexiones: 0
+  creado: 2026-09-21   tocado: 2026-09-21
+```
+
+Cero nodos. Es un nombre reservado y nada más. No hace daño estando parado, pero
+en una lista de 61 es una promesa de que existe algo que no existe, y el 21 de
+septiembre es la fecha del volcado único de coches.net, así que alguien empezó a
+montar la publicación de importaciones ese día y lo dejó.
+
+### ✅ 13.5 — Lo que está bien hecho aquí, y es bastante
+
+- **Ni una credencial en los 60 ficheros.** Importa porque **este repositorio es
+  público** —lo confirmé con la API de GitHub: `"visibility": "PUBLIC"`—. Lo único
+  con forma de secreto es un `Bearer REEMPLAZAR…` de plantilla. Ninguna cadena de
+  conexión con contraseña dentro.
+- **57 de 60 flujos tienen `errorWorkflow` configurado.** Con 52 flujos activos
+  rascando ocho portales, eso es lo que hace que un fallo se sepa.
+- **Los horarios están repartidos a mano, y bien.** 53 disparadores con expresión
+  cron, con las horas escalonadas por portal y los minutos separados de cinco en
+  cinco. Yo esperaba encontrar un montón a la misma hora —venía buscando el 63 %
+  de escrituras de las 07h de §9.4— y no es eso.
+- **Los 52 flujos activos del n8n que corre se corresponden con ficheros del
+  repositorio.** Salvo §13.1 y una consulta de `importacion-scoring` —que está
+  parado—, lo guardado es lo que se ejecuta. Mi nota de trabajo decía que la copia
+  podía ser más vieja que la regla; hoy, para 59 de 60, no lo es. Nada lo
+  garantiza, eso sí: ningún guion exporta, es a mano.
+
+### Y una corrección a la zona 9
+
+En §9.4 escribí que el refresco de facetas *«vacía la caché dos veces por hora»* y
+dejé caer que el 63 % de escrituras de las 07h venía de los scrapers pisándose.
+**Eso último no lo sé, y con esto medido, no es por ahí**: los scrapers están
+escalonados y a las 07:00 solo corre uno de los tres universales.
+
+Así que la causa de esa concentración sigue sin identificar. Lo que la dirá es
+`pg_stat_statements` con unos días de tráfico, no otra suposición mía.
+
+### 13.6 — Cómo me equivoqué tres veces seguidas midiendo esto
+
+Lo dejo escrito porque quien vuelva a comparar n8n contra el repositorio se va a
+tropezar con lo mismo.
+
+**Primer intento:** emparejé por nombre. No funciona: el fichero se llama
+`autocasion-enrich-offers` y el flujo «Autocasión – Enriquecer Ofertas». Salieron
+58 «sin pareja» y era puro ruido.
+
+**Segundo:** emparejé por la huella de los nodos y comparé el SQL. Salieron 52
+«con el SQL cambiado». Fui a mirar uno y la única diferencia era:
+
+```
+corre : {{ $json.sql }}
+repo  : ={{ $json.sql }}
+```
+
+n8n marca con un `=` delante los campos que son expresión. El fichero exportado
+lo conserva; **el API lo quita al devolverlo**.
+
+**Tercero:** normalicé el `=`. Salieron 54. Fui a mirar otro y era
+`looseTypeValidation: true`, una opción con su valor por omisión que el fichero
+escribe y el API no devuelve. Lo mismo pasa con `method: "GET"`, `options`,
+`language`, `batchSize`.
+
+Lo que por fin funcionó no fue contar diferencias: fue **enseñar qué campos
+difieren** y mirar solo los que cambian lo que un flujo hace —`query`, `url`,
+`jsCode`, `cronExpression`—. De doce flujos que salían con algo sustancial, cuatro
+eran las dos parejas ES/DE de AutoScout24 cruzadas entre sí por mi emparejador
+—tienen los mismos nombres de nodo— y el resto `method: GET`. Quedaron dos reales:
+§13.1 y `importacion-scoring`.
+
+Tres medidas, tres falsos positivos, y los dos primeros los habría publicado si no
+hubiera ido a mirar un caso concreto. **Una diferencia contada no es una
+diferencia vista.**
+
+---
+
 ## Lo que queda, que ya no es leer código
 
 Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es
@@ -1440,10 +1619,14 @@ esto, y ninguna de las dos cosas es leer ficheros:
   verificado que lo que dice se aplique de verdad contra el dominio. Es una
   comprobación contra producción, y con el cortafuegos de Vercel retando a esta
   IP hay que hacerla con cuidado.
-- **Dos sitios que sigo sin abrir.** `n8n-workflows/` —60 ficheros, 22.598
-  líneas: los scrapers de verdad, y la copia del repositorio puede ser más vieja
-  que lo que corre— y `mockups/`. De los cinco que había apuntado, los otros tres
-  están en §12. Y de `scripts/` sigo sin leer los scrapers uno a uno.
+- **`mockups/`**, dos ficheros, que es lo único que queda sin abrir. `n8n-workflows/`
+  está en §13 y los otros tres en §12. De `scripts/` sigo sin leer los scrapers
+  uno a uno, aunque §13 cubre lo que de ellos se ejecuta de verdad.
+- **Exportar los 61 flujos de n8n a mano nunca va a pasar.** §13.1 es la prueba:
+  el avisador de fallos lleva meses mejor en n8n que en el repositorio. Hace falta
+  un `npm run` que llame al API y los deje en el disco.
+- **Volver a mirar quién escribe a las 07h.** En §9.4 lo achaqué a los scrapers y
+  §13.5 demuestra que no es eso. Lo dirá `pg_stat_statements`.
 - **Los 31 `catch {}` vacíos de `billingStore.js`** uno a uno. Cuatro son §5.7;
   los otros 27 no los he mirado.
 - **Dejar que `pg_stat_statements` acumule unos días de tráfico real** y volver a

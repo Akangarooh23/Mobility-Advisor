@@ -2173,38 +2173,165 @@ haga; digo que hoy está sin decidir y parece un descuido cuando no lo es.
 
 ---
 
-## Lo que queda, que ya no es leer código
+## Zona 18 — Lo que no había nombrado nunca ✔ revisada
 
-Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es
-esto, y ninguna de las dos cosas es leer ficheros:
+Al preguntarme si quedaba algo, conté los tipos de fichero versionados en vez de
+contestar de memoria. Y había categorías que no había mencionado ni una vez: 8
+ficheros `.py`, 6 `.log`, 12 `.csv`, 30 `.xml`, 7 `.docx`.
 
-- ~~Las cabeceras de seguridad~~ — comprobadas contra los tres dominios: §17.
-  Estaban bien. Lo que sale de ahí es otra cosa: la CSP en `Report-Only` ya tiene
-  dónde recoger los avisos (§17.3) y las cabeceras no las vigila nada por su
-  cuenta (§17.4).
-- **De `scripts/` sigo sin leer los scrapers uno a uno.** Es lo único que queda de
-  código sin abrir, y §13 cubre lo que de ellos se ejecuta de verdad: los 52 flujos
-  activos de n8n, comparados contra la instancia.
-- **Exportar los 61 flujos de n8n a mano nunca va a pasar.** §13.1 es la prueba:
-  el avisador de fallos lleva meses mejor en n8n que en el repositorio. Hace falta
-  un `npm run` que llame al API y los deje en el disco.
-- **Volver a mirar quién escribe a las 07h.** En §9.4 lo achaqué a los scrapers y
-  §13.5 demuestra que no es eso. Lo dirá `pg_stat_statements`.
-- ~~Los 31 `catch {}` vacíos de `billingStore.js`~~ — repasados: §5.8 y §5.9.
-- **Dejar que `pg_stat_statements` acumule unos días de tráfico real** y volver a
-  `npm run consultas-lentas`. Las decisiones de rendimiento que quedan —qué
-  índices tirar, si subir `work_mem`, si pagar más memoria de Neon— se toman con
-  esos números y no con los míos medidos a mano (§9).
+### ⚪ 18.1 — Seis ficheros de registro versionados, y no llevan nada grave
 
-Y de los 212 scripts no he leído los 212: fui a lo que puede hacer daño
-—credenciales, quién escribe en la base, cómo se conecta, quién lanza qué— y está
-en §11. Lo que no he hecho es leer los scrapers uno a uno para ver si lo que
-rascan sigue cuadrando con lo que enseña cada portal; eso se rompe solo cuando
-un portal cambia, y para eso están los 55 `comprueba-*` y el cron que vigila los
-scrapers.
+`cochesnet-refill.log`, `phase1`, `phase2`, `phase3`, `incremental-top4` e
+`incremental-secondary12`. Están en UTF-16 y suman 139 líneas.
 
-Además, lo de §9 deja una tarea que **no es de leer código**: dejar
-`pg_stat_statements` acumulando unos días de tráfico real y volver a
-`npm run consultas-lentas`. Las decisiones de rendimiento que quedan —qué índices
-tirar, si subir `work_mem`, si pagar más memoria de Neon— se toman con esos
-números, no con los míos medidos a mano.
+Importa porque **el repositorio es público**, así que los miré uno a uno buscando
+correos, tokens, contraseñas, claves y matrículas. **No hay nada de eso.** Lo que
+hay es:
+
+- el nombre de la instancia de SQL Server: `localhost\SQLEXPRESS / Mobilityadvisor`,
+  con `Auth: windows-auth`, o sea sin contraseña que filtrar;
+- la ruta de Python con el usuario de Windows dentro
+  (`C:\Users\Anapi\AppData\Local\...`), que además ya se deduce del autor de los
+  commits.
+
+No es una fuga. Es basura de una ejecución de agosto que se colgó del repositorio,
+y `*.log` debería estar en el `.gitignore` como está `.env*`.
+
+### 🟡 18.2 — 3.406 líneas de Python que son el scraping de la era SQL Server
+
+| Fichero | Líneas |
+|---|---:|
+| `scrapers/live_scraper.py` | 1.569 |
+| `scraper_coches_net.py` | 605 |
+| `docs/planning/generate_premium_planning_files.py` | 564 |
+| `scrapers/main.py` | 233 |
+| `docs/planning/generate_import_files.py` | 212 |
+| `run_scraper.py` | 112 |
+| `scrapers/platform_catalog.py` | 71 |
+| `docs/planning/extract_docx_to_txt.py` | 40 |
+
+`scrapers/main.py` es el único al que llama algo, y lo que le llama lo dice todo:
+
+```
+"inventory:scrape:live:sqlserver":    "python scrapers/main.py … --persist-sqlserver"
+"inventory:scrape:all:sqlserver":     "python scrapers/main.py … --persist-sqlserver"
+"inventory:scrape:massive:sqlserver": "python scrapers/main.py … --persist-sqlserver"
+```
+
+Más `scripts/run-inventory-sqlserver.cmd`, que hace lo mismo. **Los tres acaban en
+`--persist-sqlserver`**, y SQL Server no existe en ninguna parte —lo dice
+`api/auth.js` al retirar el proveedor `mssql`, y lo confirma §11.5—.
+
+O sea que esto es el stack de scraping **anterior a los 52 flujos de n8n**, con su
+propio catálogo de plataformas y su propio scraper en vivo de 1.569 líneas. No
+corre, no puede correr, y nadie lo ha mirado en meses.
+
+**Esto amplía §11.5**: las entradas muertas de `package.json` no son cuatro, son
+**siete**, y detrás de tres de ellas hay 3.406 líneas de Python y un `.cmd`. Yo lo
+borraría entero en un commit con el motivo escrito —la historia de git lo guarda—,
+pero borrar es decisión de Ana.
+
+### ⚪ 18.3 — Y el resto de esas categorías no es código
+
+Los 30 `.xml` y los 6 `.gradle` son del envoltorio Android, que nunca se llegó a
+montar. Los 7 `.docx` y los `.csv` de `docs/planning/` son documentos de
+planificación de sprints y ficheros de importación para Jira y Linear, con 15
+líneas cada uno. Los 22 `.css` son de `src/styles/`, y el único con decisiones
+dentro es `fuentes.css`, que ya sale en §17 por autoservirse Nunito Sans.
+
+---
+
+## Lo que queda, y de qué tamaño
+
+Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
+contar pruebas, y las dieciocho zonas de arriba no son «todo leído»: son todo lo
+que puede hacer daño, leído, más el resto medido con comprobaciones dirigidas.
+
+### De este repositorio
+
+| Lo que queda | Tamaño | Por qué no lo he hecho |
+|---|---:|---|
+| Los scrapers de `scripts/` uno a uno | ~55.000 líneas | §13 cubre lo que de ellos **se ejecuta**: los 52 flujos activos, comparados contra la instancia de n8n. Leer los 212 ficheros daría hallazgos de estilo |
+| `src/` línea a línea | 64.612 líneas | §6 midió lo estructural —395 `useState`, 2.725 estilos en línea, `readGarageVehicles` en 7 pantallas con 6 versiones— y §12/§18 fueron a los sitios concretos donde algo podía romperse |
+
+Y una cosa que **no es leer código** y es lo que de verdad falta: dejar
+`pg_stat_statements` unos días y volver a `npm run consultas-lentas`. Las
+decisiones de rendimiento que quedan —qué índices tirar de los 523 MB, si subir
+`work_mem`, si pagar más memoria de Neon— se toman con medias de miles de llamadas
+reales. Las mías a mano ya fallaron tres veces (§9).
+
+### Y del proyecto entero, que son cuatro repositorios
+
+Esto es lo honesto, y es mucho más grande que lo de arriba:
+
+| Repositorio | Código | Estado |
+|---|---:|---|
+| **Mobility-Advisor** | 170.166 líneas | revisado, 18 zonas |
+| **carswise-erp-backoffice** | **80.232 líneas** | **sin revisar** |
+| **Jarvis-agentes** | **23.984 líneas** | **sin revisar** |
+| **La app (PopCar Pocket Advisor)** | otro repositorio, no está aquí | **sin revisar** |
+
+Del ERP solo he entrado dos veces y por una pregunta concreta: quién escribe
+`erp_fichas_tecnicas_leidas` (§12.2) y si declara HSTS (§17.5). De Jarvis, nada.
+
+Y las dos cosas que sé de ellos ya apuntan a que hay trabajo: el ERP **crea una
+tabla al vuelo** con un `aseguraLaTabla()` en medio de una petición —el patrón
+exacto que `el-esquema-tiene-un-dueno.test.js` eliminó de este repositorio porque
+rompió la descarga de facturas—, y esa tabla la lee este lado con un `catch` que
+lo tapa. Ninguna prueba de ninguno de los dos repositorios puede ver eso, porque
+el fallo vive **entre** los dos.
+
+Si hay que seguir, yo empezaría por el ERP: es el que más código tiene, el que
+toca la misma base de datos, y el único desde el que se escriben tablas que este
+repositorio lee.
+
+## Y las tareas que no son leer código
+
+- **Dejar `pg_stat_statements` unos días y volver a `npm run consultas-lentas`.**
+  Es lo primero de esta lista. Qué índices tirar de los 523 MB, si subir
+  `work_mem`, si pagar más memoria de Neon: eso se decide con medias de miles de
+  llamadas reales, y mis medidas a mano fallaron tres veces (§9).
+- **Un `npm run` que exporte los 61 flujos de n8n por su API.** Hacerlo a mano no
+  va a pasar, y §13.1 es la prueba: el avisador de fallos lleva meses mejor en n8n
+  que en el repositorio.
+- **Averiguar quién escribe a las 07h.** En §9.4 lo achaqué a los scrapers
+  pisándose y §13.5 demuestra que no es eso: están escalonados a mano. Lo dirá
+  `pg_stat_statements`, no otra suposición mía.
+- **Un cron semanal que compruebe las cabeceras** (§17.4), y el `report-uri` de la
+  CSP apuntando a `/api/error`, que ya existe (§17.3).
+
+## Y las decisiones que son tuyas, no trabajo
+
+1. `AUTH_EXPOSE_RESET_CODE` verificada como falsa o ausente en Vercel. En
+   `.env.local` está en `true`, y con ese valor la API devuelve el código de
+   recuperación.
+2. Las **siete lecturas** que devuelven lista vacía cuando la base falla (§5.8).
+   Cambiarlo es un aviso de error en vez de una lista vacía: se nota.
+3. Los **87 `leasys-%`** vivos en el marketplace, sin código que nombre ese
+   proveedor.
+4. Si el ERP debe tener **su propia base de datos**. Un commit de julio dice que
+   sí y `ERP_DATABASE_URL` no existe.
+5. El **consentimiento del alta** (`useLosConsentimientosDelRegistro.js` lo
+   documenta).
+
+Y tres que salieron después: mover los dos crones de facetas de cada hora a una
+vez al día (§9.4), qué hacer con los 126 MB de `moveadvisor_market_dealers` que
+nada lee (§12.5), y si entrar en la lista de precarga de HSTS (§17.5), que es de
+una sola dirección.
+
+## Nota de método
+
+Tres cosas que hacer diferente la próxima vez, sacadas de equivocarme en esta:
+
+**Una diferencia contada no es una diferencia vista.** Comparando n8n contra el
+repositorio saqué 52 y luego 54 divergencias, y las dos veces eran artefactos de
+mi comparación. Lo vi al mirar **un caso concreto** (§13.6).
+
+**Una prueba escrita después del arreglo hay que lanzarla contra el antes.** Si no
+falla contra el código viejo, no vigila nada. Lo hice con `git show HEAD` y las
+nueve de §5.8/§10.1 fallaron; las de rutas que generé desde la tabla que probaban,
+no habrían fallado nunca.
+
+**Leer el resto del fichero antes de decir que algo falta.** Diez veces en esta
+revisión iba a apuntar un hallazgo y estaba resuelto y explicado unas líneas más
+arriba, o en el `docs/` de al lado.

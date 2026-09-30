@@ -824,6 +824,13 @@ pude demostrar nada**: las tres ordenaban en memoria y los tiempos salieron 8.51
 2.965 y 16.031 ms de mediana, con un caso de 48 segundos en la primera. O sea: para
 **esa** consulta `work_mem` no es la restricción.
 
+> **Y aquella medición era peor que inconcluyente: no medía lo que yo creía.** Lo
+> descubrí en §19.4. Las conexiones van por pgbouncer, y un `SET work_mem` se queda
+> en el backend del servidor, no en el cliente: probado con dos clientes, el que
+> hace el `SET` **no lo ve** y el otro **sí**. Así que no sé si los 32 MB llegaron a
+> la consulta que cronometré. Lo que escribí de que «32 MB es el único con varianza
+> estrecha» hay que tacharlo.
+
 Así que los 294 GB vienen de otras: el `REFRESH MATERIALIZED VIEW` sobre 2,8
 millones de filas y las cargas masivas, que son las que de verdad ordenan mucho.
 Subir `work_mem` sigue siendo probablemente lo correcto, pero **hay que decidirlo
@@ -2241,6 +2248,127 @@ dentro es `fuentes.css`, que ya sale en §17 por autoservirse Nunito Sans.
 
 ---
 
+## Zona 19 — El ERP, primera pasada, y una corrección mía que sale de ahí ✔ revisada
+
+`carswise-erp-backoffice`: 80.232 líneas, 40.752 en `apps/api` y 37.561 en
+`apps/web`. Es otro repositorio y **escribe en la misma base de datos que éste**,
+así que le pasé de checklist lo que había encontrado aquí. No está revisado entero
+—es una primera pasada— pero lo que sale ya cambia dos cosas de este documento.
+
+### 🟠 19.1 — 280 sentencias de esquema dentro de las peticiones, y ninguna migración
+
+42 ficheros de `apps/api/src` ejecutan `CREATE TABLE IF NOT EXISTS`,
+`ADD COLUMN IF NOT EXISTS` o `CREATE INDEX IF NOT EXISTS` en medio de una
+petición. **280 sentencias.** Y no hay carpeta de migraciones: ni `migrations/`,
+ni `prisma/`, ni nada.
+
+Es exactamente la enfermedad que se curó en este repositorio, y a mayor escala:
+`el-esquema-tiene-un-dueno.test.js` nació porque había **25 ficheros y 224
+sentencias** haciendo esto, y la avería concreta fue que descargar una factura en
+PDF estaba roto en producción —`column i.rectifica_numero does not exist`— porque
+las tres columnas las creaba un fichero al que nadie llamaba.
+
+Y lo que lo hace peor aquí es que **el ERP crea y altera tablas de este
+repositorio**:
+
+```
+moveadvisor_user_vehicles        moveadvisor_invoice_counters
+moveadvisor_user_vehicle_files   moveadvisor_marketplace_vo_units
+moveadvisor_market_leads         moveadvisor_renting_contracts
+moveadvisor_workshop_reservations, _blocks    vehicle_visit_bookings (×4)
+moveadvisor_provider_invoices (×2)
+```
+
+O sea que el esquema de la base compartida lo definen dos sitios: las 19
+migraciones de aquí, con sus huellas sha256 en `migraciones_aplicadas`, y 280
+sentencias repartidas por los manejadores del ERP.
+
+### ✅ 19.2 — Pero hoy no hay divergencia, y eso lo medí antes de alarmar
+
+Iba a escribir que las dos definiciones se han separado. **No se han separado.**
+Comparé las columnas de la base contra todo el SQL de `migrations/`:
+
+| | |
+|---|---:|
+| Columnas en tablas que `migrations/` declara | **1.391** |
+| De ésas, columnas que ninguna migración nombra | **10** |
+
+Y las diez están en dos tablas `erp_*`, que son del ERP: nueve en
+`erp_encargos_venta` (`ingreso_at`, `gestoria_at`, `liberado_at`…) y una en
+`erp_revisiones_taller` (`taller_id`). **Cero en tablas `moveadvisor_*`.**
+
+Así que el `CREATE TABLE IF NOT EXISTS` del ERP sobre las tablas compartidas hoy
+es **redundante, no divergente**. El riesgo es estructural: `IF NOT EXISTS` sobre
+una tabla que ya existe con otra forma **no hace nada y no avisa**, así que el día
+que las dos definiciones no coincidan, la consulta del ERP falla en caliente y
+nadie se entera. Y una base nueva creada desde `migrations/` no tendría esas diez
+columnas.
+
+### ✅ 19.3 — Y en lo demás el ERP está mejor que este repositorio
+
+Le pasé el resto del checklist y sale bien parado:
+
+- **Ni un `catch {}` vacío** en `apps/api/src`. Aquí hay 31 solo en
+  `billingStore.js` (§5.9).
+- **Un solo pool**, en `apps/api/src/db/pool.ts`, con `max: 10` y
+  `idleTimeoutMillis`. Y **nadie lo cierra**: cero `.end()` en los manejadores, que
+  es el fallo que tumbaba instancias enteras aquí (§2).
+- **Los `DELETE` van acotados y parametrizados.** Miré los cuatro que salieron:
+  los de `moveadvisor_workshop_blocks` llevan `WHERE workshop_id = $1 AND dia = $2`
+  y los de `erp_tramites` cinco condiciones.
+- **Ni una credencial.** Lo único con forma de secreto es
+  `SECRET = 'secreto-de-mentira'` en un test.
+
+### 🔴 19.4 — Corrección: dije que probar `work_mem` «en mi sesión» no afectaba a nadie, y es falso
+
+Esto salió tirando del hilo de las conexiones, y corrige la zona 9.
+
+Todas las conexiones a esta base pasan por **pgbouncer** —lo dice
+`pg_stat_activity`: `application_name = pgbouncer`—, y el límite es de 450
+conexiones con 4 en uso, así que agotarlas no es el riesgo que yo iba buscando.
+
+Lo que sí es un riesgo lo encontré probándolo. Abrí **dos clientes independientes**
+contra la misma base, hice `SET work_mem = '32MB'` en uno y pregunté desde el otro:
+
+```
+  B antes de que A toque nada:   4MB
+  A despues de su propio SET:    4MB     <- A no ve lo que acaba de poner
+  B despues, seis veces:        32MB, 32MB, 32MB, 32MB, 32MB, 32MB
+```
+
+**A no ve su propio ajuste y B sí lo ve.** El `SET` se queda en el backend del
+servidor que pgbouncer le asignó, y ese backend se le entrega después a quien
+pregunte.
+
+Dos consecuencias, y la primera es mía:
+
+1. **Le dije a Ana que la prueba de `work_mem` la hacía «en mi sesión, que no
+   afecta a nadie».** Era falso: ese ajuste se fue a backends compartidos con el
+   tráfico de producción. No ha pasado nada —7 usuarios, prelanzamiento— pero lo
+   afirmé sin comprobarlo. Ya está limpio: lancé `RESET ALL` en varias rondas y
+   `work_mem` vuelve a leerse como `4MB` ocho veces seguidas.
+2. **Y la medición de §9.2 no medía lo que yo creía.** Los tiempos de 8.513, 2.965
+   y 16.031 ms se tomaron sin saber si el `SET` había llegado a la consulta medida
+   o a la de otro. Con lo cual lo que escribí allí —«32 MB es el único con varianza
+   estrecha»— **no vale**, y la conclusión de esa zona se refuerza: esto no se mide
+   a mano, se mide con `pg_stat_statements`.
+
+**Cómo se hace bien.** Lo comprobé en la misma pasada: `SET LOCAL` dentro de un
+`BEGIN` sí queda acotado —64MB dentro de la transacción, 4MB después del
+`COMMIT`—. Para un cambio permanente, `ALTER DATABASE`. Y cualquier guion que haga
+`SET` contra este `DATABASE_URL` está tocando a los demás, así que eso merece un
+aviso en `lib/postgres.js`.
+
+### Lo que NO he revisado del ERP
+
+Casi todo: 80.232 líneas y he mirado cuatro cosas concretas. No he entrado en
+`apps/web` (37.561 líneas), ni en la lógica de encargos, pedidos, trámites,
+peritaciones o facturación, ni en sus 20 guiones `comprueba-*`, ni en cómo
+autentica. Lo de arriba es lo que se ve pasándole el checklist de este documento,
+no una revisión.
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -2267,12 +2395,15 @@ Esto es lo honesto, y es mucho más grande que lo de arriba:
 | Repositorio | Código | Estado |
 |---|---:|---|
 | **Mobility-Advisor** | 170.166 líneas | revisado, 18 zonas |
-| **carswise-erp-backoffice** | **80.232 líneas** | **sin revisar** |
+| **carswise-erp-backoffice** | 80.232 líneas | **primera pasada**: §19 |
 | **Jarvis-agentes** | **23.984 líneas** | **sin revisar** |
 | **La app (PopCar Pocket Advisor)** | otro repositorio, no está aquí | **sin revisar** |
 
-Del ERP solo he entrado dos veces y por una pregunta concreta: quién escribe
-`erp_fichas_tecnicas_leidas` (§12.2) y si declara HSTS (§17.5). De Jarvis, nada.
+Del ERP hay una primera pasada en §19: le pasé el checklist de este documento y
+salieron 280 sentencias de esquema dentro de las peticiones sin ninguna migración,
+más una corrección importante de la zona 9. Pero son 80.232 líneas y he mirado
+cuatro cosas: `apps/web` entero —37.561 líneas—, la lógica de encargos, pedidos,
+trámites y facturación, y cómo autentica, están sin abrir. **De Jarvis, nada.**
 
 Y las dos cosas que sé de ellos ya apuntan a que hay trabajo: el ERP **crea una
 tabla al vuelo** con un `aseguraLaTabla()` en medio de una petición —el patrón

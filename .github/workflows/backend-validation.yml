@@ -91,6 +91,26 @@ jobs:
           RUN_MOBILITY_BACKEND_TESTS: "false"
         run: npm run test:backend-ci
 
+      # Las 1.690 pruebas de lib/ y las 934 del front no se corrian aqui: el
+      # trabajo solo pasaba por test:backend-ci y por el build. O sea que toda
+      # la red de seguridad del repositorio dependia de que alguien se acordara
+      # de lanzarla a mano antes de empujar. Dos pasos, y ya no.
+      #
+      # El de lib va con el patron entre comillas a proposito, y no por
+      # `npm run test:lib`. Ese script lo escribe sin comillas, y en Windows
+      # funciona porque cmd no expande y node se encarga, pero en el ubuntu de
+      # aqui lo expande bash: sin `globstar`, `lib/**/*.test.js` se convierte en
+      # `lib/*/*.test.js` y **se deja fuera los 61 ficheros que estan
+      # directamente en lib/**. Medido: 934 de las 1.690 pruebas. Entre comillas
+      # el patron llega entero a node y se corren las 1.690 en los dos sitios.
+      - name: Run lib tests
+        run: node --test "lib/**/*.test.js"
+
+      - name: Run frontend tests
+        env:
+          CI: "true"
+        run: npx react-scripts test --watchAll=false
+
       - name: Build app
         env:
           CI: "true"
@@ -103,8 +123,20 @@ jobs:
           name: backend-core-api-log
           path: backend-core-api.log
 
+  # ── Este trabajo ya no puede correr, y conviene saberlo ───────────────────
+  #
+  # Pide `AUTH_PROVIDER: mssql`, y `api/auth.js` ya no atiende ese nombre: esta
+  # en PROVEEDORES_RETIRADOS, avisa por el registro y sigue por Postgres. Pide un
+  # runner propio de Windows con sqlcmd, y sqlcmd no esta en ninguna parte. Y el
+  # paso de limpieza llama a `cleanup:test-users-local`, que se quito del
+  # repositorio al revisar los scripts destructivos.
+  #
+  # Se queda escrito porque solo arranca a mano y con su interruptor puesto, asi
+  # que no estorba, y porque borrarlo seria tirar el unico sitio donde queda
+  # apuntado como era la validacion contra SQL Server. Cuando se decida que SQL
+  # Server no vuelve, esto se va entero.
   backend-sql:
-    name: SQL Backend Checks
+    name: SQL Backend Checks (retirado — ver el comentario)
     needs: backend-core
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_sql_backend }}
     runs-on:

@@ -38,7 +38,26 @@ function cpToProvince(cp) {
 }
 
 // ─── Helpers de descarga ──────────────────────────────────────────────────
-const sslAgent = new https.Agent({ rejectUnauthorized: false });
+
+/*
+ * Aqui decia `rejectUnauthorized: false`, sin un comentario que dijera por que.
+ *
+ * Eso acepta cualquier certificado que le presenten: quien se coloque en medio
+ * puede servir sus propios datos, y este script **los mete en la base**. No es
+ * una lista que alguien lea y descarte: son los talleres que se le ensenan a un
+ * cliente.
+ *
+ * Y no hacia falta. Lo comprobe contra las cinco maquinas que intervienen, con
+ * la verificacion puesta y siguiendo los saltos:
+ *
+ *     analisi.transparenciacatalunya.cat   HTTP 200
+ *     abertos.xunta.gal                    HTTP 302 -> oficinavirtualindustria.xunta.gal  HTTP 200
+ *     datosabiertos.jcyl.es                HTTP 302 -> transparencia.jcyl.es              HTTP 200
+ *
+ * Las cinco verifican con la cadena normal. Era el copiar y pegar de la primera
+ * vez, el mismo que `lib/postgres-ssl.js` cuenta que estaba escrito 55 veces.
+ */
+const sslAgent = new https.Agent({ rejectUnauthorized: true });
 
 function fetchText(url, encoding = "utf8") {
   return new Promise((resolve, reject) => {

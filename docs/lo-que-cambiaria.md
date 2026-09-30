@@ -933,17 +933,208 @@ dice de sí mismo.
 
 ---
 
-## Lo que falta por revisar
+## Zona 11 — `scripts/`, el resto, y lo que los lanza ✔ revisada
 
-Con su tamaño, para que nadie lea esto como si cubriera todo:
+212 ficheros. No los he leído uno a uno; he ido a lo que puede hacer daño:
+credenciales, quién escribe en la base, cómo se conectan y **quién lanza todo
+esto**. Y lo que ha salido no está en `scripts/`, está en el fichero que decide
+qué se comprueba antes de desplegar.
 
-| Zona | Tamaño | Qué buscar |
+### ✅ 11.1 — El CI no corría 2.624 de las pruebas del repositorio — **arreglado**
+
+`.github/workflows/backend-validation.yml` corre en cada empujón a `main` y en
+cada PR. Y lo que corría era:
+
+```
+npm run test:backend-ci   →  marca, og, correo, auth-local, auth-local:strict,
+                             auth-security-local
+npm run build
+```
+
+Eso es todo. **Ni `test:lib` —1.690 pruebas— ni las 934 del front.**
+
+O sea que toda la red de seguridad de este repositorio —incluidas las de esta
+revisión: el pool compartido, los scripts que borran, lo que cuesta dinero, las
+puertas sin freno— dependía de que alguien se acordara de lanzarla a mano antes
+de empujar. Y yo mismo me dejé de correrla dos commits en esta sesión, y empujé
+dos pruebas rojas.
+
+Puestos los dos pasos, antes del `build`.
+
+### 🟠 11.2 — Y `npm run test:lib` corre 934 de las 1.690 en Linux
+
+Esto lo encontré al ir a añadirlo. El script es:
+
+```json
+"test:lib": "node --test lib/**/*.test.js"
+```
+
+Sin comillas. En Windows funciona porque `cmd` no expande nada y el patrón llega
+entero a node, que sí entiende `**`. **En Linux y en macOS lo expande la shell
+primero**, y `bash` sin `globstar` convierte `lib/**/*.test.js` en
+`lib/*/*.test.js`: solo las subcarpetas.
+
+Medido:
+
+| Lo que se corre | Ficheros | Pruebas |
+|---|---:|---:|
+| `lib/*/*.test.js` —lo que ve bash— | 77 | **934** |
+| `lib/*.test.js` —lo que se queda fuera— | 61 | **756** |
+| Con el patrón entre comillas | 138 | **1.690** |
+
+Y los 61 que se caen son los que están **directamente en `lib/`**, que es donde
+vive casi todo lo que he escrito esta revisión.
+
+En el workflow lo he escrito con comillas y con el comentario explicando por qué
+no va por `npm run test:lib`. **El script de `package.json` sigue mal**, y no lo
+he tocado porque tu otra sesión lo tiene abierto: cámbialo a
+`node --test "lib/**/*.test.js"` cuando cierres lo tuyo.
+
+### ✅ 11.3 — El importador de talleres no verificaba el certificado — **arreglado**
+
+`scripts/import-official-workshops.js`, que baja los registros oficiales de
+talleres de tres comunidades **y los mete en la base**:
+
+```js
+const sslAgent = new https.Agent({ rejectUnauthorized: false });
+```
+
+Sin un comentario que dijera por qué. Eso acepta cualquier certificado: quien se
+coloque en medio sirve sus propios datos, y lo que se guarda son los talleres que
+se le acaban enseñando a un cliente.
+
+**Y no hacía falta.** Lo comprobé con la verificación puesta, siguiendo los
+saltos, contra las cinco máquinas que intervienen:
+
+```
+analisi.transparenciacatalunya.cat   HTTP 200
+abertos.xunta.gal                    HTTP 302 → oficinavirtualindustria.xunta.gal  HTTP 200
+datosabiertos.jcyl.es                HTTP 302 → transparencia.jcyl.es              HTTP 200
+```
+
+Las cinco verifican con la cadena normal. Era el copiar y pegar de la primera
+vez, el mismo que `lib/postgres-ssl.js` cuenta que estaba escrito 55 veces.
+
+### 🟡 11.4 — El trabajo de CI contra SQL Server no puede correr
+
+`backend-sql`, en el mismo workflow. Tres motivos, cada uno suficiente:
+
+- Pide `AUTH_PROVIDER: mssql`, y `api/auth.js` **ya no atiende ese nombre**: está
+  en `PROVEEDORES_RETIRADOS`, avisa por el registro y sigue por Postgres.
+- Pide un runner propio de Windows con `sqlcmd`, que no está en ninguna parte.
+- Su paso de limpieza llama a `cleanup:test-users-local`, y ese script **lo quité
+  yo** al revisar los destructivos, sin comprobar que el workflow lo llamaba. No
+  rompe nada porque el trabajo solo arranca a mano y con su interruptor puesto,
+  pero lo apunto porque fue un descuido mío.
+
+Le he puesto el nombre y un comentario diciendo que está retirado y por qué. No
+lo he borrado: es el único sitio donde queda escrito cómo era la validación
+contra SQL Server, y arranca solo a mano. Cuando decidas que SQL Server no
+vuelve, se va entero.
+
+### 🟡 11.5 — Cuatro entradas de `package.json` que no llevan a ninguna parte
+
+- `migrate:attachments:sqlserver` → `scripts/migrate-attachments-filesystem-sqlserver.js`,
+  **que no existe**. Lo comprobé contra el disco.
+- `inventory:sync:sqlserver` → un script que llama a `sqlcmd`.
+- `test:mobility-backend-local` → su mensaje de éxito es literalmente *«OK:
+  endpoints persisted data in SQL Server without fallback»*, y consulta tablas
+  `dbo.MoveAdvisorUser…`.
+- `cleanup:test-users-local`, ya quitada, pero el workflow la sigue llamando
+  (§11.4).
+
+Las tres primeras fallarían con un error que no explica nada —«no encuentro el
+módulo», «sqlcmd no se reconoce»—. Tampoco las he tocado por lo mismo que §11.2:
+`package.json` está abierto en tu otra sesión.
+
+### ⚪ 11.6 — Siete scripts `tmp_*` en el repositorio
+
+`tmp_add_service_type`, `tmp_analyze_batch_007_duplicates`,
+`tmp_check_locations_power`, `tmp_check_norauto_cities`, `tmp_fix_lat_nullable`,
+`tmp_inspect_galicia_ods`, `tmp_inspect_official_sources`.
+
+Son de explorar: se escribieron para mirar una cosa un día. Dos de ellos
+(`tmp_inspect_*`) también desactivan la verificación del certificado, y uno
+(`tmp_fix_lat_nullable`) toca el esquema. Nadie los llama.
+
+El problema de un `tmp_` que se queda es que el siguiente que lo encuentre no
+sabe si sigue haciendo falta. Yo los borraría, pero borrar es tuyo.
+
+### ⚪ 11.7 — Once variables de entorno usadas y no documentadas
+
+Comparando los **nombres** —no los valores— de `.env.local` contra
+`.env.example`, once están en uso y no en el ejemplo:
+
+```
+ANTHROPIC_API_KEY  API_PORT  BRIGHTDATA_API_KEY  DANGEROUSLY_DISABLE_HOST_CHECK
+HERE_API_KEY  HOST  INTERNAL_EMAIL  JARVIS_API_URL  JARVIS_PROCESSOR_TOKEN
+N8N_API_KEY  REPLY_TO_EMAIL
+```
+
+De ésas, **tres las lee el código que se despliega**, y miré qué pasa sin ellas:
+
+| Variable | Dónde | Sin ella |
 |---|---|---|
-| `scripts/`, la parte no destructiva | 229 ficheros | los scrapers: qué rascan y qué escriben |
+| `ANTHROPIC_API_KEY` | `lib/el-cerebro-elige.js` | tira por Gemini, que ya se paga |
+| `REPLY_TO_EMAIL` | `lib/marca.js` | usa `correoSoporte()` |
+| `INTERNAL_EMAIL` | `lib/marca.js` | usa `correoSoporte()`, y avisa una vez por el registro si no hay ninguno |
 
-Y lo que no entra en ninguna zona y tampoco he hecho: las **cabeceras de
-seguridad** (hay `docs/cabeceras-de-seguridad.md`, no he verificado que se
-apliquen).
+O sea que las tres tienen su salida y nada se cae. Pero quien monte un entorno
+nuevo desde `.env.example` se queda sin las once sin que nada se lo diga, y dos
+de ellas cambian a dónde llegan los correos de los clientes.
+
+### ✅ 11.8 — Lo que miré y está bien
+
+- **No hay ni una credencial en el repositorio.** Busqué claves, tokens,
+  contraseñas y cadenas de conexión con credenciales dentro por todo el árbol. Lo
+  único que sale son valores de mentira evidentes: `"UnaClaveLarga123"` en un
+  test, `"clave-de-mentira-para-el-ensayo"` en el ensayo del cron, dos
+  `postgres://quien:sea@ninguna-parte.invalid` en las pruebas del pool, y un
+  `postgresql://user:pass@neon.tech/…` de ejemplo en el roadmap.
+- **`.gitignore` está bien puesto**: `.env*` con `!.env.example`, y solo
+  `.env.example` en el índice. Hay un `.env.local.bak-procesador` en el disco,
+  correctamente ignorado. El propio `.gitignore` lleva el comentario de que *«una
+  copia .env.local.bak con credenciales dentro casi acaba en el repo»*, así que
+  esto ya se pagó una vez.
+- **`.env.example` no tiene ni un valor real.** 74 variables, todas con
+  marcadores.
+- **Los 41 scripts que abren base de datos lo hacen bien, y al contrario que los
+  manejadores.** Los 41 se crean su propio `new Pool` y **los 41 llaman a
+  `.end()`** —los conté—. Ninguno usa `lib/postgres.js`, y **eso es correcto**:
+  un script de una pasada tiene que ser dueño de su pool y cerrarlo, mientras que
+  un manejador de Vercel tiene que compartirlo y no cerrarlo nunca (§2, donde
+  ocho lo cerraban y tiraban la instancia entera). Mismo repositorio, reglas
+  opuestas, y las dos bien.
+- **`lib/postgres-ssl.js` es el patrón que hay que copiar.** Un ajuste de
+  seguridad escrito una vez en vez de 55, con la puerta de emergencia
+  (`PGSSL_SIN_VERIFICAR=1`) que avisa por el registro para que no se quede
+  puesta. §11.3 es exactamente lo que ese fichero describe, en otro sitio.
+- **Solo tres sitios del árbol desactivan la verificación de certificados** y los
+  tres estaban en `scripts/`: el de talleres (arreglado) y dos `tmp_inspect_*`.
+  Nada en `api/` ni en `lib/`.
+
+---
+
+## Lo que queda, que ya no es leer código
+
+Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es
+esto, y ninguna de las dos cosas es leer ficheros:
+
+- **Las cabeceras de seguridad.** Hay `docs/cabeceras-de-seguridad.md` y no he
+  verificado que lo que dice se aplique de verdad contra el dominio. Es una
+  comprobación contra producción, y con el cortafuegos de Vercel retando a esta
+  IP hay que hacerla con cuidado.
+- **Dejar que `pg_stat_statements` acumule unos días de tráfico real** y volver a
+  `npm run consultas-lentas`. Las decisiones de rendimiento que quedan —qué
+  índices tirar, si subir `work_mem`, si pagar más memoria de Neon— se toman con
+  esos números y no con los míos medidos a mano (§9).
+
+Y de los 212 scripts no he leído los 212: fui a lo que puede hacer daño
+—credenciales, quién escribe en la base, cómo se conecta, quién lanza qué— y está
+en §11. Lo que no he hecho es leer los scrapers uno a uno para ver si lo que
+rascan sigue cuadrando con lo que enseña cada portal; eso se rompe solo cuando
+un portal cambia, y para eso están los 55 `comprueba-*` y el cron que vigila los
+scrapers.
 
 Además, lo de §9 deja una tarea que **no es de leer código**: dejar
 `pg_stat_statements` acumulando unos días de tráfico real y volver a

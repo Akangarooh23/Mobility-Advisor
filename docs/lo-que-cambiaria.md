@@ -2745,22 +2745,78 @@ decisiones de rendimiento que quedan —qué índices tirar de los 523 MB, si su
 `work_mem`, si pagar más memoria de Neon— se toman con medias de miles de llamadas
 reales. Las mías a mano ya fallaron tres veces (§9).
 
-### Y del proyecto entero, que son cuatro repositorios
+### Cuánto se ha revisado, en porcentaje y por capas
 
-Esto es lo honesto, y es mucho más grande que lo de arriba:
+Un solo porcentaje engañaría: leer mil líneas de autenticación no es lo mismo que
+leer mil de estilos. Así que va por capas, y solo la primera es una estimación —las
+otras dos son cuentas exactas.
+
+Denominadores, medidos con el mismo filtro en los dos: código `.js .jsx .mjs .ts
+.tsx .sql`, sin ficheros de prueba.
+
+| | Mobility-Advisor | ERP |
+|---|---:|---:|
+| Código | **174.953 líneas** | **80.232 líneas** |
+
+**Capa 1 — leído de verdad.** Los ficheros que he abierto y leído, no barrido.
+`api/auth.js` entero, `src/App.js` durante el refactor, los trozos concretos de
+`billingStore`, `inventoryStore`, `sellReportGenerator`, `enrutador`, `freno`,
+`registra`, `postgres`, seis migraciones, el workflow del CI, `vercel.json`, el
+servidor local, y las pruebas que escribí o audité.
+
+| | Mobility-Advisor | ERP |
+|---|---:|---:|
+| Leído | ~22.000 líneas | ~600 líneas |
+| **En porcentaje** | **≈ 13 %** | **≈ 0,7 %** |
+
+Es una estimación, y la doy con el método delante para que se pueda discutir.
+
+**Capa 2 — barrido con comprobaciones.** Aquí sí es exacto, porque los guiones que
+escribí recorrieron todos los ficheros:
+
+| | Mobility-Advisor | ERP |
+|---|---:|---:|
+| Ficheros barridos | **100 %** | **100 %** |
+
+Credenciales, quién escribe en la base, quién cierra el pool, `catch` vacíos, SQL
+concatenado, esquema creado en caliente, rutas y sus guardias, y las 217 pruebas.
+Barrido no es leído: caza lo que se busca y no lo que no se te ocurre.
+
+**Capa 3 — las superficies completas.** Esto es lo que de verdad contesta «¿está
+revisado?», y aquí no hay estimación ninguna:
+
+| Superficie | Cobertura |
+|---|---|
+| Entradas HTTP de Mobility | **49 de 49** reescrituras, y las 6 funciones |
+| Entradas HTTP del ERP | **264 de 264** rutas, con su guardia mirada una a una |
+| Tareas programadas | **8 de 8** crones de Vercel, y las 61 de n8n |
+| Flujos de n8n | **61 de 61**, comparados contra la instancia que corre |
+| Esquema de la base | **110 de 110** tablas y **1.391 columnas**, comparadas contra las migraciones |
+| Guiones que borran | **todos**, uno a uno (§7) |
+| Ficheros de prueba | **217 de 217**, más seis mutaciones reales (§16) |
+| Cabeceras de seguridad | los **3** dominios, contra producción (§17) |
+
+Así que **el 13 % leído convive con el 100 % de las superficies por donde entra
+algo**. Las dos cifras son verdad y dicen cosas distintas: no he leído este
+código, he revisado por dónde puede entrar y salir el daño.
+
+### Y el ERP, que es donde queda trabajo de verdad
 
 | Repositorio | Código | Estado |
 |---|---:|---|
-| **Mobility-Advisor** | 170.166 líneas | revisado, 18 zonas |
-| **carswise-erp-backoffice** | 80.232 líneas | **primera pasada**: §19 |
-| **Jarvis-agentes** | **23.984 líneas** | **sin revisar** |
-| **La app (PopCar Pocket Advisor)** | otro repositorio, no está aquí | **sin revisar** |
+| **Mobility-Advisor** | 174.953 líneas | 18 zonas, todas las superficies |
+| **carswise-erp-backoffice** | 80.232 líneas | **3 zonas** (§19, §20, §21): esquema, autorización, facturas y dinero |
+| **La app (PopCar Pocket Advisor)** | otro repositorio, no está aquí | sin revisar |
+
+Del ERP queda `apps/web` entero —37.561 líneas—, la lógica de encargos, pedidos,
+trámites, peritaciones y gastos, y sus 20 guiones `comprueba-*`. Su superficie de
+entrada sí está al 100 %, que es lo que evita sorpresas.
 
 Del ERP hay una primera pasada en §19: le pasé el checklist de este documento y
 salieron 280 sentencias de esquema dentro de las peticiones sin ninguna migración,
 más una corrección importante de la zona 9. Pero son 80.232 líneas y he mirado
 cuatro cosas: `apps/web` entero —37.561 líneas—, la lógica de encargos, pedidos,
-trámites y facturación, y cómo autentica, están sin abrir. **De Jarvis, nada.**
+trámites y facturación están sin abrir —cómo autentica sí, y está en §19.7—.
 
 Y las dos cosas que sé de ellos ya apuntan a que hay trabajo: el ERP **crea una
 tabla al vuelo** con un `aseguraLaTabla()` en medio de una petición —el patrón

@@ -467,6 +467,120 @@ Y de fondo: **31 `catch {}` vacíos en este fichero**. Cuatro son estos. Los
 demás hay que mirarlos uno a uno, porque `registra()` ya existe y no hay motivo
 para que ninguno siga tragándose el porqué.
 
+
+### 🔴 5.8 — Diez acciones contestan «guardado» cuando la base ha dicho no
+
+§5.7 era el garaje. Esto es lo mismo en **todo el área del cliente**, y lo encontré
+al repasar los 31 `catch {}` de `lib/billingStore.js` uno a uno, que era lo que
+quedaba pendiente.
+
+Las diecinueve funciones de datos del cliente tienen todas esta forma:
+
+```js
+async function addAppointmentByEmail(email = "", appointment = {}) {
+  if (hasPostgresConnection()) {
+    try {
+      return await addAppointmentByEmailPostgres(email, appointment);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+```
+
+Y `lib/api/billing-account-handler.js` las usa así:
+
+```js
+const appointments = await addAppointment(identity, body.appointment || body);
+return res.status(200).json({ ok: true, appointments, message: "Cita guardada." });
+```
+
+Si el `INSERT` falla, el `catch` devuelve `[]` y la respuesta es:
+
+```json
+{ "ok": true, "appointments": [], "message": "Cita guardada." }
+```
+
+**HTTP 200, `ok: true`, y la palabra «guardada».** Nada se guardó.
+
+Las diez que escriben, con su mensaje literal:
+
+| Acción | Lo que contesta |
+|---|---|
+| `appointment_add` | «Cita guardada.» |
+| `appointment_delete` | «Cita eliminada.» |
+| `valuation_add` | **«Tasacion guardada.»** |
+| `maintenance_add` | «Mantenimiento guardado.» |
+| `insurance_upsert` | «Seguro actualizado.» |
+| `vehicle_state_upsert` | «Estado de vehiculo actualizado.» |
+| `saved_offer_add` | «Oferta guardada.» |
+| `saved_offer_remove` | «Oferta eliminada.» |
+| `garage_add` | (sin mensaje, pero 200 y `ok: true`) |
+| `garage_remove` | «Vehiculo eliminado.» |
+
+Y las siete que leen —`appointments_list`, `valuations_list`,
+`maintenances_list`, `insurances_list`, `vehicle_states_list`,
+`saved_offers_list` y el re-listado de `appointment_delete`— contestan **lista
+vacía**: no «no he podido mirar», sino «no tienes nada».
+
+**Dieciséis acciones en total.** Y la peor es `valuation_add`: la tasación es el
+producto.
+
+Además el array vacío se devuelve al navegador, así que la pantalla enseña la
+lista **vacía justo después de decir que se guardó**. Quien esté delante ve las
+dos cosas a la vez y no puede saber cuál es la verdad.
+
+**Cómo llega a pasar.** Hace falta que Postgres falle, y en esta base falla:
+son los ocho manejadores que cerraban el pool compartido (§2), y con el 36,8 % de
+acierto de caché y consultas de 8 a 48 segundos (§9) un tiempo agotado entra por
+la misma puerta. No es un caso de laboratorio.
+
+**Qué haría.** Esto no es un `catch` que haya que mejorar, es un `catch` que no
+tiene que existir:
+
+```js
+async function addAppointmentByEmail(email = "", appointment = {}) {
+  if (hasPostgresConnection()) {
+    // Si la base no acepta la cita, quien llama tiene que enterarse. Decir que
+    // se guardó y devolver una lista vacía es lo peor de las dos opciones.
+    return addAppointmentByEmailPostgres(email, appointment);
+  }
+  return [];
+}
+```
+
+Y el manejador contesta 503 con un mensaje que se pueda leer. **Un guardado que
+falla no puede contestar en pasado.**
+
+En las siete de leer cambia lo que ve la gente —un aviso en vez de una lista
+vacía— y eso es decisión de producto, pero es la misma frase escrita en otro sitio
+de este repositorio y la tenía delante: *«No poder mirar no es lo mismo que no ser
+nuestro.»*
+
+### ✅ 5.9 — Y los otros quince `catch {}` de ese fichero están bien
+
+Repasé los 31. Quince no son el problema:
+
+- **Cinco son de limpiar la entrada o dar formato**: `sanitizeAttachment` y
+  `sanitizeAttachmentArray` recomponen lo que llega mal, `toEsDateTimeText`
+  devuelve cadena vacía si la fecha no se puede formatear,
+  `resolvePostgresUserIdentity` devuelve identidad sin id. Tragar ahí es correcto.
+- **Cinco son caídas a una segunda consulta**, que es resistencia de verdad y no
+  silencio: `listSolicitudesByEmailPostgres` tiene dos, y
+  `getUserMobilityDataByEmailPostgres` cae de una CTE a consultas sueltas si la
+  CTE falla. El dato acaba llegando.
+- **Tres son del almacén en fichero** y están comentados: `ensureStoreDirectory`,
+  `writeStore` y `readStore`, el asunto de §5.7.
+- **Dos devuelven un cero o un vacío que no afirma nada de nadie**:
+  `countGarageVehiclesByEmailPostgres` y el aviso de escaparate de
+  `getUserMobilityDataByEmailPostgres`, que tiene su comentario: *«Sin escaparate
+  legible se dice lo que sí se sabe y nada más.»*
+
+O sea que el problema no es que el fichero trague errores por costumbre. Es que
+dieciséis sitios concretos eligieron el vacío como respuesta, y en diez de ellos
+el vacío va acompañado de un «hecho».
+
 ---
 
 ## Zona 6 — Las 64 pantallas ✔ revisada
@@ -1610,6 +1724,51 @@ diferencia vista.**
 
 ---
 
+## Zona 14 — `mockups/` ✔ revisada
+
+Seis mil líneas de prototipos de diseño: dos versiones de la portada, un
+prototipo llamado `popgo`, las fuentes Inter, una foto y un servidor de 30 líneas
+para verlos. Nada de esto se despliega —ningún fichero de `src/` los referencia—
+y el único hallazgo es el servidor.
+
+### ⚪ 14.1 — El servidor de los mockups sirve cualquier fichero del disco
+
+`mockups/servidor.mjs`, treinta líneas para ver los prototipos en local:
+
+```js
+let ruta = req.url === '/' ? '/home-v3.html' : decodeURIComponent(req.url.split('?')[0])
+const destino = ruta.startsWith('/fotos/') ? join(FOTOS, …) : join(RAIZ, ruta)
+const datos = await readFile(destino)
+```
+
+`join` normaliza los `..`, así que una petición a `/../.env.local` sale de
+`mockups/` y lee lo que quiera del disco. Y `listen(4173)` sin dirección escucha en
+**todas las interfaces**, no solo en `localhost`: mientras esté arrancado,
+cualquiera de la red puede pedir ficheros de tu máquina.
+
+No está en producción ni lo arranca nada automáticamente, y por eso es blanco. Pero
+son dos líneas:
+
+```js
+const destino = resolve(base, '.' + ruta);
+if (!destino.startsWith(resolve(base))) { res.writeHead(403); return res.end('No'); }
+…
+.listen(4173, '127.0.0.1', …)
+```
+
+### ⚪ 14.2 — Dos prototipos de portada que nadie abre
+
+`home-v2.html` (500 líneas) y `home-v3.html` (809) son versiones anteriores de la
+portada, con sus propias fuentes Inter dentro. La aplicación real se sirve Nunito
+Sans desde `src/fonts/` —está explicado en `src/styles/fuentes.css`, y la razón
+escrita—, así que las Inter de aquí no las usa nadie.
+
+Es carpeta de trabajo de diseño y está bien que exista; lo que no está escrito en
+ninguna parte es que `home-v3.html` es la última y `home-v2.html` la anterior.
+Dentro de seis meses eso no se deduce del nombre.
+
+---
+
 ## Lo que queda, que ya no es leer código
 
 Ya no queda código por mirar: las once zonas están revisadas. Lo que queda es
@@ -1619,16 +1778,15 @@ esto, y ninguna de las dos cosas es leer ficheros:
   verificado que lo que dice se aplique de verdad contra el dominio. Es una
   comprobación contra producción, y con el cortafuegos de Vercel retando a esta
   IP hay que hacerla con cuidado.
-- **`mockups/`**, dos ficheros, que es lo único que queda sin abrir. `n8n-workflows/`
-  está en §13 y los otros tres en §12. De `scripts/` sigo sin leer los scrapers
-  uno a uno, aunque §13 cubre lo que de ellos se ejecuta de verdad.
+- **De `scripts/` sigo sin leer los scrapers uno a uno.** Es lo único que queda de
+  código sin abrir, y §13 cubre lo que de ellos se ejecuta de verdad: los 52 flujos
+  activos de n8n, comparados contra la instancia.
 - **Exportar los 61 flujos de n8n a mano nunca va a pasar.** §13.1 es la prueba:
   el avisador de fallos lleva meses mejor en n8n que en el repositorio. Hace falta
   un `npm run` que llame al API y los deje en el disco.
 - **Volver a mirar quién escribe a las 07h.** En §9.4 lo achaqué a los scrapers y
   §13.5 demuestra que no es eso. Lo dirá `pg_stat_statements`.
-- **Los 31 `catch {}` vacíos de `billingStore.js`** uno a uno. Cuatro son §5.7;
-  los otros 27 no los he mirado.
+- ~~Los 31 `catch {}` vacíos de `billingStore.js`~~ — repasados: §5.8 y §5.9.
 - **Dejar que `pg_stat_statements` acumule unos días de tráfico real** y volver a
   `npm run consultas-lentas`. Las decisiones de rendimiento que quedan —qué
   índices tirar, si subir `work_mem`, si pagar más memoria de Neon— se toman con

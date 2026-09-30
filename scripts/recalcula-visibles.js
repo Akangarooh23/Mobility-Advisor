@@ -61,6 +61,46 @@ const DB_URL = (env.match(/^DATABASE_URL=(.*)$/m) || [])[1].trim().replace(/^["'
 
 const APLICA = process.argv.includes("--aplica");
 
+/**
+ * Cuántas filas por sentencia.
+ *
+ * 10.000 sale de la medida: seleccionar 25.000 ids ya costaba 21 s contra el
+ * almacenamiento remoto de Neon, y ese es el tiempo que alguien espera. Con
+ * 10.000 son unos 10 s. Con el millón y medio de golpe eran VEINTE MINUTOS de
+ * bloqueo y cola en n8n.
+ */
+const LOTE = 10000;
+
+const mil = (n) => Number(n).toLocaleString("es");
+
+/*
+ * ── Reintento, porque n8n escribe en la misma tabla al mismo tiempo ────────
+ *
+ * Un deadlock es transitorio por definición -la víctima se deshace entera y
+ * la otra sigue-, así que la respuesta es volver a intentarlo. Con lotes
+ * pequeños es mucho menos probable, pero los scrapers escriben aquí a todas
+ * horas y basta con que coincidan una vez.
+ *
+ * 40P01 es deadlock_detected y 40001 serialization_failure. Cualquier otro
+ * error se deja subir: un fallo de sintaxis no se arregla insistiendo.
+ */
+const TRANSITORIOS = new Set(["40P01", "40001"]);
+const INTENTOS = 5;
+
+async function conReintento(c, etiqueta, sql, params) {
+  for (let i = 1; ; i++) {
+    try {
+      return await c.query(sql, params);
+    } catch (e) {
+      if (!TRANSITORIOS.has(e.code) || i >= INTENTOS) throw e;
+      const espera = 5 * i;
+      console.log("      " + etiqueta + ": " + e.message + " (intento " + i + " de "
+        + INTENTOS + "), reintento en " + espera + " s");
+      await new Promise((r) => setTimeout(r, espera * 1000));
+    }
+  }
+}
+
 const PRECIO_MINIMO = 4500;
 const PRECIO_MAXIMO = 200000;
 const KM_MAXIMO = 500000;
@@ -142,40 +182,76 @@ const CASE_MOTIVO = "CASE\n"
    * de tuplas muertas que el autovacuum tiene que limpiar cada noche.
    */
   console.log("\n  APLICANDO");
+  console.log("      por lotes de " + LOTE.toLocaleString("es") + ", para no bloquear a los scrapers");
   /*
-   * El motivo se calcula UNA vez, en un CTE, y las cuatro veces que hace falta
-   * leen de ahí.
+   * ── Por qué por lotes y no de una vez ────────────────────────────────────
    *
-   * Escrito del tirón sale con el CASE repetido cuatro veces dentro del mismo
-   * UPDATE, y entonces Postgres evalúa la subconsulta de duplicados cuatro
-   * veces por fila: 6,3 millones de búsquedas en lugar de 1,58. Da exactamente
-   * lo mismo y tarda cuatro veces más.
+   * Escrito como un solo UPDATE sobre el millón y medio de filas, Postgres
+   * mantiene el bloqueo de TODAS ellas hasta que termina. El 29-sep-2026 eso
+   * dejó a un scraper de n8n esperando 14 minutos:
    *
-   * Lo natural sería un LATERAL, que no materializa nada. No se puede: dentro
-   * de un UPDATE, Postgres no deja que el FROM mire a la tabla que se está
-   * actualizando -«invalid reference to FROM-clause entry»-. El CTE sí, a
-   * cambio de guardar 1,58 millones de pares (id, motivo) un rato.
+   *     pid 22494  843s  Lock transactionid  bloqueado por: [15090]
    *
-   * Y tiene que ser MATERIALIZED. Sin esa palabra, Postgres 12 en adelante
-   * aplana el CTE dentro del UPDATE y vuelve a dejar las cuatro subconsultas
-   * -se ve en el EXPLAIN como SubPlan 1, 2, 3 y 4-, con lo que el CTE no
-   * habría servido para nada.
+   * Y un workflow bloqueado ocupa uno de los tres huecos de concurrencia de
+   * n8n, así que detrás se forma cola. Como esto va a correr cada mañana a
+   * las 08:00, cuando los scrapers están trabajando, no puede ser así.
+   *
+   * Por lotes, cada sentencia bloquea 25.000 filas unos segundos y suelta. Lo
+   * que se tarda en total es parecido; lo que cambia es que nadie espera.
+   *
+   * ── Cómo se recorre ──────────────────────────────────────────────────────
+   *
+   * Por `id`, que es la clave primaria, avanzando con un cursor -`id > el
+   * último del lote anterior`-. No con OFFSET: con OFFSET, Postgres tiene que
+   * recorrer y descartar todo lo anterior en cada lote, y el último tarda lo
+   * que todos los demás juntos.
+   *
+   * El CTE devuelve el último id MIRADO, no el último escrito. No es lo
+   * mismo: dentro de un lote la mayoría de filas ya están bien y no se tocan,
+   * y si el cursor avanzara solo hasta el último escrito, se repetirían.
    */
-  const r = await c.query(`
-    WITH calculado AS MATERIALIZED (
-      SELECT o.id, ${CASE_MOTIVO} AS motivo
-        FROM moveadvisor_market_offers o
-       WHERE ${DONDE}
-    )
-    UPDATE moveadvisor_market_offers o
-       SET visible = k.motivo IS NULL,
-           visible_motivo = k.motivo,
-           visible_desde = NOW()
-      FROM calculado k
-     WHERE o.id = k.id
-       AND (o.visible IS DISTINCT FROM (k.motivo IS NULL)
-            OR o.visible_motivo IS DISTINCT FROM k.motivo)`);
-  console.log("      filas cambiadas: " + r.rowCount.toLocaleString("es"));
+  let cursor = "";
+  let escritas = 0;
+  let mirados = 0;
+  let lotes = 0;
+  const t0 = Date.now();
+  for (;;) {
+    const r = await conReintento(c, "lote " + (lotes + 1), `
+      WITH lote AS (
+        SELECT o.id, ${CASE_MOTIVO} AS motivo
+          FROM moveadvisor_market_offers o
+         WHERE ${DONDE} AND o.id > $1
+         ORDER BY o.id
+         LIMIT ${LOTE}
+      ),
+      escrito AS (
+        UPDATE moveadvisor_market_offers o
+           SET visible = k.motivo IS NULL,
+               visible_motivo = k.motivo,
+               visible_desde = NOW()
+          FROM lote k
+         WHERE o.id = k.id
+           AND (o.visible IS DISTINCT FROM (k.motivo IS NULL)
+                OR o.visible_motivo IS DISTINCT FROM k.motivo)
+        RETURNING 1
+      )
+      SELECT (SELECT max(id) FROM lote) AS ultimo,
+             (SELECT count(*)::int FROM lote) AS mirados,
+             (SELECT count(*)::int FROM escrito) AS escritos`, [cursor]);
+
+    const f = r.rows[0];
+    if (!f.mirados) break;
+    cursor = f.ultimo;
+    escritas += f.escritos;
+    mirados += f.mirados;
+    lotes++;
+    if (lotes % 10 === 0) {
+      console.log("      " + mil(mirados) + " miradas, " + mil(escritas) + " cambiadas"
+        + "   (" + ((Date.now() - t0) / 1000).toFixed(0) + " s)");
+    }
+  }
+  console.log("      " + mil(mirados) + " miradas en " + lotes + " lotes, "
+    + mil(escritas) + " cambiadas, " + ((Date.now() - t0) / 1000).toFixed(0) + " s");
 
   /*
    * Y las que ya no estan activas dejan de estar visibles.
@@ -184,11 +260,43 @@ const CASE_MOTIVO = "CASE\n"
    * siempre, y cualquier consulta que mire solo `visible` la seguiria
    * enseñando.
    */
-  const m = await c.query(`
-    UPDATE moveadvisor_market_offers
-       SET visible = FALSE, visible_motivo = 'no_activa', visible_desde = NOW()
-     WHERE NOT is_active AND visible IS DISTINCT FROM FALSE AND NOT visible_a_mano`);
-  console.log("      vendidas que dejan de verse: " + m.rowCount.toLocaleString("es"));
+  /*
+   * También por lotes, y por el mismo motivo: son 600.000 filas y un bloqueo
+   * largo sobre ellas para al scraper igual que el de arriba.
+   *
+   * Aquí el cursor puede avanzar hasta el último ESCRITO, porque la condición
+   * del WHERE deja de cumplirse en cuanto se escribe: una fila ya puesta a
+   * FALSE no vuelve a entrar. Aun así se usa el último mirado, que funciona
+   * en los dos casos y no obliga a razonarlo cada vez que alguien lo lea.
+   */
+  let cursorM = "";
+  let bajas = 0;
+  let lotesM = 0;
+  for (;;) {
+    const r = await conReintento(c, "vendidas " + (lotesM + 1), `
+      WITH lote AS (
+        SELECT o.id FROM moveadvisor_market_offers o
+         WHERE NOT o.is_active AND o.visible IS DISTINCT FROM FALSE
+           AND NOT o.visible_a_mano AND o.id > $1
+         ORDER BY o.id LIMIT ${LOTE}
+      ),
+      escrito AS (
+        UPDATE moveadvisor_market_offers o
+           SET visible = FALSE, visible_motivo = 'no_activa', visible_desde = NOW()
+          FROM lote k WHERE o.id = k.id
+        RETURNING 1
+      )
+      SELECT (SELECT max(id) FROM lote) AS ultimo,
+             (SELECT count(*)::int FROM lote) AS mirados,
+             (SELECT count(*)::int FROM escrito) AS escritos`, [cursorM]);
+    const f = r.rows[0];
+    if (!f.mirados) break;
+    cursorM = f.ultimo;
+    bajas += f.escritos;
+    lotesM++;
+  }
+  console.log("      vendidas que dejan de verse: " + mil(bajas)
+    + "   en " + lotesM + " lotes");
 
   const fin = (await c.query(
     `SELECT count(*) FILTER (WHERE visible)::int se_ven,

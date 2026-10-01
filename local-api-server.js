@@ -205,6 +205,31 @@ function reescrituraDe(camino) {
   return handler ? { handler, query: r.query } : null;
 }
 
+/**
+ * El manejador de `/api/<nombre>`, si existe `api/<nombre>.js`.
+ *
+ * Es el comodín de `vercel.json` imitado. Solo nombres sencillos: nada de barras ni de
+ * `..`, porque esto resuelve una ruta del sistema de ficheros a partir de una URL y eso
+ * es como se lee un fichero que no toca.
+ */
+function porSuNombre(camino) {
+  const m = /^\/api\/([a-z0-9][a-z0-9-]*)$/i.exec(camino);
+  if (!m) return null;
+  const nombre = m[1];
+
+  if (!cargados.has(nombre)) {
+    const fichero = path.join(__dirname, "api", `${nombre}.js`);
+    if (!fs.existsSync(fichero)) { cargados.set(nombre, null); return null; }
+    try {
+      cargados.set(nombre, require(fichero));
+    } catch (e) {
+      console.error(`❌ ${camino} -> api/${nombre}.js: ${e.message}`);
+      cargados.set(nombre, null);
+    }
+  }
+  return cargados.get(nombre) || null;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
@@ -278,6 +303,29 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  /*
+   * Y el comodín, que es la última regla de `vercel.json`:
+   *
+   *     { "source": "/api/(.*)", "destination": "/api/$1" }
+   *
+   * Eso sirve **cualquier fichero de `api/` por su nombre**, haya o no una reescritura
+   * concreta para él. Y hay cuatro endpoints que viven **solo** de esa regla:
+   *
+   *     /api/visit-availability       las citas de visita, entera
+   *     /api/workshops                los talleres
+   *     /api/erp-appointment
+   *     /api/user-erp-appointments
+   *
+   * `visit-availability` no es poca cosa: son dieciocho rutas, todo el camino de pedir
+   * una visita, proponer hora, confirmar y cancelar. Sin esta regla seguía sin existir en
+   * desarrollo, y la primera versión de este arreglo decía «42 de 42» porque solo contaba
+   * las reescrituras concretas. Medir lo que te has propuesto medir no es lo mismo que
+   * medir lo que importa.
+   */
+  if (!handler) {
+    handler = porSuNombre(url.pathname);
+  }
+
   if (!handler) {
     sendJson(res, 404, { error: "Not Found" });
     return;
@@ -341,7 +389,7 @@ if (require.main === module) {
   });
 }
 
-module.exports = { REESCRITURAS, reescrituraDe, handlers };
+module.exports = { REESCRITURAS, reescrituraDe, porSuNombre, handlers };
 
 server.on("error", async (error) => {
   if (error && error.code === "EADDRINUSE") {

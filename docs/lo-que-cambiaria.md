@@ -37,8 +37,8 @@ Los 134 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**52 están cerrados** —✅—. De los 82 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 21 🟠, 38 🟡 y 16 ⚪**.
+**53 están cerrados** —✅—. De los 81 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 21 🟠, 37 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -3727,12 +3727,12 @@ misma fila** —`token_buyer` y `token_seller`, que son permisos— y los carga 
 `SELECT *`. Pero al responder construye una lista blanca explícita campo por campo. Los
 dos tokens nunca se cruzan. Eso está bien hecho y es lo difícil.
 
-### 🟡 31.2 — 103 respuestas devuelven el mensaje del error: §3.2 encontró tres
+### ✅ 31.2 — 106 respuestas devolvían el mensaje del error: §3.2 encontró tres — **las 32 del ERP, hechas**
 
-| | Respuestas con `.message` dentro |
-|---|---:|
-| Mobility (`lib/` + `api/`) | **60**, en 25 ficheros |
-| ERP (`apps/api`) | **43** |
+| | Respuestas con `.message` dentro | |
+|---|---:|---|
+| Mobility (`lib/` + `api/`) | **62**, en 25 ficheros | pendiente |
+| ERP (`apps/api`) | **44** | **32 arregladas**, 12 son legítimas |
 
 `visit-availability-handler.js` tiene veinte. `personal.ts` del ERP, siete.
 
@@ -3792,9 +3792,42 @@ Código estable al cliente, mensaje al registro, detalle solo fuera de producci�
 exactamente lo correcto, y **116 rutas del ERP ya lo usan**. Las 43 fugas son las que no
 lo usaron.
 
-**Lo que haría**: las 43 del ERP a `falloInterno`, que es mecánico y ya está probado por
-las otras 116. Y en Mobility, el mismo ayudante sobre `registra()`, que ya existe: las
-60 pasan a un código estable y el mensaje al registro, donde además sirve para algo.
+**Hecho en el ERP**: las 32 pasadas a `falloInterno`, con un código sacado de su propia
+ruta —`visit_bookings_confirm_failed`, `datos_csv_get_failed`— porque un código que no
+dice qué falló no sirve para buscar en el registro. Verde: los dos `tsc` y 2.787
+pruebas.
+
+Y con su trinquete, `el-error-de-postgres-no-sale-al-cliente.test.ts`, que son tres
+afirmaciones y la tercera es la que importa: **que `falloInterno` siga tapando el
+detalle en producción**. Si alguien le quitara la condición de `NODE_ENV`, las 116
+rutas que lo usan empezarían a filtrar a la vez y las otras dos afirmaciones seguirían
+en verde. Un trinquete que solo vigila a quien llama, y no a la pieza en la que
+confían, no vigila nada.
+
+**Pendiente en Mobility**: las 62. El mismo ayudante sobre `registra()`, que ya existe.
+
+#### Y el número era 103, no 106, porque mi analizador estaba roto
+
+La prueba del trinquete encontró una fuga que el barrido no había visto —`datos.ts:170`,
+la exportación a CSV— y la causa era mía. Veinte líneas por encima, el mismo fichero
+tiene:
+
+```ts
+return /[";
+]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+```
+
+Una expresión regular con **una comilla doble dentro**. Mi `soloCodigo` no conocía los
+literales de expresión regular, tomó ese `"` por el principio de una cadena y vació
+todo hasta la comilla siguiente: a partir de ahí el seguimiento de comillas iba
+desfasado y el resto del fichero quedó invisible. No dio un falso positivo, dio
+**silencio**, que es peor.
+
+Arreglado —reconociendo el `/` de expresión regular por el token anterior—, el recuento
+pasó de **43 a 44 en el ERP y de 60 a 62 en Mobility**.
+
+Lo que esto dice: el trinquete encontró lo que no encontró el barrido. Escribir la
+prueba no era burocracia después del arreglo, era la segunda medición.
 
 ### ⚪ 31.3 — Dos `SELECT *` que se esparcen en la respuesta
 

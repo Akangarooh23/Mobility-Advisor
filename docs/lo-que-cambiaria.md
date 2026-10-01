@@ -33,21 +33,19 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 127 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 131 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**49 están cerrados** —✅—. De los 78 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 21 🟠, 35 🟡 y 15 ⚪**.
+**51 están cerrados** —✅—. De los 80 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 21 🟠, 37 🟡 y 15 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
 
 ```bash
 grep '^### ' docs/lo-que-cambiaria.md | grep -oE '^### (✅|🔴|🟠|🟡|⚪)' | sort | uniq -c
-```
-
-El 🔴 que se cayó a 🟡 es §3.1: lo había escrito como una avería y al medirlo resultó
+```El 🔴 que se cayó a 🟡 es §3.1: lo había escrito como una avería y al medirlo resultó
 que WhatsApp no ha recibido un mensaje nunca. Queda dicho ahí por qué.
 
 De los cerrados, unos se arreglaron en esta revisión —llevan **hecho** o
@@ -3603,6 +3601,104 @@ el tipo de error que convierte un barrido en un cuento:
 Con las cuatro, los candidatos de la tercera avería pasaron de **3 a 1** en Mobility.
 Y el guion se valida contra nueve casos de respuesta conocida antes de creerle nada.
 
+## Zona 30 — Dependencias que mienten ✔ clase cerrada
+
+Para esta clase no escribí analizador: existe la regla de verdad,
+`react-hooks/exhaustive-deps`, y es mucho mejor que nada que yo monte. Mobility la
+tiene por CRA (v4.6.2); el ERP no tiene ESLint ninguno, así que ahí se lanzó
+**resolviendo el plugin y el parser desde Mobility**, sin tocarle el `package.json`.
+
+Y antes de creerle el resultado, se comprobó que dispara: un componente de mentira
+que lee `userId` y declara `[]` tiene que salir marcado. Salió. Un cero de una
+herramienta que no has visto fallar no vale nada.
+
+### ✅ 30.1 — Mobility: cero violaciones, y ocho silenciadores razonados
+
+La regla pasa limpia por los 171 ficheros. Lo que hay son **ocho
+`eslint-disable` de esta regla** en cinco ficheros, y un silenciador es una decisión:
+la pregunta no es si está, es si tapa algo.
+
+Seis llevan su porqué escrito en el código, y están bien:
+
+- `useElMercadoVo.js:181` — deja fuera `fetchMarketplaceVoPage` a propósito, porque
+  cambia de identidad con los filtros y enumerarla volvería a pedir la página por cada
+  cambio de la función en vez de por cada cambio de filtro.
+- `PortalVoDetailPage.js:219` — «solo al abrir la ficha: si se relanzara al escribir,
+  pisaría lo que teclea».
+- `UserDashboardBilling.js:149` — y además lleva su bandera `cancelled` y su limpieza.
+- `QuestionnairePage.js:303` — quiere relanzarse con el `id` del paso y no con la
+  identidad del callback.
+
+### 🟡 30.2 — Pero uno de los ocho tapa un efecto que no corre nunca
+
+`WorkshopMapModal.js`, efecto 2. El comentario dice lo que pretende:
+
+```js
+// ── Effect 2: fit initial bounds once providers + map are ready ─────────
+useEffect(() => {
+  const map = leafletMapRef.current;
+  if (!map || !providers.length) return;
+  import("leaflet").then((L) => { … map.fitBounds(allPts, …); });
+}, []); // eslint-disable-line react-hooks/exhaustive-deps
+```
+
+«Una vez que `providers` y el mapa estén listos». Con `[]` el efecto corre **solo al
+montar**, y en ese instante **ninguno de los dos lo está**: el mapa se crea en el
+efecto 1 **dentro** de `import("leaflet").then(...)`, o sea en otro turno del bucle de
+eventos, así que `leafletMapRef.current` todavía es `null`. El efecto se va siempre por
+el `return` de la segunda línea.
+
+**Resultado: el `fitBounds` no se ejecuta nunca.** Y es el único del fichero: los otros
+dos encuadres son la vista inicial —la ubicación del cliente, o Madrid a zoom 13 si no
+hay— y el salto a esa ubicación cuando cambia.
+
+**Por qué es 🟡 y no 🟠**, y esto lo medí antes de escribirlo más grande: la ubicación
+llega de la geolocalización del navegador **o** del geocodificado del servidor, así que
+lo normal es que el mapa se centre en el cliente. Lo que no pasa nunca es el encuadre
+que **mete todos los talleres dentro**, así que alguno puede quedar fuera de pantalla.
+Es una función que no existe, no una pantalla en blanco.
+
+**El arreglo no es solo poner las dependencias.** El mapa vive en un `ref`, y los `ref`
+no provocan repintado: nadie se enterará de que el mapa ya existe. Hace falta un estado
+—«mapa listo»— y un `ref` de «ya encuadré» para que siga siendo *una vez*. Son unas
+diez líneas, cambian comportamiento visible y no las he tocado sin decírtelo.
+
+### ✅ 30.3 — El ERP: siete avisos, y los siete inocuos (leídos uno a uno)
+
+| Dónde | Qué dice la regla | Qué pasa de verdad |
+|---|---|---|
+| `ComisionesPage.tsx:125` | falta `recarga` | `recarga()` solo llama a setters y a `cargaVentas()`, que también. No cierra sobre nada que cambie. **Meterla provocaría un bucle infinito** |
+| `MarketplacePage.tsx` ×4 | faltan `matchEnum`, `matchEnumCI`, `matchMin` | Son funciones **puras de sus argumentos** (`val === '__empty__' ? isEmpty(field) : …`). Su comportamiento no cambia nunca |
+| `Documentos.tsx:133` | falta `papeles`, y la dependencia es una expresión compleja | La dependencia es `papeles?.join(' ')`: funciona —compara la cadena— pero la regla no lo puede verificar |
+
+Los siete son avisos **formalmente correctos y sustancialmente vacíos**. Ni un cierre
+caducado en 109 efectos.
+
+### 🟡 30.4 — Lo que sí es un hallazgo: el ERP no tiene ESLint
+
+Cero paquetes de ESLint en su `package.json`. 114 ficheros de `apps/web` y todo
+`apps/api` sin pasar por ningún lint, nunca.
+
+**Y aquí hay que no exagerar, porque la tentación es grande.** En este mismo repaso,
+la primera vez que se lintaron `lib/` y `api/` de Mobility salieron **cinco
+identificadores inexistentes, dos en caminos de error**, y uno de ellos ya había roto
+la tasación en producción. La conclusión fácil sería «al ERP le pasa lo mismo».
+
+No le pasa, y por un motivo concreto: `tsconfig.base.json` tiene **`strict: true`** y
+las dos aplicaciones lo heredan. Esa clase —llamar a algo que no existe, pasar lo que
+no toca— ya está cubierta por el compilador, que es más estricto que el lint. Por eso
+el atraso de ESLint sale en siete avisos vacíos en vez de en cinco fallos.
+
+Lo que falta no es el atraso, es **el trinquete**: hoy nada impide que mañana entre un
+efecto con dependencias que mienten de verdad. Y hay un agujero más concreto al lado:
+`npm run test:todo` del ERP **no comprueba los tipos**. No hay un `typecheck` en los
+scripts; `tsc` solo corre dentro de `build`, y como el ERP no tiene CI (C6), nada lo
+lanza solo. El `strict: true` que acabo de usar como argumento **solo protege a quien
+construye en su máquina**.
+
+Eso cambia el orden de C6: el CI del ERP no es «estaría bien», es lo que sostiene el
+único control de calidad que tiene.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -3692,18 +3788,20 @@ mirado este fichero».
 | Cabeceras de seguridad | ✅ §17 | ✅ §17 |
 | Numeración y aritmética de facturas | — | ✅ §20, §21 |
 | Efectos sin limpieza | ✅ §29 | ✅ §29 |
-| Dependencias que mienten | ✗ | ✗ |
+| Dependencias que mienten | ✅ §30 | ✅ §30 |
 | Accesibilidad | ✗ | ✗ |
 | Fugas de datos en las respuestas | parcial §3.2 | ✗ |
 | Validación y límites de tamaño | parcial §4 | ✗ |
 
-**Mobility: 14 clases cerradas, 2 parciales, 3 sin pasar — ≈ 76 %.**
-**ERP: 12 cerradas, 0 parciales, 4 sin pasar — ≈ 71 %.**
+**Mobility: 15 clases cerradas, 2 parciales, 2 sin pasar — ≈ 82 %.**
+**ERP: 13 cerradas, 0 parciales, 3 sin pasar — ≈ 76 %.**
 
-La que se cerró el 1 de octubre es «efectos sin limpieza» (§29), en los dos a la vez.
-Quedan **accesibilidad** y **dependencias que mienten** en los dos, **pruebas que no
-pueden fallar** en el ERP, y las dos parciales de Mobility —fugas de datos en las
-respuestas y validación de tamaños—, que en el ERP están sin empezar.
+El 1 de octubre se cerraron dos: «efectos sin limpieza» (§29) y «dependencias que
+mienten» (§30), las dos en los dos repositorios a la vez.
+
+Queda **accesibilidad** en los dos, **pruebas que no pueden fallar** en el ERP, y las
+dos parciales de Mobility —fugas de datos en las respuestas y validación de tamaños—,
+que en el ERP están sin empezar. O sea: **tres pasadas** y la capa 4 está cerrada.
 
 ### Y por qué la capa 1 no va a llegar al 100 %
 

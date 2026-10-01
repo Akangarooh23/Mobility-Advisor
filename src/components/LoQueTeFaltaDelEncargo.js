@@ -203,23 +203,34 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
     hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid",
   });
 
+  const aDomicilio = cita.modalidad === "a_domicilio";
+
   return (
     <div style={{
       background: isDark ? "rgba(5,150,105,0.10)" : "rgba(5,150,105,0.06)",
       border: "1px solid rgba(5,150,105,0.25)", borderRadius: 10,
       padding: "12px 14px", marginBottom: 8,
     }}>
+      {/*
+        * La misma caja cuenta las dos: la del taller y la de su casa.
+        *
+        * Decirle «tu coche tiene cita en el taller · solo hay que acercarlo» a
+        * quien pidió que fuéramos a verlo es lo contrario de lo que pidió, y
+        * si lo lee y lo lleva, el perito se planta en una casa vacía: se
+        * pierden el desplazamiento, la visita y el día.
+        */}
       <div style={{ fontSize: 12.5, fontWeight: 700, color: isDark ? "var(--gris-100)" : "#1f2937", marginBottom: 4 }}>
-        Tu coche tiene cita en el taller
+        {aDomicilio ? "Un perito va a ver tu coche" : "Tu coche tiene cita en el taller"}
       </div>
       <div style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "#374151", lineHeight: 1.5 }}>
-        <strong>{cita.taller}</strong>
+        <strong>{aDomicilio ? (cita.perito || "Un perito nuestro") : cita.taller}</strong>
         {cita.direccion ? <><br />{cita.direccion}</> : null}
         <br />{dia} a las {hora}
       </div>
       <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#6b7280", marginTop: 6, lineHeight: 1.45 }}>
-        Es la revisión mecánica que nos permite anunciarlo como comprobado. Solo hay
-        que acercarlo.
+        {aDomicilio
+          ? "Es la revisión que nos permite anunciarlo como comprobado. No tienes que moverlo, pero sí estar tú o alguien con las llaves."
+          : "Es la revisión mecánica que nos permite anunciarlo como comprobado. Solo hay que acercarlo."}
       </div>
 
       {/*

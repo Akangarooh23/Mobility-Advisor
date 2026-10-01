@@ -47,6 +47,7 @@ Los haría en una tarde, en este orden, y cada uno con su prueba:
 | | Qué | Dónde | Cuánto |
 |---|---|---|---|
 | A0 | **El índice único de las rectificativas** en el ERP: hoy dos peticiones a la vez emiten **dos abonos** del mismo importe | §20.1 | 20 min |
+| A0b | **Envolver el `fetch` de `client.ts`** del ERP: seis líneas que curan 46 pantallas que hoy se quedan girando si se cae la red | §25.1 | 30 min |
 | A1 | El `DELETE FROM … WHERE user_id` ya está; falta **quitar `mantenimiento-activas.json`** o vaciar su `DELETE`, que hoy borraría 52.768 ofertas si alguien lo enciende | §13.2 | minutos |
 | A2 | **Reexportar el avisador de fallos de n8n** al repositorio: la copia guardada manda desde `onboarding@resend.dev` | §13.1 | minutos |
 | A3 | El `catch` del guardián de n8n: que **un fallo de Postgres no impida levantar n8n** —el enfriamiento, a un fichero local— | §15.1 | 1 h |
@@ -2973,6 +2974,120 @@ se lee.
 
 Tampoco cubre los errores que nunca llegan a un estado porque se tragan antes. Eso
 es lo que miré en §5.8 y §5.9 por el lado del servidor.
+
+---
+
+## Zona 25 — El `apps/web` del ERP, tres clases de defecto ✔ primera pasada
+
+Las tres clases de §22, §23 y §24 aplicadas a las 37.561 líneas del back-office, con
+las cinco correcciones que me costaron aquellas pasadas ya metidas en la herramienta.
+**115 ficheros, los 115.**
+
+| Clase | Candidatas | Reales |
+|---|---:|---:|
+| Dinero sin guardia | 8 | **2** |
+| Fechas en UTC | 9 | **9** |
+| Carga que no se apaga | 46 de 91 | **46, y por una sola causa** |
+| Errores que nadie lee | 0 de 27 | 0 |
+
+### 🟠 25.1 — Un corte de red deja 46 pantallas girando para siempre, y la causa es una
+
+`apps/web/src/api/client.ts`:
+
+```ts
+const token = getToken();
+const res = await fetch(`${BASE}${path}`, { … });        // ← sin try/catch
+const body = await res.json().catch(() => ({ ok: false, error: 'invalid_json' }));
+…
+return conFormaUnica<T>(body);
+```
+
+El cliente está diseñado con la idea correcta —**los errores son valores, no
+excepciones**—: devuelve `{ ok, data, error }` y quien llama hace
+`if (res.ok) … else …`. Por eso las pantallas no llevan `try/catch`, y por eso
+apagan el indicador de carga en la línea recta:
+
+```ts
+const res = await api.get<Agenda>(`/workshop-locations/${tallerId}/agenda?mes=${mes}`);
+if (res.ok && res.data) setAgenda(res.data);
+else { setAgenda(null); setFallo('No se ha podido leer la agenda de este taller.'); }
+setCargando(false);
+```
+
+Eso es **mejor** que un `try/catch`, y el comentario que lleva encima explica incluso
+el porqué de producto: *«un calendario en blanco se lee como "no hay nada cerrado",
+que es justo lo contrario de "no lo sé"»*.
+
+**Pero el `fetch` no está envuelto.** Y `fetch` rechaza —no devuelve— cuando no hay
+red: sin conexión, DNS caído, servidor inalcanzable, CORS. En ese caso:
+
+1. `api.get` lanza en vez de devolver.
+2. El `await` de la pantalla lanza.
+3. **`setCargando(false)` no llega a ejecutarse.**
+4. Y `setFallo(...)` tampoco, así que no hay mensaje: solo la rueda, para siempre.
+
+Un error HTTP —un 500, un 404— sí está cubierto: `res.json()` devuelve el cuerpo y
+`conFormaUnica` lo convierte en `{ ok: false }`. Lo que se escapa es exactamente el
+caso de **no llegar al servidor**, que en un back-office que se usa desde un taller
+con wifi regular es el más probable de los dos.
+
+**Lo bueno: se arregla en un sitio y cura las 46.**
+
+```ts
+let res: Response;
+try {
+  res = await fetch(`${BASE}${path}`, { … });
+} catch {
+  // Sin red no hay respuesta que interpretar, pero sí hay que contestar algo:
+  // quien llama espera `{ ok }`, no una excepción.
+  return { ok: false, data: undefined as T, error: 'sin_conexion' } as ApiResponse<T>;
+}
+```
+
+Son seis líneas en `client.ts` y ninguna de las 46 pantallas se toca. Y un mensaje
+que se pueda leer —«Sin conexión»— en vez de una rueda eterna.
+
+### 🟡 25.2 — «Hoy» en UTC, nueve veces, y una de ellas es la fecha de un contrato
+
+El mismo defecto de §23.1, aquí nueve veces y todas con la misma forma:
+
+```ts
+new Date().toISOString().slice(0, 10)
+```
+
+Entre las 00:00 y las 02:00 en España eso devuelve **el día anterior**. Dónde está:
+
+| Fichero | Para qué |
+|---|---|
+| `LeadsPage.tsx:337` y `:543` | **la fecha de inicio de un contrato** |
+| `BookingsPage.tsx:114` y `:116` | «hoy» y «hoy ± n días» de las reservas de taller |
+| `BillingPage.tsx:167` | «hoy» en facturación |
+| `ProveedoresPage.tsx:158` | «hoy» en proveedores |
+| `FunnelPage.tsx:25`, `LeadsPage.tsx:267` | los rangos de los informes |
+| `marketplace/formato.ts:17` | un `todayStr()` compartido |
+
+La que más pesa es la del contrato: `contractStart` se inicializa a «hoy», así que un
+contrato que se cree a las 00:30 del 1 de octubre **queda fechado el 30 de
+septiembre**. Es un documento con una fecha que importa.
+
+El resto desplaza un día un informe o una rejilla, lo cual se nota menos pero se
+nota. Y `formato.ts:17` es el sitio natural para poner la versión buena una vez y que
+las demás la usen.
+
+### ⚪ 25.3 — Dos precios que se pintan como «0,00 €» cuando no hay precio
+
+De las ocho candidatas de dinero, **seis son correctas**: son `reduce` sumando una
+columna, y ahí un nulo que aporta 0 a un total es lo que se quiere.
+
+Las dos que no: `ProviderBillingPage.tsx:647` y `:1136`,
+`fmtEur(Number(g.precio) || 0)`. Es el mismo caso de §22.1 —una garantía sin precio
+se enseña como 0,00 €— pero en el back-office, así que lo ve el personal y no un
+cliente. Baja, y el arreglo es el mismo.
+
+### ✅ 25.4 — Y los 27 estados de error del ERP se leen todos
+
+Veintisiete declarados, cero que solo se escriban. Igual que en Mobility (33 de 33).
+En los dos repositorios, cuando alguien se molesta en guardar un error, lo enseña.
 
 ---
 

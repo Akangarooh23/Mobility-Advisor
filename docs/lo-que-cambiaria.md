@@ -2816,6 +2816,109 @@ no «he mirado este fichero», sino «este defecto no está en ninguno».
 
 ---
 
+## Zona 23 — Las fechas, en los 309 ficheros de `src/`, `lib/` y `api/` ✔ primera pasada
+
+Segunda pasada por clase de defecto. Cuatro trampas de fechas, las cuatro reales en
+España, sobre **309 ficheros**: los 170 de `src/`, los de `lib/` y los de `api/`.
+
+| Trampa | Candidatas | Reales |
+|---|---:|---:|
+| `toISOString().slice(0,10)` sobre una fecha local | 6 | **4** |
+| `new Date()` de una cadena de solo fecha | 10 | 0 |
+| Desplazamiento de zona escrito a mano | 2 | 0 |
+| `getDate()` y `getUTCDate()` mezclados | **0** | 0 |
+
+### 🟡 23.1 — Entre medianoche y las 02:00, «hoy» es ayer
+
+Tres pantallas comparan una fecha con «hoy» así:
+
+```js
+return dateStr === new Date().toISOString().slice(0, 10);
+```
+
+`toISOString()` da **UTC**. España va una o dos horas por delante, así que entre las
+00:00 y las 02:00 el día en UTC todavía es el anterior. Lo demostré en esta máquina,
+que está en `Europe/Madrid`:
+
+```
+A las 00:30 del 1 de octubre en España:
+   la hora local es            1/10/2026, 0:30:00
+   y el código dice que hoy es 2026-09-30   <-- el día anterior
+```
+
+Donde está: `src/components/SlotPicker.js:25` y `src/pages/MiCitaPage.js:22`, que
+marcan si un hueco es «hoy», y `src/components/AvailabilityEditor.js:19` y `:47`,
+que es la rejilla con la que el taller abre y cierra su disponibilidad.
+
+Lo que pasa: quien entre a reservar a la una de la mañana ve el día de hoy marcado
+como pasado, o un hueco de hoy ofrecido como si fuera de ayer. Y el taller que
+edite su agenda a esa hora abre el día equivocado.
+
+Es una ventana de dos horas, así que no es grave. Pero **para un taller abrir el día
+equivocado sí lo es**, y el arreglo es una línea: formatear en local en vez de en
+UTC.
+
+```js
+const hoyEnEspana = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid" }).format(new Date());
+// "2026-10-01" — en local, sin pasar por UTC
+```
+
+### 🟡 23.2 — El aviso de las citas acierta en Vercel y falla en local
+
+`lib/api/cron-appointment-reminders-handler.js:20` hace lo mismo sobre una columna
+que **es de tipo `date`**: `moveadvisor_workshop_reservations.dia`.
+
+`pg` convierte una columna `DATE` a un objeto de fecha **a medianoche local**. Así
+que:
+
+| Dónde corre | Zona | Qué sale de `dia` = 2026-10-01 |
+|---|---|---|
+| Vercel | UTC | `2026-10-01` ✅ |
+| Tu máquina | Europe/Madrid | **`2026-09-30`** ❌ |
+
+Lo comprobé: una fecha construida como medianoche del 1 de octubre en Madrid pasa
+por `toISOString().slice(0,10)` y sale 2026-09-30.
+
+O sea que **el recordatorio funciona en producción y miente en desarrollo**. Es lo
+peor de los dos mundos para depurar: cualquiera que lo pruebe en local verá
+recordatorios del día anterior y buscará un fallo que allí no existe. Y si algún día
+se mueve la región de Vercel a una zona que no sea UTC, empieza a fallar en
+producción sin que nadie haya tocado nada.
+
+### ✅ 23.3 — Y las doce candidatas restantes no son nada, una por una
+
+Esto es la mitad del valor de la pasada: dejar dicho qué no hay que volver a mirar.
+
+- **Los dos `3600000`** son **duraciones**, no desplazamientos de zona:
+  `Date.now() >= empezo + 3600000` es «¿ha pasado una hora?» y
+  `new Date(cuando.getTime() + 3600000)` es «la visita acaba una hora después». El
+  cambio de hora no les afecta. Mi patrón era demasiado ancho.
+- **Cinco `new Date(row.…)` de `lib/api/`** —facturas, próximo cobro— leen columnas
+  que son `timestamp with time zone`, y `pg` las devuelve ya como objetos de fecha.
+  Pasarlas por `new Date()` las **clona**, no las reinterpreta. Lo comprobé en el
+  esquema de la base, no de memoria.
+- **`inventoryStore.js:292`, el `next_itv`**: la columna es `character varying` y me
+  olía mal. Los 7.573 valores son `YYYY-MM-DD` y **siempre día 01**, porque la ITV
+  vence por meses. Una cadena así se interpreta como UTC y se vuelve a formatear
+  como UTC, así que da la vuelta entera sin moverse. España va por delante de UTC,
+  así que ni siquiera al mostrarla se adelanta un día.
+- **Cuatro `new Date(baseDate)`** en pantallas de citas y mantenimiento: `baseDate`
+  ya es un objeto de fecha en los cuatro. Clonar.
+- **Cero** casos de `getDate()` mezclado con `getUTCDate()`, que es el error que más
+  me esperaba encontrar en un código con fechas por todas partes.
+
+### Y una cuenta de la propia pasada
+
+Dieciocho candidatas, **cuatro reales**. Es decir que **catorce de dieciocho eran
+ruido de mi patrón o código correcto**, y las catorce costaron ir a mirar la columna
+en la base, el formato de los valores o qué tipo tiene una variable.
+
+Lo apunto porque es la lección de todas las pasadas de hoy: el barrido encuentra
+candidatas, no hallazgos. Lo que convierte una candidata en un hallazgo es ir a
+medirla, y lo que la descarta es exactamente el mismo trabajo.
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

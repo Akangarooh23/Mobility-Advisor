@@ -1213,12 +1213,12 @@ export default function PortalVoDetailPage({
                               <div style={{ fontSize: 10, color: isDark ? "var(--gris-400)" : "var(--gris-500)", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 8 }}>UNIDADES ({selectedColor})</div>
                               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                                  <button type="button"
+                                  <button aria-label="Quitar una unidad" type="button"
                                     onClick={() => setSelectedQuantity(q => Math.max(1, q - 1))}
                                     disabled={selectedQuantity <= 1}
                                     style={{ width: 34, height: 34, borderRadius: "8px 0 0 8px", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-300)", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "var(--gris-50)" : "var(--gris-700)", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity <= 1 ? 0.35 : 1 }}>−</button>
                                   <div style={{ width: 48, height: 34, display: "flex", alignItems: "center", justifyContent: "center", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-300)", borderLeft: "none", borderRight: "none", background: isDark ? "rgba(255,255,255,0.02)" : "#fff", fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>{selectedQuantity}</div>
-                                  <button type="button"
+                                  <button aria-label="Añadir una unidad" type="button"
                                     onClick={() => setSelectedQuantity(q => Math.min(maxForSelected, q + 1))}
                                     disabled={selectedQuantity >= maxForSelected}
                                     style={{ width: 34, height: 34, borderRadius: "0 8px 8px 0", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid var(--gris-300)", background: isDark ? "rgba(255,255,255,0.06)" : "#fff", color: isDark ? "var(--gris-50)" : "var(--gris-700)", fontSize: 20, fontWeight: 700, cursor: "pointer", opacity: selectedQuantity >= maxForSelected ? 0.35 : 1 }}>+</button>

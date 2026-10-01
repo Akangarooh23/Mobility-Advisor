@@ -799,7 +799,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
       {alertModalOpen && (
         <div className="vd-modal-overlay open" onClick={(e) => e.target === e.currentTarget && setAlertModalOpen(false)}>
           <div className="vd-modal">
-            <button className="vd-modal-close" onClick={() => setAlertModalOpen(false)}>×</button>
+            <button aria-label="Cerrar" className="vd-modal-close" onClick={() => setAlertModalOpen(false)}>×</button>
             <h3>🔔 Alerta de disponibilidad</h3>
             <p>Te avisaremos por email en cuanto este vehículo vuelva a estar disponible.</p>
             {alertSubmitted ? (
@@ -833,7 +833,7 @@ export default function VehicleDetailPage({ offer, onBack, isUserLoggedIn, onReq
           onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}
         >
           <div className="vd-modal">
-            <button className="vd-modal-close" onClick={() => setModalOpen(false)}>
+            <button aria-label="Cerrar" className="vd-modal-close" onClick={() => setModalOpen(false)}>
               ×
             </button>
             <h3>{t("vehicleDetail.modalTitle")}</h3>

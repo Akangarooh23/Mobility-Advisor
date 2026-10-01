@@ -1251,7 +1251,7 @@ export default function ServiceMaintenancePage({
                 <div style={{ fontSize: 18, fontWeight: 800, color: "var(--gris-900)" }}>{selectedAlert.title}</div>
                 <div style={{ fontSize: 12, color: "var(--gris-600)", marginTop: 4 }}>{selectedAlert.vehicleName}</div>
               </div>
-              <button
+              <button aria-label="Cerrar"
                 type="button"
                 onClick={closeAlertModal}
                 style={{ border: "none", background: "transparent", fontSize: 20, color: "var(--gris-400)", cursor: "pointer", lineHeight: 1 }}

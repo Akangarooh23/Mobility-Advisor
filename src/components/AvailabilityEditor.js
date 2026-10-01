@@ -311,7 +311,7 @@ export default function AvailabilityEditor({ offerId, source, onSlotsChange, api
                 </button>
               ))}
               <span style={styles.presetSep}>|</span>
-              <button style={styles.presetBtn} onClick={() => setPreset("lv")}>L–V</button>
+              <button aria-label="Lunes a viernes" style={styles.presetBtn} onClick={() => setPreset("lv")}>L–V</button>
               <button style={styles.presetBtn} onClick={() => setPreset("fds")}>Fin de sem.</button>
               <button style={styles.presetBtn} onClick={() => setPreset("all")}>Todos</button>
             </div>
@@ -374,7 +374,7 @@ export default function AvailabilityEditor({ offerId, source, onSlotsChange, api
                 <div key={s.id} style={styles.slotRow}>
                   <span style={styles.slotIcon}>🟢</span>
                   <span style={styles.slotText}>{fmtDate(s.starts_at)} · {fmtTime(s.starts_at)} – {fmtTime(s.ends_at)}</span>
-                  <button
+                  <button aria-label="Quitar este horario"
                     style={{ ...styles.removeBtn, opacity: removing === s.id ? 0.4 : 1 }}
                     disabled={removing === s.id}
                     onClick={() => removeSlot(s)}

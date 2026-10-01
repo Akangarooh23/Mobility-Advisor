@@ -283,7 +283,7 @@ export default function MiCitaPage() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: "var(--gris-600)" }}>{fmtDateLong(selectedSlot.starts_at)}</div>
                   <div style={{ fontSize: 13, color: "var(--gris-800)" }}>{horaDeLaVisita(selectedSlot.starts_at, selectedSlot.ends_at, fmtTime)}</div>
                 </div>
-                <button onClick={() => setSelectedSlot(null)} style={{ background: "none", border: "none", color: "var(--gris-400)", cursor: "pointer", fontSize: 20 }}>×</button>
+                <button aria-label="Quitar la hora elegida" onClick={() => setSelectedSlot(null)} style={{ background: "none", border: "none", color: "var(--gris-400)", cursor: "pointer", fontSize: 20 }}>×</button>
               </div>
               <button
                 onClick={confirmReschedule}

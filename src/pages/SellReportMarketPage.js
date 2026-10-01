@@ -767,9 +767,9 @@ export default function SellReportMarketPage({
                           <div style={{ border: "1.5px solid var(--gris-200)", borderRadius: 12, overflow: "hidden", marginBottom: 14 }}>
                             {/* Pager header */}
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", background: "var(--gris-50)", borderBottom: "1px solid var(--gris-200)" }}>
-                              <button type="button" disabled={safePage === 0} onClick={() => setFleetPage((p) => Math.max(0, p - 1))} style={{ background: "none", border: "none", cursor: safePage === 0 ? "default" : "pointer", color: safePage === 0 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>‹</button>
+                              <button aria-label="Anterior" type="button" disabled={safePage === 0} onClick={() => setFleetPage((p) => Math.max(0, p - 1))} style={{ background: "none", border: "none", cursor: safePage === 0 ? "default" : "pointer", color: safePage === 0 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>‹</button>
                               <span style={{ fontSize: 13, fontWeight: 600, color: "var(--gris-900)" }}>Vehículo {safePage + 1} de {count}</span>
-                              <button type="button" disabled={safePage === count - 1} onClick={() => setFleetPage((p) => Math.min(count - 1, p + 1))} style={{ background: "none", border: "none", cursor: safePage === count - 1 ? "default" : "pointer", color: safePage === count - 1 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>›</button>
+                              <button aria-label="Siguiente" type="button" disabled={safePage === count - 1} onClick={() => setFleetPage((p) => Math.min(count - 1, p + 1))} style={{ background: "none", border: "none", cursor: safePage === count - 1 ? "default" : "pointer", color: safePage === count - 1 ? "#ccc" : "#0d9488", fontSize: 18, fontWeight: 700, padding: "0 4px" }}>›</button>
                             </div>
                             {/* Vehicle details */}
                             <div style={{ padding: "16px 16px 12px" }}>
@@ -1432,7 +1432,7 @@ export default function SellReportMarketPage({
                                 {isType && pendingDamageZone && (
                                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, color: "#0d9488", background: "var(--gris-50)", border: "1px solid #99e6de", borderRadius: 6, padding: "3px 8px", marginBottom: "0.35rem" }}>
                                     <span>📍 <strong>{pendingDamageZone}</strong> — ahora elige el tipo de daño</span>
-                                    <button type="button" onClick={() => setPendingDamageZone(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--gris-400)", fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
+                                    <button aria-label="Cancelar" type="button" onClick={() => setPendingDamageZone(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--gris-400)", fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
                                   </div>
                                 )}
                                 <div style={{ fontSize: 10, color: "#bbb", marginBottom: "0.2rem", fontWeight: 600, letterSpacing: "0.04em" }}>{group.label}</div>

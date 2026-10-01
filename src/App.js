@@ -5554,7 +5554,7 @@ export default function App() {
                 )}
               </div>
               {!authRequired && (
-                <button
+                <button aria-label="Cerrar"
                   type="button"
                   onClick={closeAuthDialog}
                   style={{

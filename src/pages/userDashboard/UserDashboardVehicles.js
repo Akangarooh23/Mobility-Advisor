@@ -3061,7 +3061,7 @@ export default function UserDashboardVehicles({
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                       <div style={{ fontSize: 16, fontWeight: 800, color: isDark ? "var(--gris-50)" : "var(--gris-900)" }}>🗓 Visitas a este coche</div>
-                      <button
+                      <button aria-label="Cerrar"
                         type="button"
                         onClick={() => setSlotsDialog({ open: false, vehicleId: null })}
                         style={{ background: "none", border: "none", fontSize: 20, color: isDark ? "var(--gris-400)" : "var(--gris-500)", cursor: "pointer" }}

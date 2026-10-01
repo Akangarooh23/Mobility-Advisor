@@ -1338,7 +1338,7 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                             style={{ flex: "1 1 80px", minWidth: 80, border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "var(--gris-300)"}`, borderRadius: 6, padding: "5px 8px", fontSize: 12, background: isDark ? "rgba(17,17,17,0.5)" : "#fff", color: isDark ? "var(--gris-100)" : "var(--gris-900)" }}
                           />
                           {proposals.length > 1 && (
-                            <button
+                            <button aria-label="Quitar esta propuesta"
                               onClick={() => setProposals((prev) => prev.filter((_, i) => i !== idx))}
                               style={{ fontSize: 16, lineHeight: 1, background: "none", border: "none", cursor: "pointer", color: "var(--gris-400)", padding: "0 4px", flexShrink: 0 }}
                             >

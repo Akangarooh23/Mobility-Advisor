@@ -1360,7 +1360,20 @@ export default function SellReportMarketPage({
                           value={sellAnswers?.itvStatus || ""}
                           onChange={(event) => setSellAnswers((prev) => ({ ...prev, itvStatus: event.target.value }))}
                         >
-                          <option value="">En regla / No sé</option>
+                          {/*
+                            * «En regla» y «No sé» son dos respuestas, no una.
+                            *
+                            * Estaban juntas en la opción vacía y eso obligaba
+                            * a quien tiene la ITV pasada a elegir una casilla
+                            * que también dice «no sé», y a quien no lo sabe a
+                            * decir que está en regla. Se perdía la respuesta
+                            * de los dos.
+                            *
+                            * El vacío se queda para «no lo sé», que es lo que
+                            * de verdad significa no haber contestado.
+                            */}
+                          <option value="">No lo sé</option>
+                          <option value="en_regla">En regla</option>
                           <option value="pronto">Caduca en menos de 6 meses</option>
                           <option value="caducada">Ya ha caducado</option>
                         </select>

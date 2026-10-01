@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 148 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 149 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**61 están cerrados** —✅—. De los 87 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 24 🟠, 39 🟡 y 17 ⚪**.
+**61 están cerrados** —✅—. De los 88 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 25 🟠, 39 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -4352,6 +4352,118 @@ de verdad. Esa sigue siendo tuya, y son treinta segundos en el panel de Vercel.
 El `'; DROP TABLE` merece decirse: devuelve 404 porque el valor se compara como texto, no
 porque se escape. Eso es lo correcto.
 
+## Zona 35 — Capa 5: la tasación tarda 24 segundos, y se sabe por qué 🟠
+
+Siguiendo la capa 5 por el camino de la tasación. Lo primero que hace es pedir el precio
+de mercado del coche, y eso es lo que mide esta zona.
+
+### 🟠 35.1 — 24 segundos, y 23,7 son una sola consulta
+
+```
+POST /api/market-price  {"brand":"Audi","model":"A3","year":2020,"mileage":80000,"fuel":"diesel"}
+local      22,7 s
+producción 24,3 s     (200, no se corta: el tope del proyecto está por encima)
+```
+
+No estaba medido en ninguna parte del informe. Y **de los 24 segundos, 23,7 son una sola
+consulta**: la de los comparables. Medido instrumentando `pg.Pool.prototype.query`, no
+leyendo el código:
+
+| | |
+|---:|---|
+| **23.692 ms** | `SELECT DISTINCT ON (COALESCE(d.canonical_id, o.id)) … FROM moveadvisor_market_offers o LEFT JOIN moveadvisor_offer_duplicates d` |
+| 265 ms | `SELECT 1 FROM moveadvisor_brand_aliases WHERE alias_key = $1` |
+| 30 ms | `SELECT tipo, valor FROM mmo_facetas …` |
+
+Fuera de la base: **0,1 s**. O sea que no hay nada que optimizar en JavaScript.
+
+### Por qué tarda: el filtro no se puede indexar
+
+El plan dice `Parallel Seq Scan on moveadvisor_market_offers` —**2.828.360 filas, 6.744
+MB**— con este filtro:
+
+```sql
+lower(concat(brand, ' ', model, ' ', version)) LIKE '%audi a3%'
+```
+
+Comodín por delante **y** sobre una expresión calculada de tres columnas. Ningún índice
+puede servir eso, así que se lee la tabla entera. Y la tabla tiene **30 índices que suman
+unos 2,5 GB**, ninguno de los cuales sirve aquí.
+
+### Las dos palancas, medidas
+
+No supuestas: la misma consulta, con y sin un `AND lower(o.brand) = 'audi'`, a cuatro
+valores de `work_mem`.
+
+| `work_mem` | tal cual | + filtro de marca |
+|---|---:|---:|
+| **4 MB** (el que hay) | 117,9 s | 22,7 s |
+| 16 MB | 78,4 s | 16,8 s |
+| 64 MB | 79,7 s | **13,0 s** |
+| 256 MB | 84,8 s | 13,0 s |
+
+**Los números absolutos son ruidosos** y hay que decirlo: son ejecuciones seguidas contra
+la base de producción por internet, con el ERP trabajando al lado, y la primera medición
+desde la aplicación dio 23,7 s donde aquí sale 117,9. Lo que vale es la comparación
+dentro de la misma tanda:
+
+- **el filtro de marca vale ~5×** (117,9 → 22,7 con 4 MB; 78,4 → 16,8 con 16 MB);
+- **subir `work_mem` de 4 a 64 MB vale ~1,75× más** (22,7 → 13,0);
+- **de 64 MB en adelante, nada.**
+
+Y el `work_mem` de la base es **4 MB**, el valor por defecto de Postgres. El plan lo
+delata sin que haya que medirlo:
+
+```
+Heap Blocks: exact=9041 lossy=27436        <- el mapa de bits no cabe y se degrada a páginas
+Rows Removed by Index Recheck: 147215      <- y hay que recomprobar fila a fila
+Sort Method: external merge  Disk: 9936kB  <- la ordenación se va a disco, dos veces
+```
+
+### ¿Se puede añadir el filtro de marca sin perder comparables?
+
+Ésta era la pregunta que decidía todo, porque la concatenación **no es casualidad**:
+pesca filas donde la marca está en el sitio raro. Si añadir la igualdad tira
+comparables, la optimización compra velocidad con precisión, y en una tasación eso no se
+hace.
+
+Medido sobre las **1.915.001** ofertas activas:
+
+| | |
+|---|---:|
+| sin marca | **1** |
+| marca con espacios de sobra | 17 |
+| marcas con más de una grafía | 8, y todas son `BMW`/`Bmw` — `lower()` las junta |
+
+**Una fila de 1,9 millones.** La columna está limpia, así que `lower(btrim(brand)) = …`
+no tira nada.
+
+**Lo que haría**, en este orden:
+
+1. **Añadir `lower(btrim(o.brand)) = $marca`** a la consulta de comparables, y solo
+   cuando la marca sea canónica —cosa que ya se sabe, porque `isBrandKnownInAliases` se
+   consulta 265 ms antes—. Usa `idx_mmo_bm_lower`, que ya existe y ya cuesta 45 MB. Vale
+   5×. Es un cambio en el camino que cobra, así que va con su comparación de comparables
+   antes y después.
+2. **`work_mem` a 64 MB** en Neon. Otro 1,75×, y de 64 en adelante no compra nada —así
+   que no hay razón para pasarse—. Es una decisión tuya porque toca la factura.
+
+Con las dos: de 24 segundos a unos 13, y el día que la tabla crezca el filtro es lo que
+evita que vuelva a 24.
+
+### Y una nota sobre cómo se midió esto
+
+El guion de medir falló **dos veces** antes de capturar una sola consulta, y las dos por
+lo mismo: parcheaba el pool de `lib/postgres`, y `inventoryStore` no lo usa —crea su
+propio `new Pool`, cosa que está razonada en su comentario y que comprobé antes de
+apuntarla como hallazgo (no lo es)—. El sitio correcto para medir no era nuestro código,
+era `pg.Pool.prototype.query`.
+
+Y la primera versión de la comprobación de las marcas hacía **doce escaneos completos**
+de la tabla de 6,7 GB contra producción, a ~100 s cada uno. La corté a los diez minutos y
+la rehice con **una** pasada. Normalizar provincias ya tumbó el panel del ERP una vez;
+no hace falta repetirlo para responder una pregunta que cabe en una consulta.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -4367,9 +4479,14 @@ que puede hacer daño, leído, más el resto medido con comprobaciones dirigidas
 
 Y una cosa que **no es leer código** y es lo que de verdad falta: dejar
 `pg_stat_statements` unos días y volver a `npm run consultas-lentas`. Las
-decisiones de rendimiento que quedan —qué índices tirar de los 523 MB, si subir
-`work_mem`, si pagar más memoria de Neon— se toman con medias de miles de llamadas
-reales. Las mías a mano ya fallaron tres veces (§9).
+decisiones de rendimiento que quedan —qué índices tirar, si subir `work_mem`, si pagar
+más memoria de Neon— se toman con medias de miles de llamadas reales. Las mías a mano ya
+fallaron tres veces (§9).
+
+**Con una excepción, y ya está medida**: §35.1. La tasación tarda 24 segundos y 23,7 son
+una sola consulta, así que ahí no hacía falta una media de miles de llamadas: hacía falta
+cronometrar una. El `work_mem` de la base son **4 MB** —el valor por defecto— y subirlo a
+64 vale 1,75×, medido. De 64 en adelante, nada.
 
 ### Cuánto se ha revisado, en porcentaje y por capas
 

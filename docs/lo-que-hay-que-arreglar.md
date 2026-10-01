@@ -21,7 +21,7 @@ Lo que puede salir mal delante de un cliente.
 
 | | Qué | Dónde | Cuánto |
 |---|---|---|---|
-| 🟠 | **La tasación tarda 24 s**, y 23,7 son una consulta. Filtrar también por marca vale 5× | §35.1 | medio día |
+| ⚠️ | ~~La tasación tarda 24 s; filtrar por marca vale 5×~~ — **medido bien, vale 1,23× y cambia la tasación. Revertido.** Los 20 s son leer de disco: es §9.1, y es decisión tuya | §35.2 | — |
 | 🟠 | **Con el tabulador no se puede abrir un coche** del listado: las tarjetas son `<div onClick>`. Lo bueno es que sean `<a href>`, que además las hace enlazables para un buscador | §33.1 | medio día |
 | 🟠 | **Seis buscadores del ERP** lanzan una petición por tecla; la respuesta vieja puede ganar y enseñar la fila de otra persona. En `ConsentimientosPage` eso es una respuesta legal equivocada | §29.2 | 2 h |
 | 🟠 | **Un coche sin precio se enseña a 0 €**, y ese 0 llega a la cuota y al depósito | §22.1 | 2 h |
@@ -142,9 +142,10 @@ dan `ECONNREFUSED`, así que hoy ni su propia puerta de pruebas se pasa entera.
 
 ## Por dónde empezaría
 
-1. **Los 24 segundos de la tasación** (§35.1). Es el camino que cobra, está medido y vale
-   5×. Necesita un parámetro que atraviese tres capas y una comparación de comparables
-   antes y después, porque tocar eso a ciegas cambia lo que se le cobra a alguien.
+1. ~~Los 24 segundos de la tasación~~ — **hecho, medido y revertido** (§35.2). El filtro
+   de marca vale 1,23×, no 5×, y cambia la mediana de la tasación. El cuello no está en
+   el código: con un acierto de caché del 36,8 %, el 63 % de las lecturas vienen del
+   almacenamiento. Pasa a ser §9.1, que es decisión tuya.
 2. **Las tarjetas como enlaces** (§33.1). Arregla el teclado, el lector de pantalla, el
    «abrir en otra pestaña» y los enlaces del listado a las fichas para un buscador. Cuatro
    problemas con un cambio.

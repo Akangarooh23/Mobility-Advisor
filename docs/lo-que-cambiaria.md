@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 149 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 150 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**82 están cerrados** —✅—. De los 67 que quedan, esto es el orden en
-que yo los tocaría: **2 🔴, 18 🟠, 31 🟡 y 16 ⚪**.
+**82 están cerrados** —✅—. De los 68 que quedan, esto es el orden en
+que yo los tocaría: **3 🔴, 18 🟠, 31 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -4460,18 +4460,99 @@ Medido sobre las **1.915.001** ofertas activas:
 **Una fila de 1,9 millones.** La columna está limpia, así que `lower(btrim(brand)) = …`
 no tira nada.
 
-**Lo que haría**, en este orden:
+**Lo que haría** — ⚠️ **y esto resultó estar mal. Ver §35.2.**
 
-1. **Añadir `lower(btrim(o.brand)) = $marca`** a la consulta de comparables, y solo
-   cuando la marca sea canónica —cosa que ya se sabe, porque `isBrandKnownInAliases` se
-   consulta 265 ms antes—. Usa `idx_mmo_bm_lower`, que ya existe y ya cuesta 45 MB. Vale
-   5×. Es un cambio en el camino que cobra, así que va con su comparación de comparables
-   antes y después.
-2. **`work_mem` a 64 MB** en Neon. Otro 1,75×, y de 64 en adelante no compra nada —así
-   que no hay razón para pasarse—. Es una decisión tuya porque toca la factura.
+> 1. Añadir `lower(btrim(o.brand)) = $marca` a la consulta de comparables. **Vale 5×.**
+> 2. `work_mem` a 64 MB en Neon. Otro 1,75×.
 
-Con las dos: de 24 segundos a unos 13, y el día que la tabla crezca el filtro es lo que
-evita que vuelva a 24.
+Lo hice, lo medí bien y el filtro vale **1,23×**, no 5× — y además **cambia la tasación**.
+Está revertido. Se deja la recomendación tachada aquí porque estuvo en el plan de trabajo
+y alguien pudo leerla.
+
+### 🔴 35.2 — Corrección: dije que el filtro de marca valía 5×, y vale 1,2×
+
+Lo escribí en §35.1 como «el arreglo más rentable que queda» y lo puse el primero del
+plan. Fui a hacerlo, lo hice, lo medí bien, y **no era verdad**. Queda aquí porque el
+número equivocado estuvo en el informe y en el plan de trabajo.
+
+#### De dónde salió el 5×
+
+De esta tabla, que es mía:
+
+| `work_mem` | tal cual | + filtro de marca |
+|---|---:|---:|
+| 4 MB | 117,9 s | 22,7 s |
+
+117,9 ÷ 22,7 ≈ 5. **Y esas dos cifras no se pueden dividir**: son dos ejecuciones
+distintas, en momentos distintos, contra una base compartida con el ERP y por internet.
+Lo peor es que yo mismo escribí al lado que los absolutos eran ruidosos —y aun así
+dividí uno por otro—.
+
+#### Medido bien
+
+La misma consulta, con y sin el filtro, **alternando** para que la caché le toque igual
+a las dos, tres rondas, en la misma conexión:
+
+```
+ronda 1  con filtro  22,5 s      sin filtro  21,9 s
+ronda 2  con filtro  19,2 s      sin filtro  23,7 s
+ronda 3  con filtro  18,9 s      sin filtro  93,9 s
+```
+
+**Mediana: 19,2 s con filtro, 23,7 s sin. Ganancia real: 1,23×.** Y fíjate en los 93,9 s
+de la tercera: esa varianza es la que convirtió mi primera medición en un cuento.
+
+#### Y el filtro no es gratis: cambia la tasación
+
+Con el filtro puesto, el Audi A3 de la prueba pasó de mediana **20.100 €** a **19.999 €**.
+Los comparables siguen siendo 398 porque hay un tope de 400, pero **no son los mismos**:
+el filtro quita ofertas que el `LIKE` sí pescaba —marca vacía, la marca metida en la
+versión, las 17 con espacios de sobra—.
+
+O sea que el cambio **altera lo que se le dice a una persona por su coche** a cambio de
+un 20 % en una operación que seguiría tardando 19 segundos. Eso no se hace. Revertido.
+
+#### Y la otra palanca que probé tampoco
+
+La consulta trae **3.000 filas** y el cálculo usa 400; las otras 2.600 son «para sweep y
+diagnóstico». Parecía que ordenar 3.000 filas anchas dos veces era el coste. Medido
+igual, alternando:
+
+```
+mediana con 3.000: 22,0 s      mediana con 400: 20,7 s      1,07×
+```
+
+Tampoco.
+
+#### Entonces dónde se van los 20 segundos
+
+En **leer**. El plan lo dice y yo lo tenía delante:
+
+```
+Heap Blocks: exact=9041 lossy=27436
+```
+
+Son ~36.000 bloques de una tabla de 6.744 MB, y con un acierto de caché del **36,8 %**
+(§9.1) la mayoría se traen del almacenamiento por red. Por eso el filtro baja el **coste
+estimado** cinco veces y no baja el tiempo: el planificador acierta —toca menos filas—
+pero el cuello no está en cuántas filas toca, está en de dónde vienen.
+
+**La conclusión cambia de sitio**: §35.1 no es una tarea de código. Es §9.1, y es tuya.
+Más memoria en Neon, o una tabla de trabajo más pequeña. Mientras el 63 % de las
+lecturas vengan del almacenamiento, ninguna consulta sobre esa tabla va a ir bien.
+
+#### Lo que esto dice de mi método
+
+La capa 5 encontró el fallo del filtro de la búsqueda **ejecutando**, y aquí he vuelto a
+ver lo mismo desde el otro lado: lo que no se mide alternando y repitiendo no está
+medido. Una división entre dos números de dos momentos distintos no es una medición, es
+una coincidencia con decimales.
+
+Y hubo un segundo aviso que casi me paso: la primera versión del arreglo enhebró el
+parámetro en la función equivocada, así que no se aplicaba nada — **y la comparación de
+comparables salió idéntica**, como tenía que salir. Si me quedo ahí, habría dado por
+bueno un arreglo que no existía. Lo que lo delató fue mirar la consulta que de verdad se
+ejecuta, no el resultado.
 
 ### Y una nota sobre cómo se midió esto
 

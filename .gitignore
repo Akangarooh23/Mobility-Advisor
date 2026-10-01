@@ -17,6 +17,11 @@
 # copia .env.local.bak con credenciales dentro casi acaba en el repo.
 .env*
 !.env.example
+
+# Los registros de una ejecución no son código. Había seis en el índice —en UTF-16,
+# de agosto, con el nombre de la instancia de SQL Server y la ruta de Python con el
+# usuario de Windows dentro—. Nada grave, pero este repositorio es público.
+*.log
 /data/local-users.json
 
 npm-debug.log*

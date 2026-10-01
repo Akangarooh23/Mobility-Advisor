@@ -1406,8 +1406,8 @@ async function _authHandlerInner(req, res) {
       return res.status(400).json({ error: "Debes indicar contraseña actual y nueva contraseña." });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres." });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 8 caracteres." });
     }
 
     if (currentPassword === newPassword) {
@@ -1651,8 +1651,8 @@ async function _authHandlerInner(req, res) {
       return res.status(400).json({ error: "Debes indicar correo y código de recuperación." });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres." });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "La nueva contraseña debe tener al menos 8 caracteres." });
     }
 
     const foundUser = usePostgres
@@ -1749,8 +1749,19 @@ async function _authHandlerInner(req, res) {
       return res.status(400).json({ error: "Introduce un correo electrónico válido." });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres." });
+    /*
+     * Ocho, no seis.
+     *
+     * Seis es la recomendación de hace quince años; hoy el mínimo razonable son
+     * ocho sin reglas de composición. Y aquí la gente sube su coche, su permiso de
+     * circulación y su ficha técnica.
+     *
+     * Va en el alta y en los dos sitios donde se cambia, **no en el login**: quien
+     * ya tenga una de seis sigue entrando y se le pide la nueva cuando la cambie.
+     * Subirlo en el login dejaría fuera a gente con una cuenta válida.
+     */
+    if (password.length < 8) {
+      return res.status(400).json({ error: "La contraseña debe tener al menos 8 caracteres." });
     }
 
     /*

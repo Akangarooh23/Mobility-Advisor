@@ -47,6 +47,7 @@ import { useElCambioDeContrasena } from "./hooks/useElCambioDeContrasena";
 import { useLaRecuperacionDeLaCuenta } from "./hooks/useLaRecuperacionDeLaCuenta";
 import { useElDialogoDeAcceso, FORMULARIO_DE_ACCESO_VACIO, queFaltaParaEntrar } from "./hooks/useElDialogoDeAcceso";
 import { useLaSesion } from "./hooks/useLaSesion";
+import { aJsonLd } from "./utils/aJsonLd";
 import { useMarketAlertInsights } from "./hooks/useMarketAlertInsights";
 import { useMarketCatalog } from "./hooks/useMarketCatalog";
 import { useUserMobilitySync } from "./hooks/useUserMobilitySync";
@@ -4877,7 +4878,7 @@ export default function App() {
         <script
           key={`schema-${index}`}
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          dangerouslySetInnerHTML={{ __html: aJsonLd(schema) }}
         />
       ))}
 

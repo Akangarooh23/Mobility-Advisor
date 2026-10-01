@@ -233,11 +233,21 @@ describe("por dónde va el encargo", () => {
   const pinta = (estado, puertas = HECHAS) =>
     render(<LoQueTeFaltaDelEncargo puertas={puertas} estado={estado} />);
 
-  test("sin cita todavía, se dice que se le está buscando", () => {
-    // Es el hueco más largo y el que más llamadas trae: lo ha traído todo y no
-    // pasa nada visible.
+  test("sin cita todavía, se le deja elegir dónde", () => {
+    /*
+     * Esto afirmaba «Buscándole cita en el taller», y esa frase se quitó a propósito.
+     * Lo dice el propio componente:
+     *
+     *   > el que no puede mover el coche -sin seguro al día, en el pueblo, trabajando
+     *   > a las horas del taller- no tenía dónde decirlo, y se enteraba cuando le
+     *   > llamábamos para darle una cita a la que no podía ir.
+     *
+     * Así que el hueco más largo del proceso ya no es un cartel: es la pregunta. La
+     * prueba pasa a fijar eso, que es lo que ahora tiene que estar.
+     */
     pinta({ taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false });
-    expect(screen.getByText(/Buscándole cita en el taller/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Que venga un perito/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Lo llevo a un taller/i })).toBeInTheDocument();
   });
 
   test("con la revisión hecha, que ya está comprobado", () => {
@@ -264,8 +274,17 @@ describe("por dónde va el encargo", () => {
   });
 
   test("con cita puesta no se repite: esa tiene su propia caja", () => {
+    /*
+     * Esto buscaba que no apareciera «Buscándole cita», y esa frase ya no existe en
+     * ninguna parte: la afirmación se cumplía sola y no medía nada.
+     *
+     * Lo que de verdad no puede aparecer con la cita ya puesta es **la pregunta**: si
+     * se le vuelve a ofrecer elegir cuando ya tiene cita, cambia la que tiene sin
+     * querer.
+     */
     pinta({ taller_hecho: false, taller_ok: false, tiene_cita: true, publicado: false });
-    expect(screen.queryByText(/Buscándole cita/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Que venga un perito/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Lo llevo a un taller/i })).not.toBeInTheDocument();
   });
 
   test("y con cosas pendientes no se enseña nada de esto", () => {

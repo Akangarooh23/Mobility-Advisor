@@ -1,0 +1,27 @@
+{
+  "root": true,
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "script"
+  },
+  "rules": {
+    "no-undef": "error",
+    "no-dupe-keys": "error",
+    "no-dupe-args": "error",
+    "no-unreachable": "error",
+    "no-const-assign": "error",
+    "no-func-assign": "error",
+    "no-obj-calls": "error",
+    "use-isnan": "error",
+    "valid-typeof": "error",
+    "no-sparse-arrays": "error",
+    "no-unsafe-negation": "error",
+    "no-cond-assign": "error",
+    "require-atomic-updates": "off",
+    "no-unused-vars": "off"
+  }
+}

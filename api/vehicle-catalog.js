@@ -531,6 +531,18 @@ async function applyPostgresAction(action, brand, model) {
 }
 
 async function applyMssqlAction(action, brand, model) {
+  /*
+   * Estas dos funciones NO EXISTEN, y eso lo encontró `no-undef` la primera vez
+   * que se lintó `api/`. No se arreglan, se van a borrar: están detrás de
+   * `provider === "mssql"` y `"sqlcmd-windows"`, dos proveedores que ya no
+   * atiende nadie —`api/auth.js` los tiene en PROVEEDORES_RETIRADOS— y que no
+   * pueden alcanzarse porque no hay SQL Server en ninguna parte.
+   *
+   * Se silencian aquí para que la puerta de `npm run lint:servidor` pueda estar
+   * verde, con el apunte de que son deuda de la limpieza de SQL Server
+   * (docs/lo-que-cambiaria.md §11.5 y §18.2), no un problema a resolver.
+   */
+  // eslint-disable-next-line no-undef
   await ensureCatalogTablesMssql();
   const pool = await getMssqlPool();
   const sb = brand.replace(/'/g, "''");
@@ -553,6 +565,7 @@ async function applyMssqlAction(action, brand, model) {
 }
 
 function applySqlcmdAction(action, brand, model) {
+  // eslint-disable-next-line no-undef -- resto de SQL Server, ver arriba
   ensureCatalogTablesSqlcmd();
   const sb = brand.replace(/'/g, "''");
   const sm = model.replace(/'/g, "''");

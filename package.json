@@ -92,6 +92,7 @@
     "migra": "node scripts/migra.mjs",
     "esquema": "node scripts/saca-el-esquema.mjs",
     "test:lib": "node --test lib/**/*.test.js",
+    "lint:servidor": "eslint --no-eslintrc -c .eslintrc.servidor.json --ext .js lib api",
     "test:regresion": "node scripts/comprueba-regresion.js",
     "test:cron": "node scripts/ensaya-cron.js --con-datos",
     "test:modrive-enrich": "node scripts/comprueba-modrive-enrich.js",

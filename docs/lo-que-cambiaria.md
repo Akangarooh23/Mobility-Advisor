@@ -3091,6 +3091,98 @@ En los dos repositorios, cuando alguien se molesta en guardar un error, lo ense�
 
 ---
 
+## Zona 26 — Capa 5: arrancar la aplicación ✔ y el día que me cazó a mí
+
+Arranqué la API local como la arranca el CI y pedí una referencia de mercado de
+verdad. La primera llamada contestó esto:
+
+```json
+{"error":"hasPostgresConnection is not defined"}
+```
+
+**Lo había roto yo el día anterior**, arreglando §12.1. Esa función existe en
+`billingStore.js` y no en `inventoryStore.js`, y los confundí. Un `ReferenceError` en
+**cada** llamada a `readInventoryUniverse`: la referencia de mercado y la tasación,
+caídas en producción varias horas, empujadas por mí.
+
+### 🔴 26.1 — Y nada lo cazó: `lib/` y `api/` no se lintan
+
+46.514 líneas que corren en producción y nunca pasaron por un lint. El
+`eslintConfig` del `package.json` extiende `react-app`, que CRA aplica **solo a
+`src/`**, y no había ningún guion `lint`.
+
+La primera vez que les pasé `no-undef` salieron **cinco identificadores que no
+existen**, y dos de ellos en caminos de error:
+
+| Dónde | Qué falta | Qué pasaba |
+|---|---|---|
+| `lib/api/marketplace-og-handler.js` ×2 | `registra` sin importar | **El manejador de errores era el error**: los dos `catch` que existen para distinguir «la base no contesta» de «ese coche no existe» —lo dice su comentario— levantaban un `ReferenceError` |
+| `lib/api/whatsapp-handler.js` | `remitente` sin importar | El `from:` del aviso interno. O sea que ese aviso **no se mandaba nunca** |
+| `api/vehicle-catalog.js` ×2 | dos `ensureCatalogTables*` | Restos de SQL Server, detrás de `provider === "mssql"`: inalcanzables |
+
+Los dos primeros son de manual: **fallos que solo se ejecutan cuando algo ya ha
+fallado**, así que se esconden detrás de otro fallo y pueden estar meses ahí. Los dos
+arreglados con una palabra cada uno.
+
+Y con el conjunto completo de reglas —claves duplicadas, código inalcanzable,
+reasignar una constante, comparar con NaN, `typeof` mal escrito— **no hay nada más en
+46.514 líneas**. El problema no era la calidad: era que nadie miraba.
+
+**Puesta la puerta**: `.eslintrc.servidor.json`, `npm run lint:servidor`, y un paso en
+el CI **antes** de las pruebas. Y comprobé que caza: le metí un
+`funcionQueNoExiste(1)` a `lib/freno.js` y el lint salió con código 1; restaurado,
+con 0.
+
+### Por qué ninguna de mis 1.701 pruebas lo vio
+
+Esto es lo que más me importa dejar escrito, porque lo había hecho bien y no bastó.
+
+Para §12.1 escribí una prueba que comprueba que la caída al fichero de agosto va
+detrás de la comprobación de «no hay base de datos». Afirmaba así:
+
+```js
+assert.match(antes, /if \(!hasPostgresConnection\(\)\)/, …);
+```
+
+Y **pasaba**. Encontraba el texto, porque el texto estaba escrito. Lo que no puede
+saber una prueba que lee el fuente es si ese nombre **se refiere a algo**.
+
+En §16 rompí el código a propósito seis veces para demostrar que las pruebas de forma
+cazan lo que dicen cazar, y lo demostré. Lo que §16 no podía demostrar es lo que las
+pruebas de forma **no pueden ver nunca**: un identificador que no existe, una
+dependencia que no está instalada, un `await` que falta. Para eso hace falta ejecutar,
+o un lint.
+
+La prueba ahora comprueba las dos cosas: la forma, y que todo lo que llama esa función
+esté declarado en el fichero.
+
+### ✅ 26.2 — Y lo que sí funciona, ejecutado
+
+Con el arreglo puesto, y contra la base de producción:
+
+```
+Peugeot 3008 diésel 2019, 90.000 km
+  source: postgres · comparables: 388 · mediana: 14.900 € · p25/p75: 13.197 / 16.618
+
+una marca inventada
+  source: unresolved-brand · comparables: 0 · mediana: null · universo: 0
+```
+
+La segunda es la verificación de §12.1 de punta a punta: **cero comparables llegan
+como cero**, sin fichero de agosto y sin precio inventado. Y hay un guardia incluso
+antes del que puse yo —`unresolved-brand`— que corta cuando la marca no se resuelve.
+
+### Lo que esta capa deja claro
+
+Las cuatro capas anteriores barrieron 255.185 líneas y encontraron cosas reales. La
+quinta encontró, en su **primera llamada**, un fallo que tumbaba la función central
+del producto y que ninguna de las otras cuatro podía ver.
+
+No porque las otras estén mal: porque un barrido lee y un lint comprueba nombres, pero
+solo ejecutar demuestra que la cosa funciona.
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

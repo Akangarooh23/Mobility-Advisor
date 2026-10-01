@@ -111,6 +111,23 @@ jobs:
       # Node 24; lo cazo el CI en el primer empujon, que es para lo que esta.
       #
       # `find` no depende ni de la shell ni de la version de node.
+      # El lint de lo que corre en el servidor, y va ANTES de las pruebas.
+      #
+      # `lib/` y `api/` son 46.514 lineas que nunca se lintaron: el `eslintConfig`
+      # del package.json extiende `react-app`, que CRA solo aplica a `src/`. La
+      # primera vez que se les paso `no-undef` salieron cinco identificadores
+      # inexistentes, y dos estaban en caminos de error: un `registra()` sin
+      # importar en el manejador de OG y un `remitente()` sin importar en el aviso
+      # de WhatsApp. Los dos levantaban un ReferenceError justo cuando algo ya iba
+      # mal, que es por eso que nadie los vio en meses.
+      #
+      # Va antes de las pruebas porque es mas rapido y porque un identificador que
+      # no existe no lo caza ninguna prueba que lea el fuente —eso tambien se
+      # aprendio aqui: una prueba mia buscaba el texto `hasPostgresConnection()`
+      # y lo encontraba, mientras esa funcion no existia en ese fichero—.
+      - name: Lint server code
+        run: npm run lint:servidor
+
       - name: Run lib tests
         run: node --test $(find lib -name '*.test.js')
 

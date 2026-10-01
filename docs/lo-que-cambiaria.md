@@ -33,34 +33,44 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 97 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 122 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**Treinta y cuatro están cerrados** —✅, y de ésos catorce se arreglaron en esta
-revisión—. De los 63 que quedan, esto es el orden en que yo los tocaría.
+**Cuarenta y ocho están cerrados** —✅—. De los 74 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 20 🟠, 33 🟡 y 14 ⚪**.
+
+De los cerrados, unos se arreglaron en esta revisión —llevan **hecho** o
+**arreglado** en el título— y otros estaban bien desde antes y lo único que hice fue
+comprobarlo. La distinción importa: trece veces me puse a arreglar algo que resultó
+que ya estaba resuelto, y eso es trabajo que no hay que volver a hacer.
+
+Los recuentos de este párrafo salen de contar los encabezados del propio documento,
+no de memoria. Estuvieron nueve hallazgos por detrás hasta el 1 de octubre.
 
 ### A — Arreglos de código pequeños. Ninguno cambia lo que ve un cliente
 
-Los haría en una tarde, en este orden, y cada uno con su prueba:
+**Los dieciséis están hechos.** Se hicieron en este orden, cada uno con su prueba, y
+cada fila tiene su commit. La columna de la derecha era la estimación; se deja a la
+vista porque la tarde salió por diez horas y eso también es información.
 
 | | Qué | Dónde | Cuánto |
 |---|---|---|---|
-| A0 | **El índice único de las rectificativas** en el ERP: hoy dos peticiones a la vez emiten **dos abonos** del mismo importe | §20.1 | 20 min |
-| A0b | **Envolver el `fetch` de `client.ts`** del ERP: seis líneas que curan 46 pantallas que hoy se quedan girando si se cae la red | §25.1 | 30 min |
-| A1 | El `DELETE FROM … WHERE user_id` ya está; falta **quitar `mantenimiento-activas.json`** o vaciar su `DELETE`, que hoy borraría 52.768 ofertas si alguien lo enciende | §13.2 | minutos |
-| A2 | **Reexportar el avisador de fallos de n8n** al repositorio: la copia guardada manda desde `onboarding@resend.dev` | §13.1 | minutos |
-| A3 | El `catch` del guardián de n8n: que **un fallo de Postgres no impida levantar n8n** —el enfriamiento, a un fichero local— | §15.1 | 1 h |
-| A4 | **Caducidad al freno de mano** (media hora) y el PID dentro | §15.3 | 20 min |
-| A5 | `registra()` en el `catch` de `el-motor-de-la-ficha`, para que se sepa que está apagado | §12.2 | 20 min |
-| A6 | Exigir `?route=` en los tres enrutadores y **404 sin él** | §12.4 | 1 h |
-| A7 | `timingSafeEqual` en el secreto compartido del ERP | §19.5 | 20 min |
-| A8 | Escapar `<` como `<` en el JSON-LD, que hoy no es explotable pero es una trampa | §6 | 5 min |
-| A9 | Firmar `/api/whatsapp` **aquí**: el ERP ya lo hace y este lado no | §3.1, §19.6 | 2 h |
-| A10 | Subir la contraseña mínima a 8 | §10.7 | 5 min |
-| A11 | Los tres campos del alta de empresa, ya hechos; falta **quitar las 7 entradas muertas** de `package.json` y las 3.406 líneas de Python de SQL Server | §11.5, §18.2 | 1 h |
-| A12 | `*.log` al `.gitignore` y quitar los seis del índice | §18.1 | 5 min |
-| A13 | Las 9 claves ajenas sin índice: **gratis ahora**, que las tablas están vacías | §1.2 | 30 min |
+| ✅ A0 | **El índice único de las rectificativas** en el ERP: hoy dos peticiones a la vez emiten **dos abonos** del mismo importe | §20.1 | 20 min |
+| ✅ A0b | **Envolver el `fetch` de `client.ts`** del ERP: seis líneas que curan 46 pantallas que hoy se quedan girando si se cae la red | §25.1 | 30 min |
+| ✅ A1 | El `DELETE FROM … WHERE user_id` ya está; falta **quitar `mantenimiento-activas.json`** o vaciar su `DELETE`, que hoy borraría 52.768 ofertas si alguien lo enciende | §13.2 | minutos |
+| ✅ A2 | **Reexportar el avisador de fallos de n8n** al repositorio: la copia guardada manda desde `onboarding@resend.dev` | §13.1 | minutos |
+| ✅ A3 | El `catch` del guardián de n8n: que **un fallo de Postgres no impida levantar n8n** —el enfriamiento, a un fichero local— | §15.1 | 1 h |
+| ✅ A4 | **Caducidad al freno de mano** (media hora) y el PID dentro | §15.3 | 20 min |
+| ✅ A5 | `registra()` en el `catch` de `el-motor-de-la-ficha`, para que se sepa que está apagado | §12.2 | 20 min |
+| ✅ A6 | Que el valor de un parámetro no pueda elegir la ruta (**no** era exigir `?route=`: eso rompía el servidor local) | §12.4 | 1 h |
+| ✅ A7 | `timingSafeEqual` en el secreto compartido del ERP | §19.5 | 20 min |
+| ✅ A8 | Escapar `<` como `<` en el JSON-LD, que hoy no es explotable pero es una trampa | §6 | 5 min |
+| ✅ A9 | Firmar `/api/whatsapp` **aquí**: el ERP ya lo hacía y este lado no. Falla cerrado: **pide `WHATSAPP_APP_SECRET` en Vercel** | §3.1, §19.6 | 2 h |
+| ✅ A10 | Subir la contraseña mínima a 8 | §10.7 | 5 min |
+| ✅ A11 | Los tres campos del alta de empresa, ya hechos; falta **quitar las 7 entradas muertas** de `package.json` y las 3.406 líneas de Python de SQL Server | §11.5, §18.2 | 1 h |
+| ✅ A12 | `*.log` al `.gitignore` y quitar los seis del índice | §18.1 | 5 min |
+| ✅ A13 | Las 9 claves ajenas sin índice: **gratis ahora**, que las tablas están vacías | §1.2 | 30 min |
 
 ### B — Decisiones tuyas. No son trabajo, son un sí o un no
 
@@ -261,7 +271,7 @@ mano y los tres tienen motivo (`billing-ping`, `inventoryStore`, un comentario).
 Revisados los 53 en seis dimensiones: control de acceso, método HTTP, CORS,
 freno, manejo de errores y si escriben.
 
-### 🟠 3.1 — `/api/whatsapp` no verifica la firma de Meta
+### ✅ 3.1 — `/api/whatsapp` no verificaba la firma de Meta — **hecho**
 
 El `GET` verifica el token de Meta correctamente. El **`POST` no verifica nada**:
 lee `req.body.entry[0].changes[0].value.messages[0]` y sigue.
@@ -280,6 +290,31 @@ arbitrarios. Eso es suspensión de cuenta y coste.
 
 **Qué haría**: verificar `X-Hub-Signature-256` con el secreto de la app, antes de
 tocar la base. Es lo mismo que ya se hace bien en el webhook de Stripe.
+
+#### Lo que se hizo
+
+`loMandaMeta(req, res)` en `lib/api/whatsapp-handler.js`, llamada **antes** de leer
+el cuerpo. Recalcula el HMAC-SHA256 sobre el cuerpo en bruto y lo compara en tiempo
+constante, comprobando la longitud primero —`timingSafeEqual` levanta con búferes
+desiguales, y eso convertiría un 401 en un 500—. Seis pruebas en
+`lib/api/solo-meta-escribe-en-whatsapp.test.js`.
+
+**Falla cerrado.** Sin `WHATSAPP_APP_SECRET` no se atiende a nadie: 503. Es a
+propósito, y es la versión que el webhook de Stripe tenía mal —`if (secreto) { … }`:
+sin variable, puerta abierta, y nadie se enteraba—. Tiene una consecuencia
+inmediata:
+
+> 🔴 **Hay que poner `WHATSAPP_APP_SECRET` en Vercel** —el «App Secret» de la app de
+> Meta, el mismo valor que ya usa el ERP— **o los leads de WhatsApp dejan de
+> llegar**. Mientras falte, cada aviso de Meta se rechaza con 503 y se apunta con
+> `registra()`, así que sale en el aviso horario en vez de perderse callando.
+
+Y el recurso del cuerpo en bruto tiene un límite que hay que decir: cuando
+`req.rawBody` no viene, se rearma con `JSON.stringify(req.body)`, que **no garantiza
+los mismos bytes** que mandó Meta. Es el mismo recurso que usa el webhook de Stripe.
+Si no cuadra, el rechazo queda apuntado y se ve en una hora; no se pierde nada en
+silencio. Es la razón de que cada rechazo pase por `registra()` y no por un
+`console.error`.
 
 Y de paso: el manejador responde `200` **antes** de hacer el trabajo (correcto
 para Meta) pero luego hace `await sendWhatsApp(...)`. En Vercel el proceso puede
@@ -2492,7 +2527,7 @@ de clientes.
 longitud primero —`timingSafeEqual` **levanta** si los búferes miden distinto— y
 comparar con él.
 
-### ✅ 19.6 — Y la firma del webhook de WhatsApp está bien hecha
+### ✅ 19.6 — Y la firma del webhook de WhatsApp está bien hecha (en el ERP; la de la web se añadió en §3.1)
 
 Miré `lib/whatsapp.ts` esperando encontrar justo ese fallo, porque es el clásico:
 

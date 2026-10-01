@@ -37,8 +37,8 @@ Los 143 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**57 están cerrados** —✅—. De los 86 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 23 🟠, 39 🟡 y 17 ⚪**.
+**58 están cerrados** —✅—. De los 85 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 23 🟠, 38 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -4049,7 +4049,7 @@ de verdad. Se gana el teclado, el «abrir en otra pestaña», el botón de atrá
 enlaces del listado a las fichas, que hoy no existen para un buscador. Eso es más trabajo
 y cambia cosas visibles, así que no lo he tocado sin decírtelo.
 
-### 🟡 33.2 — Treinta y tres botones que no dicen cómo se llaman
+### ✅ 33.2 — Treinta y tres botones que no decían cómo se llaman — **hecho**
 
 Botones cuyo único contenido es un carácter de adorno. Leídos uno a uno:
 
@@ -4065,8 +4065,40 @@ Botones cuyo único contenido es un carácter de adorno. Leídos uno a uno:
 Un lector de pantalla no dice «cerrar»: dice «signo de multiplicación», o «comilla
 angular simple izquierda», o se lo salta. **14 en Mobility y 19 en el ERP.**
 
-El arreglo es un `aria-label` por botón y no cambia nada visible. Es el más barato de
-esta zona.
+#### Lo que se hizo, y por qué no fue mecánico
+
+Los 33 llevan `aria-label` y no cambia nada visible. Pero **el nombre no sale del
+carácter**, y ahí estaba el trabajo: veintiséis llevan una `×` dentro y la tentación era
+poner «Cerrar» en los veintiséis.
+
+Fui a leer el `onClick` de cada uno. **Trece no cierran nada**:
+
+| Dónde | Lo que hace de verdad | El nombre |
+|---|---|---|
+| ERP `MarketplacePage:2450` | `deleteUnit(u.id)` | «Borrar esta unidad» |
+| ERP `MarketplacePage:2593/2615/2867` | filtra `imageUrls` | «Quitar esta foto» |
+| ERP `VehicleFormFields:202` | filtra `image_urls` | «Quitar esta foto» |
+| ERP `VisitsPanel:69` | `onRemoveSlot(s.id)` | «Quitar este horario» |
+| ERP `GestoriaPage:769` | `quitaPartida(i)` | «Quitar esta partida» |
+| ERP `FunnelPage:639` | `setGlobalUser('')` | «Quitar el filtro de usuario» |
+| ERP `FunnelPage:1212` | `setFilterAnonId('')` | «Quitar el filtro» |
+| ERP `ElegirProveedor:77` | `setAnadiendo(false)` | «Cancelar» |
+| `AvailabilityEditor:377` | `removeSlot(s)` | «Quitar este horario» |
+| `MiCitaPage:286` | `setSelectedSlot(null)` | «Quitar la hora elegida» |
+| `SellReportMarketPage:1435` | `setPendingDamageZone(null)` | «Cancelar» |
+| `UserDashboardSolicitudes:1341` | filtra la propuesta | «Quitar esta propuesta» |
+
+El de `MarketplacePage:2450` **borra una unidad del marketplace**. Llamarlo «Cerrar» no
+habría sido una etiqueta incompleta: habría sido una etiqueta que miente delante de una
+acción destructiva, y para quien solo oye la etiqueta eso es peor que el silencio.
+
+Y dos no eran una `×`: el `−` y el `+` del selector de unidades de
+`PortalVoDetailPage` —«Quitar una unidad» y «Añadir una unidad»—. Más el `L–V` de
+`AvailabilityEditor`, que **era una etiqueta de verdad** —lunes a viernes— y mi barrido
+contó como muda porque no tiene dos alfanuméricos seguidos. Se le pone el nombre completo
+igual, porque «L raya V» leído en voz alta no dice nada.
+
+Verificado volviendo a pasar el barrido: **cero botones mudos** en los dos repositorios.
 
 ### 🟡 33.3 — Campos sin etiqueta: 117 en Mobility y 325 en el ERP
 

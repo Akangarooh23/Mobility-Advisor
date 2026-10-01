@@ -37,8 +37,8 @@ Los 150 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**83 están cerrados** —✅—. De los 67 que quedan, esto es el orden en
-que yo los tocaría: **3 🔴, 17 🟠, 31 🟡 y 16 ⚪**.
+**84 están cerrados** —✅—. De los 66 que quedan, esto es el orden en
+que yo los tocaría: **3 🔴, 16 🟠, 31 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -3489,7 +3489,7 @@ El único `setTimeout` sin limpiar es `PaletaComandos.tsx:79`, y son 10 ms para
 enfocar un campo: si la paleta se cierra antes, el `?.focus()` no hace nada. No es un
 hallazgo.
 
-### 🟠 29.2 — Seis buscadores del ERP lanzan una petición por tecla, y la respuesta vieja puede ganar
+### ✅ 29.2 — Seis buscadores del ERP lanzaban una petición por tecla — **hecho a medias, y dicho cuál falta**
 
 `SearchInput` dispara `onChange` **en cada tecla** y no retarda nada. Seis pantallas
 lo usan, y las seis mandan ese texto **al servidor** como dependencia de un efecto:

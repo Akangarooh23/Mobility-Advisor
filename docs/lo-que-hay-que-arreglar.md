@@ -23,7 +23,7 @@ Lo que puede salir mal delante de un cliente.
 |---|---|---|---|
 | ⚠️ | ~~La tasación tarda 24 s; filtrar por marca vale 5×~~ — **medido bien, vale 1,23× y cambia la tasación. Revertido.** Los 20 s son leer de disco: es §9.1, y es decisión tuya | §35.2 | — |
 | ✅ | ~~Con el tabulador no se puede abrir un coche del listado~~ — **hecho**: las tres tarjetas son `<a href="/marketplace-vo/<id>">`. Teclado, lector de pantalla, abrir en otra pestaña y enlaces para los buscadores | §33.1 | hecho |
-| 🟠 | **Seis buscadores del ERP** lanzan una petición por tecla; la respuesta vieja puede ganar y enseñar la fila de otra persona. En `ConsentimientosPage` eso es una respuesta legal equivocada | §29.2 | 2 h |
+| 🟡 | ~~Seis buscadores del ERP lanzan una petición por tecla~~ — **hecho**: 350 ms de retardo en `SearchInput`, un solo sitio para las seis. **Queda la mitad**: mientras `api.get` no sepa cancelar, dos respuestas pueden llegar al revés si el servidor va lento | §29.2 | 2 h |
 | 🟠 | **Un coche sin precio se enseña a 0 €**, y ese 0 llega a la cuota y al depósito | §22.1 | 2 h |
 | 🟠 | **87 ofertas de un proveedor que ya no existe**, servidas a los clientes | §7.2 | decisión + 1 h |
 | 🟠 | **`register` dice si un correo tiene cuenta.** El freno está puesto; falta que el 409 no delate | §10.2 | 1 h |

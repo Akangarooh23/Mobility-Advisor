@@ -3734,7 +3734,7 @@ dos tokens nunca se cruzan. Eso está bien hecho y es lo difícil.
 
 | | Respuestas con `.message` dentro | |
 |---|---:|---|
-| Mobility (`lib/` + `api/`) | **62**, en 25 ficheros | pendiente |
+| Mobility (`lib/` + `api/`) | **62**, en 25 ficheros | **23 arregladas**, 39 por mirar |
 | ERP (`apps/api`) | **44** | **32 arregladas**, 12 son legítimas |
 
 `visit-availability-handler.js` tiene veinte. `personal.ts` del ERP, siete.
@@ -3807,7 +3807,29 @@ rutas que lo usan empezarían a filtrar a la vez y las otras dos afirmaciones se
 en verde. Un trinquete que solo vigila a quien llama, y no a la pieza en la que
 confían, no vigila nada.
 
-**Pendiente en Mobility**: las 62. El mismo ayudante sobre `registra()`, que ya existe.
+**Hecho en Mobility, 23 de 62**: las 18 de `visit-availability-handler` y las 5 de
+`viewing-handler`, que son los dos caminos de las citas —pedir visita, proponer hora,
+confirmar, cancelar, y lo que el vendedor particular contesta desde el enlace del
+correo—. Con su ayudante, `lib/el-detalle-no-sale.js`.
+
+**Por qué un ayudante y no un mensaje fijo en cada sitio**: las 62 respuestas **no tienen
+la misma forma**. Unas llevan `ok: false`, otras `offer: null`, otras `sections: []`, y el
+navegador lee esos campos. Cambiar la respuesta entera por `{ error: "algo" }` habría
+arreglado la fuga y roto la pantalla. `elDetalle()` sustituye **solo el mensaje**.
+
+Y hace la mitad que se olvidaba: **apuntar el error**. Antes el mensaje viajaba al
+navegador y **no se guardaba en ninguna parte** —en cuanto el cliente cerraba la pestaña,
+perdido—. Ahora va a `moveadvisor_errores` y el aviso horario lo cuenta.
+
+Cada sitio lleva un nombre que dice qué falló, sacado del `if (method === … && route ===
+"x")` que lo selecciona: «visit-availability: post confirmar». La primera versión lo sacó
+del comentario de ruta y **tres de los 18 salieron con el mismo nombre**, o sea
+indistinguibles en el registro, que es lo único para lo que sirve el nombre.
+
+**Quedan 39, y algunos son legítimos.** `billing-checkout-handler` devuelve el mensaje de
+**Stripe**, que está escrito para que lo lea una persona —«tu tarjeta ha sido
+rechazada»— y convertirlo en un código sería una regresión. Por eso el trinquete es un
+techo de 39 y no un cero: el que falte hay que mirarlo uno a uno.
 
 #### Y el número era 103, no 106, porque mi analizador estaba roto
 

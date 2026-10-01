@@ -219,6 +219,23 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
         * si lo lee y lo lleva, el perito se planta en una casa vacía: se
         * pierden el desplazamiento, la visita y el día.
         */}
+      {/*
+        * «Confirmada», dicho con esa palabra.
+        *
+        * Esta caja solo existe cuando hay día **y se le ha contado**, así que
+        * su sola presencia ya significaba confirmada. Pero eso lo sabe quien
+        * escribió el código, no quien la lee: el cliente venía de marcar tres
+        * huecos y ver «te confirmamos por correo», y una fecha a secas no le
+        * dice si esa es la suya o una propuesta más. Es la pregunta con la
+        * que llama.
+        */}
+      <div style={{
+        display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
+        textTransform: "uppercase", color: "#047857", background: "rgba(5,150,105,0.14)",
+        borderRadius: 6, padding: "2px 7px", marginBottom: 6,
+      }}>
+        Confirmada
+      </div>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: isDark ? "var(--gris-100)" : "#1f2937", marginBottom: 4 }}>
         {aDomicilio ? "Un perito va a ver tu coche" : "Tu coche tiene cita en el taller"}
       </div>

@@ -12,6 +12,8 @@
  * más de lo que puede sostener.
  */
 
+const { elDetalleSoloFuera } = require("../lib/el-detalle-no-sale");
+
 const MAXIMO = 5;
 const MINIMO = 2;
 
@@ -222,6 +224,6 @@ module.exports = async function handler(req, res) {
 
     return res.status(ultimoError.estado).json(ultimoError.datos);
   } catch (e) {
-    return res.status(500).json({ error: "Error inesperado en la comparación.", detail: e.message });
+    return res.status(500).json({ error: "Error inesperado en la comparación.", detail: elDetalleSoloFuera(e, "compare-cars") });
   }
 };

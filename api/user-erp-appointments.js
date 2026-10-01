@@ -1,6 +1,7 @@
 const { elPoolObligatorio } = require("../lib/postgres");
 const { aplicaCors } = require("../lib/cors");
 const { identidadDeLaPeticion } = require("../lib/api/identidad");
+const { elDetalleSoloFuera } = require("../lib/el-detalle-no-sale");
 
 let pool;
 function getPool() {
@@ -98,6 +99,6 @@ module.exports = async function userErpAppointmentsApi(req, res) {
     return res.json({ ok: true, appointments });
   } catch (err) {
     console.error("[user-erp-appointments] db error:", err.message);
-    return res.status(500).json({ ok: false, error: "db_error", detail: err.message });
+    return res.status(500).json({ ok: false, error: "db_error", detail: elDetalleSoloFuera(err, "user-erp-appointments") });
   }
 };

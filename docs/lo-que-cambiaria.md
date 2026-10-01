@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 146 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 148 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**60 están cerrados** —✅—. De los 86 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 23 🟠, 39 🟡 y 17 ⚪**.
+**61 están cerrados** —✅—. De los 87 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 24 🟠, 39 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -86,7 +86,10 @@ Ninguna la puedo tomar yo, y tres de ellas bloquean el lanzamiento:
 1. 🔴 **`AUTH_EXPOSE_RESET_CODE` en Vercel**, verificada como falsa o ausente. En
    `.env.local` está en `true`, y con ese valor la API devuelve el código de
    recuperación de cualquier cuenta. Es una comprobación de treinta segundos.
-2. 🔴 **`AUTH_BILLING_REQUIRE_SESSION` que no esté en `false`** en Vercel.
+2. ✅ **`AUTH_BILLING_REQUIRE_SESSION`** — **comprobada el 1-oct y está bien.** No hacía
+   falta entrar en Vercel: un POST a `/api/billing-checkout` sin sesión, con correo en
+   el cuerpo y sin `leadId`, contesta **401** si la puerta está cerrada y 400 «Falta la
+   solicitud» si está abierta. Contestó 401, y sin crear nada en Stripe (§34.4).
 3. 🟠 **Las siete lecturas** que devuelven lista vacía cuando la base falla (§5.8).
    Cambiarlo enseña un aviso de error en vez de «no tienes nada». Yo lo cambiaría.
 4. 🟠 **Los 87 `leasys-%`** vivos en el marketplace, de un proveedor que ningún
@@ -467,7 +470,7 @@ Ya estaba en la revisión anterior y sigue en pie:
 - 🔴 **`AUTH_EXPOSE_RESET_CODE`** — verificar en Vercel que no es `true`. En
   `.env.local` lo es. Con ese valor la API **devuelve el código de recuperación**
   y cualquiera cambia la contraseña de cualquiera sabiendo solo su correo.
-- 🔴 **`AUTH_BILLING_REQUIRE_SESSION`** — verificar que no es `false`.
+- ✅ **`AUTH_BILLING_REQUIRE_SESSION`** — verificada desde fuera el 1-oct: 401 (§34.4).
 - 🟠 **`scripts/drop-erp-appointments-main-db.js`** — `DROP TABLE` sin
   confirmación, leyendo `DATABASE_URL` (producción). La tabla existe y la usan 9
   ficheros.
@@ -4261,6 +4264,78 @@ no de los datos. Aquí se ve en una petición que cualquiera puede hacer:
 Las 62 de Mobility siguen pendientes. Después de esto subo su prioridad: no es solo que
 se filtre el nombre de una columna, es que **un 500 con jerga de Postgres es lo que ve un
 cliente** en vez de «no hemos podido buscar, inténtalo otra vez».
+
+### 🟠 34.2b — La mitad de la API no existía en desarrollo — **hecho**
+
+Esto salió de seguir recorriendo, y explica por qué §34.1 llevaba ahí tanto tiempo.
+
+Pedí las 42 rutas concretas de `vercel.json` al servidor local, una a una:
+
+    la conocen: 21    no la conocen: 21
+
+El mapa de `local-api-server.js` está escrito a mano y `vercel.json` tiene 49
+reescrituras. Faltaban:
+
+| | |
+|---|---|
+| `/api/error` | el recogedor de fallos del navegador — **en local no grababa nada** |
+| `/api/invoice-pdf` | las facturas |
+| `/api/fianza-devolucion`, `/api/fianza-confirmar` | el pago de la fianza |
+| `/api/mandato-firmado`, `/api/papeles-venta`, `/api/clausula-precio` | los papeles de la venta |
+| `/api/whatsapp`, `/api/ping`, `/api/cita-taller` | |
+| los seis `cron-*` | |
+
+**Y de ahí viene todo.** Un servidor de desarrollo que no sirve la mitad de la API
+garantiza que no se pruebe la mitad de la aplicación. Por eso la capa 5 estaba al 10 %
+y por eso el 500 de los filtros vivió en producción: no es que nadie quisiera
+probarlo, es que no se podía.
+
+También explica dos sustos que me llevé esta misma tarde y que no eran nada:
+`/api/ping` y `/api/viewing-get` daban 404 en local y 200 —y un 404 del manejador, que
+es el correcto— en producción. Media hora persiguiendo un fallo del servidor de
+desarrollo.
+
+**Arreglado**: el reparto se deriva de `vercel.json`. Una reescritura como
+
+    /api/viewing-get  ->  /api/user?route=viewing-get
+
+se convierte en «carga `api/user` y pon `route=viewing-get`», que es lo que hace
+Vercel. El mapa escrito a mano gana —alguna ruta local apunta a otro manejador a
+propósito— y esto solo rellena huecos.
+
+Las que llevan comodín o `:parametro` se dejan fuera **a propósito**: un servidor de
+desarrollo que enruta *parecido* a producción es más peligroso que uno que dice «no la
+tengo».
+
+Resultado: **42 de 42**, ningún manejador falla al cargar, y las nuevas se comportan
+—`ping` 200, `error` 405 solo-POST, `invoice-pdf` 400 «id required», `cron-alert-check`
+401, `papeles-venta` 401 y `whatsapp` **503**, que es el fallar cerrado de §3.1
+funcionando porque `.env.local` no tiene el token—.
+
+Con cinco pruebas que importan `local-api-server.js` **de verdad** y no una copia de su
+lógica; para eso lleva ahora un `require.main === module`. Tener la misma regla escrita
+dos veces ya me costó ocho botones hoy (§33.2).
+
+### ✅ 34.4 — Y una decisión pendiente, resuelta sin tocar Stripe
+
+La nº 2 de tu lista: **que `AUTH_BILLING_REQUIRE_SESSION` no esté en `false`** en
+Vercel. Era 🔴 y bloqueaba el lanzamiento.
+
+Se puede comprobar desde fuera sin crear nada, y así se hizo. `exigeSesionParaPagar()`
+devuelve `true` salvo que la variable diga literalmente `"false"`, y la identidad se
+comprueba **antes** que el `leadId` y mucho antes que Stripe. Así que un POST sin
+sesión, con correo en el cuerpo y **sin** `leadId` distingue las dos configuraciones:
+401 si la puerta está cerrada, 400 «Falta la solicitud» si está abierta.
+
+    POST /api/billing-checkout  {"planId":"fianza","customerEmail":"…"}
+    401  {"error":"Inicia sesion para pagar la fianza."}
+
+**401: la puerta está cerrada.** Sin crear ni una sesión de pago en tu cuenta de
+Stripe, que es de producción —lo comprobé antes de ejecutar nada del camino de pago—.
+
+La nº 1, `AUTH_EXPOSE_RESET_CODE`, **no** se puede comprobar así: el código solo se
+genera para un correo que existe, y probarlo mandaría un correo de verdad a una cuenta
+de verdad. Esa sigue siendo tuya, y son treinta segundos en el panel de Vercel.
 
 ### ✅ 34.3 — Y lo que se recorrió y está bien
 

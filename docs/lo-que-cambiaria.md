@@ -37,8 +37,8 @@ Los 150 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**82 están cerrados** —✅—. De los 68 que quedan, esto es el orden en
-que yo los tocaría: **3 🔴, 18 🟠, 31 🟡 y 16 ⚪**.
+**83 están cerrados** —✅—. De los 67 que quedan, esto es el orden en
+que yo los tocaría: **3 🔴, 17 🟠, 31 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -4031,7 +4031,7 @@ Cuatro comprobaciones, elegidas porque se pueden medir sin abrir un navegador y 
 son las que dejan a alguien **fuera** en vez de incómodo: un control al que el teclado no
 llega, un botón sin nombre, una imagen sin `alt` y un campo sin etiqueta.
 
-### 🟠 33.1 — Un usuario de teclado no puede abrir un coche desde el listado
+### ✅ 33.1 — Un usuario de teclado no podía abrir un coche desde el listado — **hecho**
 
 `PortalVoMarketplacePage.js`, tres veces —líneas 911, 986 y 1101—. Las tarjetas de
 vehículo son así:

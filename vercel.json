@@ -84,6 +84,10 @@
       "destination": "/api/market?route=cita-taller"
     },
     {
+      "source": "/api/peritacion",
+      "destination": "/api/market?route=peritacion"
+    },
+    {
       "source": "/api/clausula-precio",
       "destination": "/api/market?route=clausula-precio"
     },

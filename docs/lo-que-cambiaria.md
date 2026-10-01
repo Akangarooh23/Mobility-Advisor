@@ -33,12 +33,19 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 122 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 127 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**Cuarenta y nueve están cerrados** —✅—. De los 74 que quedan, esto es el orden en
-que yo los tocaría: **6 🔴, 20 🟠, 34 🟡 y 14 ⚪**.
+**49 están cerrados** —✅—. De los 78 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 21 🟠, 35 🟡 y 15 ⚪**.
+
+Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
+razonando «he cerrado una, baja una», así que se saca del propio documento:
+
+```bash
+grep '^### ' docs/lo-que-cambiaria.md | grep -oE '^### (✅|🔴|🟠|🟡|⚪)' | sort | uniq -c
+```
 
 El 🔴 que se cayó a 🟡 es §3.1: lo había escrito como una avería y al medirlo resultó
 que WhatsApp no ha recibido un mensaje nunca. Queda dicho ahí por qué.
@@ -48,8 +55,7 @@ De los cerrados, unos se arreglaron en esta revisión —llevan **hecho** o
 comprobarlo. La distinción importa: trece veces me puse a arreglar algo que resultó
 que ya estaba resuelto, y eso es trabajo que no hay que volver a hacer.
 
-Los recuentos de este párrafo salen de contar los encabezados del propio documento,
-no de memoria. Estuvieron nueve hallazgos por detrás hasta el 1 de octubre.
+
 
 ### A — Arreglos de código pequeños. Ninguno cambia lo que ve un cliente
 
@@ -3457,6 +3463,146 @@ del 409, por las pruebas de §10.
 
 ---
 
+## Zona 29 — Los efectos: limpieza, adelantamiento y la rueda que no para ✔ clase cerrada
+
+La clase «efectos sin limpieza» estaba sin pasar en los dos repositorios. Son **275
+efectos** —166 en Mobility, 109 en el ERP— y la clase se parte en tres averías que no
+se parecen en nada:
+
+1. **Registros que no se dan de baja**: un intervalo, una escucha, un observador, un
+   `EventSource`. Quedan vivos después de desmontar.
+2. **Adelantamiento**: el efecto pide algo, llega la respuesta y hace `setState`. Si
+   las dependencias cambiaron por medio, hay dos peticiones en vuelo y **la vieja
+   puede aterrizar después de la nueva y pisarla**.
+3. **La rueda que no para**: el efecto se va por un `return` temprano y deja el
+   indicador de carga encendido, porque el `finally` que lo apaga no llega a existir.
+
+### ✅ 29.1 — Registros sin dar de baja: cero en los dos repositorios
+
+Ni un `setInterval`, `addEventListener`, `MutationObserver`, `IntersectionObserver`,
+`ResizeObserver`, `EventSource`, `WebSocket` ni `.subscribe()` sin su baja, en los 285
+ficheros. Eso es mejor de lo que me esperaba y conviene decirlo: es la mitad de la
+clase que suele estar sucia.
+
+El único `setTimeout` sin limpiar es `PaletaComandos.tsx:79`, y son 10 ms para
+enfocar un campo: si la paleta se cierra antes, el `?.focus()` no hace nada. No es un
+hallazgo.
+
+### 🟠 29.2 — Seis buscadores del ERP lanzan una petición por tecla, y la respuesta vieja puede ganar
+
+`SearchInput` dispara `onChange` **en cada tecla** y no retarda nada. Seis pantallas
+lo usan, y las seis mandan ese texto **al servidor** como dependencia de un efecto:
+
+| Pantalla | Dependencias del efecto |
+|---|---|
+| `ConsentimientosPage` | `[page, q, filter]` |
+| `UsersPage` | `[q, status, plan, page]` |
+| `TicketsPage` | `[q, status, priority, page]` |
+| `AppointmentsPage` | `[q, status, page]` |
+| `IdCarsPage` | `[q, page]` |
+| `MarketplacePage` | `[tab, q, brand, …]` |
+
+Escribir «garcia» son **seis consultas paginadas** contra Neon. Y ninguna se puede
+cancelar, porque **`api.get` no sabe cancelar**: no hay un `AbortController` ni un
+`signal` en todo `client.ts`. Así que las seis se ejecutan enteras y gana la última
+que llega, que no tiene por qué ser la de `?q=garcia`.
+
+El resultado que ve quien lo usa: el cuadro dice «garcia» y la lista es la de `ga`. Y
+como el `finally` de la primera respuesta apaga la rueda, **parece que ya terminó**.
+
+**Por qué es 🟠 y no 🟡**: la pantalla donde más duele es `ConsentimientosPage`.
+Mirar si una persona aceptó el tratamiento de sus datos y que te enseñe la fila de
+otra no es un parpadeo, es una respuesta equivocada a una pregunta legal.
+
+**Y lo que lo hace fácil**: el patrón ya está en el repositorio. `MarketplacePage`
+retarda sus filtros de columna cuatro veces:
+
+```tsx
+useEffect(() => {
+  const t = setTimeout(() => setColFDeb(colF), 350);
+  return () => clearTimeout(t);
+}, [colF]);
+```
+
+O sea que alguien vio la necesidad y la cubrió **para los filtros de columna y no
+para el buscador**, en el mismo fichero. Lo que haría: ese retardo de 350 ms en
+`SearchInput` —una vez, no seis— y de paso el contador de peticiones, porque el
+retardo reduce el adelantamiento pero no lo quita.
+
+### 🟡 29.3 — Los modelos de `BuscarCochePage` se piden sin guardia, justo debajo de uno que sí la tiene
+
+En el mismo fichero, veinte líneas de distancia:
+
+```js
+// El listado: guardado, y bien
+const mio = ++peticion.current;
+…
+if (mio !== peticion.current) return;   // llegó una respuesta vieja
+
+// Los modelos: sin nada
+useEffect(() => {
+  if (!filtros.brand) { setModelos({ conOfertas: [], sinOfertas: [] }); return; }
+  fetch(`${SEARCH_OFFERS_API_ENDPOINT}?${p}`)
+    .then((r) => r.json())
+    .then((d) => { if (d?.ok) setModelos({ … }); });
+}, [filtros.brand]);
+```
+
+Cambiar de marca dos veces seguidas —Audi, Seat— puede dejar los modelos de Audi en
+el desplegable con Seat elegido. Y como `cambiar()` borra el modelo al cambiar de
+marca, lo que se ofrece es una lista que no corresponde.
+
+Es 🟡 y no 🟠 porque hace falta cambiar dos veces rápido, pero el arreglo es la línea
+que ya está veinte líneas más arriba.
+
+### ⚪ 29.4 — Tres ruedas que girarían para siempre, y ninguna es alcanzable hoy
+
+| Dónde | La salida |
+|---|---|
+| `SlotPicker.js:76` | `if (!offerId) return;` |
+| ERP `UserDetailPage.tsx:95` | `if (!id) return;` |
+| ERP `IdCarDetailPage.tsx:127` | `if (!id) return;` |
+
+Las tres tienen `loading` arrancando en `true` y lo apagan **solo** en el `.finally`
+de la petición. Si el efecto se va por el `return` de arriba, ese `finally` no llega a
+existir: rueda girando, sin error y sin mensaje.
+
+Las tres son inalcanzables hoy, y eso lo comprobé antes de escribirlas: el único sitio
+que monta `SlotPicker` le pasa `offerId={selectedPortalVoOffer.id}`, y ese id siempre
+sale de un `offer.id`; y las dos del ERP cuelgan de rutas `users/:id` e `idcars/:id`,
+que no casan sin el segmento. Son trampas puestas, no averías.
+
+### 🟡 29.5 — Y lo que esto dice de §24, que di por cerrada
+
+En §24 escribí «**64 de 64** indicadores de carga se apagan si algo falla». Era
+verdad y era incompleto: aquel barrido comprobaba los `finally` y los `catch`. **No
+comprobaba el `return` que sale antes de que haya un `finally`.**
+
+Las tres de §29.4 no salieron buscándolas: salieron de leer `SlotPicker` por otra
+cosa. Que es el argumento para pasarle la clase a todo el código otra vez en vez de
+fiarse de que la pasada anterior la cubría — y el motivo de que esta zona exista.
+
+### Nota de método: el analizador se equivocó cuatro veces antes que el código
+
+Cada una se arregló en el guion, no en el informe, y las cuatro van aquí porque son
+el tipo de error que convierte un barrido en un cuento:
+
+1. **No reconocía el contador de peticiones.** Marcó la búsqueda de `BuscarCochePage`
+   como fallo; fui a leerla y tenía guardia, y **mejor** que una bandera de cancelado:
+   `++peticion.current`. La bandera protege del desmontaje; el contador protege además
+   del adelantamiento.
+2. **Mezclaba el estado de componentes vecinos.** Buscaba los `useState(true)` en todo
+   el fichero, así que el `setLoading` de uno contaba en el de al lado. Y no es
+   teórico: `SlotPicker.js` tiene un segundo componente al final.
+3. **No miraba el orden.** Daba por encendido un `setLoading(true)` que estaba
+   **después** del `return`, cuando al salir todavía estaba apagado.
+4. **No comprobaba de quién era la rueda.** Marcó dos efectos de `BuscarCochePage` por
+   nombrar un `setCargando` que no tocan: es la rueda del listado y la lleva otro
+   efecto. La prueba que lo arregla es «¿este efecto la apaga en el camino bueno?».
+
+Con las cuatro, los candidatos de la tercera avería pasaron de **3 a 1** en Mobility.
+Y el guion se valida contra nueve casos de respuesta conocida antes de creerle nada.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -3545,14 +3691,19 @@ mirado este fichero».
 | Pruebas que no pueden fallar | ✅ §16 | ✗ |
 | Cabeceras de seguridad | ✅ §17 | ✅ §17 |
 | Numeración y aritmética de facturas | — | ✅ §20, §21 |
-| Efectos sin limpieza | ✗ | ✗ |
+| Efectos sin limpieza | ✅ §29 | ✅ §29 |
 | Dependencias que mienten | ✗ | ✗ |
 | Accesibilidad | ✗ | ✗ |
 | Fugas de datos en las respuestas | parcial §3.2 | ✗ |
 | Validación y límites de tamaño | parcial §4 | ✗ |
 
-**Mobility: 13 clases cerradas, 2 parciales, 4 sin pasar — ≈ 70 %.**
-**ERP: 11 cerradas, 0 parciales, 5 sin pasar — ≈ 65 %.**
+**Mobility: 14 clases cerradas, 2 parciales, 3 sin pasar — ≈ 76 %.**
+**ERP: 12 cerradas, 0 parciales, 4 sin pasar — ≈ 71 %.**
+
+La que se cerró el 1 de octubre es «efectos sin limpieza» (§29), en los dos a la vez.
+Quedan **accesibilidad** y **dependencias que mienten** en los dos, **pruebas que no
+pueden fallar** en el ERP, y las dos parciales de Mobility —fugas de datos en las
+respuestas y validación de tamaños—, que en el ERP están sin empezar.
 
 ### Y por qué la capa 1 no va a llegar al 100 %
 

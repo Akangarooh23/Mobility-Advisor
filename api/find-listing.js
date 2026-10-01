@@ -2206,7 +2206,26 @@ function isPreviouslySeenListing(listing, excludedUrls = new Set(), excludedTitl
   return (urlKey && excludedUrls.has(urlKey)) || (titleKey && excludedTitles.has(titleKey));
 }
 
-function buildPositionReason(listing, index) {
+/**
+ * Por qué esta oferta encaja. **Sin nombrar el puesto que ocupa.**
+ *
+ * La frase decía «Sube al puesto #1 porque…» y «Queda en la posición #2
+ * porque…», y el número se quedaba pegado al texto. El problema es que la
+ * posición la decide el navegador DESPUÉS: al pulsar «Recalcular ofertas»,
+ * `src/App.js` rota la lista para que la que iba primera no repita. La frase,
+ * escrita aquí con el orden anterior, viajaba con ella.
+ *
+ * Visto en producción el 1 de octubre de 2026: tras recalcular, la oferta
+ * destacada —puesto #1, con su estrella— decía «Queda en la posición #2», y la
+ * de debajo decía «Sube al puesto #1». Las dos contradecían lo que el cliente
+ * tenía delante.
+ *
+ * Sincronizar el número con el orden final sería perseguir el síntoma, porque
+ * cualquier reordenación posterior volvería a romperlo. El puesto ya se ve en
+ * la tarjeta —«OFERTA DESTACADA · PUESTO #1»—, así que la frase se queda con
+ * lo único que no cambia al reordenar: por qué ese coche encaja contigo.
+ */
+function buildPositionReason(listing) {
   const rankingSignals = Array.isArray(listing?.rankingSignals) ? listing.rankingSignals : [];
   // Profile signals come first in rankingSignals; exclude quality metadata from the reason text
   const metadataRe = /^(Sin|Se sale|Por debajo|Foto real|Precio\s+(detectado|visible)|Fuente priorizada|Tipo correcto)/i;
@@ -2214,11 +2233,10 @@ function buildPositionReason(listing, index) {
   const topSignal = profileSignals[0] || listing?.matchReason || "buen equilibrio general para tu perfil";
   const secondSignal = profileSignals.find((signal) => signal && signal !== topSignal) || "";
 
-  if (index === 0) {
-    return `Sube al puesto #1 porque ${topSignal.toLowerCase()}${secondSignal ? ` y además ${secondSignal.toLowerCase()}` : ""}.`;
-  }
+  const frase = `${topSignal}${secondSignal ? ` y además ${secondSignal.toLowerCase()}` : ""}`;
+  const limpia = frase.trim().replace(/\.+$/, "");
 
-  return `Queda en la posición #${index + 1} porque ${topSignal.toLowerCase()}${secondSignal ? `, aunque ${secondSignal.toLowerCase()}` : ""}.`;
+  return `${limpia.charAt(0).toUpperCase()}${limpia.slice(1)}.`;
 }
 
 function pickProviderDiverseListings(listings = [], limit = 4) {
@@ -2389,7 +2407,7 @@ function buildRankedListingResponse(listings = [], options = {}) {
     .map((listing, index) => ({
       ...listing,
       rankPosition: index + 1,
-      positionReason: buildPositionReason(listing, index),
+      positionReason: buildPositionReason(listing),
     }));
 
   if (!ranked.length) {
@@ -4381,7 +4399,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       rankedInventory = rankedInventory.map((listing, index) => (
         String((listing && listing.positionReason) || "").trim()
           ? listing
-          : { ...listing, positionReason: buildPositionReason(listing, index) }
+          : { ...listing, positionReason: buildPositionReason(listing) }
       ));
 
       return {

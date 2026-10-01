@@ -26,14 +26,21 @@ const STATUS_LABEL = {
 };
 
 module.exports = async function userErpAppointmentsApi(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-PopCar-Client");
-  // Ver la nota de `api/erp-appointment.js`: el comodín no sirve en cuanto la
-  // petición lleva credenciales, y `aplicaCors` lo sustituye por el origen
-  // concreto cuando está en la lista.
+  /*
+   * El permiso del navegador, y solo por un sitio.
+   *
+   * Aquí se ponían además tres cabeceras a mano con `Allow-Origin: *`, que no
+   * servían para nada: el comodín lo rechaza el navegador en cuanto la
+   * petición lleva credenciales —ver la nota de `api/erp-appointment.js`— y
+   * justo debajo `aplicaCors` lo sustituía por el origen concreto. Lo que sí
+   * hacían era dar a entender que esta puerta sabe de CORS por su cuenta, que
+   * es como se le olvidó `Authorization` a la de las franjas y la app se
+   * quedó con «Failed to fetch».
+   *
+   * `aplicaCors` también contesta al `OPTIONS` y devuelve `true`, así que el
+   * `if` que había después tampoco se recorría nunca.
+   */
   if (aplicaCors(req, res)) return undefined;
-  if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "GET") return res.status(405).json({ ok: false, error: "method_not_allowed" });
 
   /*

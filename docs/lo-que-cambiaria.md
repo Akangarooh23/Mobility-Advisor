@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 143 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 146 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**58 están cerrados** —✅—. De los 85 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 23 🟠, 38 🟡 y 17 ⚪**.
+**60 están cerrados** —✅—. De los 86 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 23 🟠, 39 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -4169,6 +4169,114 @@ leí **los seis**, y de los 20 controles sin teclado leí cinco. Las categorías
 verificaron con un ejemplo cada una. O sea que los números de §33.3 son el candidato
 medido, no 485 cosas leídas de una en una.
 
+## Zona 34 — Capa 5: el camino de compra, con la aplicación en marcha ✔
+
+Las dieciocho clases de la capa 4 estaban cerradas. Esta zona es la capa 5: arrancar la
+aplicación y recorrer los caminos de verdad. El primero fue el camino de compra, y el
+tercer `curl` encontró el fallo más grave de toda la revisión.
+
+### ✅ 34.1 — Cualquier filtro de la búsqueda devolvía un 500 — **hecho**
+
+Esta línea de `search-offers-handler.js`:
+
+```js
+condiciones.push(sql.replace("$?", `${valores.length}`));
+```
+
+`replace("$?", "1")` sustituye el `$?` **entero** —el dólar forma parte de lo buscado—,
+así que `"lower(brand) = $?"` se convertía en
+
+```sql
+lower(brand) = 1
+```
+
+Un entero desnudo donde tenía que ir `$1`. Y **todos** los filtros se construyen con ese
+mismo ayudante.
+
+**Medido contra producción antes de arreglarlo:**
+
+| petición | respuesta |
+|---|---|
+| `/api/search-offers?limit=1` | **200** |
+| `/api/search-offers?brand=Audi&limit=1` | **500** `operator does not exist: text = integer` |
+| `/api/search-offers?maxPrice=10000&limit=1` | **500** `bind message supplies 1 parameters, but prepared statement "" requires 0` |
+| `/api/search-offers?fuel=diesel&limit=1` | **500** |
+| `/api/search-offers?minYear=2020&limit=1` | **500** |
+
+Dos caras según el tipo de columna. Las de texto se comparaban contra un entero. En las
+numéricas el valor **sí** llegaba a `valores` y el marcador desaparecía del SQL, así que
+se mandaba un parámetro para una consulta que no tenía ninguno.
+
+Fallaban los doce: marca, modelo, combustible, cambio, carrocería, color, tipo de
+vendedor, provincia, precio, año, kilómetros y potencia.
+
+**La búsqueda sin filtros funcionaba**, y de ahí que pasara desapercibido: la portada
+carga, el listado sale, el total aparece. Solo rompe cuando alguien toca un filtro — que
+en una web de coches es lo primero que hace cualquiera.
+
+**Arreglado** con una función de reemplazo, no con un doble dólar. El doble dólar
+funciona y es justo lo que alguien «simplifica» a uno dentro de seis meses; una función
+no interpreta los patrones de dólar y no hay nada que simplificar.
+
+**Verificado con la aplicación en marcha**, que es de donde salió:
+
+```
+brand=Audi                          Audi 14990€ | Audi 49900€ | Audi 27300€
+maxPrice=10000                      9850€ | 5200€ | 2690€
+brand=Audi&model=A3&maxPrice=15000  total = 5.547   (exacto, no el tope)
+       …&minYear=2020               total = 34
+brand=Porsche&model=911             total = 1.683
+brand=NoExisteEstaMarca             total = 0
+```
+
+Diecinueve pruebas: que cada filtro deje un `$n`, que la numeración sea seguida y que el
+número de marcadores **distintos** cuadre con el de valores. Distintos porque el filtro
+de texto libre reutiliza `$1` en cuatro columnas a propósito, y mi primera versión lo
+marcó como fallo. Comprobado devolviendo el bug: se ponen rojas 15 de 19.
+
+#### Lo que esto dice del método, y es incómodo
+
+**Dieciocho clases de defecto pasadas por todo el código de los dos repositorios no lo
+vieron.** Ni el lint, ni los tipos, ni 1.765 pruebas, ni los barridos de SQL
+concatenado, ni el de fugas en las respuestas que pasó por este mismo fichero y le
+encontró el `.message` de la línea 844.
+
+Porque no es una clase de defecto. Es una cadena que se come un carácter, y eso no tiene
+forma: no hay patrón que buscar. Lo único que lo encuentra es **ejecutar la cosa y mirar
+qué contesta**.
+
+Los barridos miden cobertura de clases. La capa 5 mide si funciona. Y la capa 5 estaba
+al 10 % cuando la capa 4 estaba al 100 %.
+
+### 🟡 34.2 — Y de paso, §31 confirmado en vivo
+
+El 500 de arriba llegaba al navegador con el texto de Postgres dentro. §31 lo había
+contado —62 respuestas en Mobility— y lo había clasificado como revelación del esquema y
+no de los datos. Aquí se ve en una petición que cualquiera puede hacer:
+
+```
+{"ok":false,"error":"operator does not exist: text = integer"}
+```
+
+Las 62 de Mobility siguen pendientes. Después de esto subo su prioridad: no es solo que
+se filtre el nombre de una columna, es que **un 500 con jerga de Postgres es lo que ve un
+cliente** en vez de «no hemos podido buscar, inténtalo otra vez».
+
+### ✅ 34.3 — Y lo que se recorrió y está bien
+
+| Paso | Resultado |
+|---|---|
+| El listado del marketplace (`?limit=5`) | 200 en 0,6 s, 5 ofertas de 2.911 |
+| La ficha de un coche (`?id=modrive_2304734`) | 200 en 0,18 s, 37 campos |
+| Una ficha que no existe | **404** con `{ok:false, offer:null}`, sin filtrar nada |
+| `?id=` con `'; DROP TABLE x--` | **404**, el valor viaja por parámetro |
+| `?limit=hola` y `?limit=999999` | 200, acotado — lo que decía §32.3 |
+| `?offset=-5` | 200, `desde=0` |
+| El tope de 10.000 del total | funciona como está documentado: `hayMas: true` |
+
+El `'; DROP TABLE` merece decirse: devuelve 404 porque el valor se compara como texto, no
+porque se escape. Eso es lo correcto.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -4295,9 +4403,18 @@ girando por una línea.
 O sea que lo que avanza no es leer más código, es **pasarle una clase nueva a todo el
 código**. Por eso la capa 4 es la que llevo contando desde §22.
 
-Lo que daría hallazgos que ningún barrido ve es cambiar de método otra vez:
-**arrancar la aplicación y recorrer los caminos de verdad** —el alta, la tasación,
-reservar un taller, el pago—. Eso es la capa 5, y está sin empezar.
+Lo que da hallazgos que ningún barrido ve es cambiar de método otra vez: **arrancar la
+aplicación y recorrer los caminos de verdad** —el alta, la tasación, reservar un taller,
+el pago—. Eso es la capa 5.
+
+**Y ya no es una hipótesis.** El 1 de octubre, con la capa 4 al 100 % en los dos
+repositorios, arranqué la aplicación y el tercer `curl` del camino de compra encontró
+que **cualquier filtro de la búsqueda devolvía un 500 en producción** (§34.1). Dieciocho
+clases pasadas por todo el código no lo vieron, porque no es una clase: es una cadena que
+se come un carácter.
+
+Lo que queda de la capa 5, en orden de lo que más duele si está roto: **el alta y el
+pago**, **la tasación**, **reservar un taller** y **el panel del cliente**.
 
 ## Y las tareas que no son leer código
 

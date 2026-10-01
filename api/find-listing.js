@@ -2399,10 +2399,17 @@ function buildRankedListingResponse(listings = [], options = {}) {
         ...orderedListings.filter((listing) => Boolean(listing?.hasRealImage || isUsefulImageUrl(listing?.image))),
         ...orderedListings.filter((listing) => !Boolean(listing?.hasRealImage || isUsefulImageUrl(listing?.image))),
       ];
-  const unseenListings = options.preferUnseen
-    ? imagePreferredListings.filter((listing) => !isPreviouslySeenListing(listing, excludedUrls, excludedTitles))
+  /*
+   * Las vistas al final, igual que en el camino del consejero: ordenar, no
+   * filtrar. Aquí el efecto era el mismo —quedarse con dos candidatas cuando
+   * había doce— solo que una línea más abajo.
+   */
+  const candidatePool = options.preferUnseen
+    ? [
+        ...imagePreferredListings.filter((l) => !isPreviouslySeenListing(l, excludedUrls, excludedTitles)),
+        ...imagePreferredListings.filter((l) => isPreviouslySeenListing(l, excludedUrls, excludedTitles)),
+      ]
     : imagePreferredListings;
-  const candidatePool = unseenListings.length > 0 ? unseenListings : imagePreferredListings;
   const ranked = pickProviderDiverseListings(candidatePool, Math.max(TOP_LISTINGS_LIMIT + 3, 6))
     .map((listing, index) => ({
       ...listing,
@@ -4062,10 +4069,13 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       if (exactModelOnly) {
         const exactModelInventory = inventoryDecorated
           .filter(matchesSelectedLocation);
-        const unseenFirstExact = context.preferUnseen
-          ? exactModelInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
+        // Igual que abajo: las vistas al final, pero no se van. Ver el porqué allí.
+        const exactPool = context.preferUnseen
+          ? [
+              ...exactModelInventory.filter((l) => !isPreviouslySeenListing(l, context.excludedUrls, context.excludedTitles)),
+              ...exactModelInventory.filter((l) => isPreviouslySeenListing(l, context.excludedUrls, context.excludedTitles)),
+            ]
           : exactModelInventory;
-        const exactPool = unseenFirstExact.length ? unseenFirstExact : exactModelInventory;
         const finalExactInventory = Array.from(
           (exactPool || []).reduce((acc, listing) => {
             const key = normalizeText(listing?.url || `${listing?.source || ""}|${listing?.title || ""}`).toLowerCase();
@@ -4147,10 +4157,32 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         }
       }
 
-      const unseenFirstPool = context.preferUnseen
-        ? rankedInventory.filter((listing) => !isPreviouslySeenListing(listing, context.excludedUrls, context.excludedTitles))
+      /*
+       * Las ya vistas van al final, pero NO se van.
+       *
+       * Esto filtraba, y solo repescaba la lista entera si no quedaba
+       * absolutamente ninguna. Con una o dos sin ver, se seguia con esas dos
+       * y el resto del circuito -el colador, la ficha, el recorte por modelo-
+       * trabajaba sobre un conjunto diminuto. Si alguna se caia ahi, la
+       * pantalla acababa vacia teniendo doce ofertas buenas que cumplian.
+       *
+       * Se vio buscando siempre el mismo perfil: un diesel en Madrid por
+       * debajo de 10.000 EUR da unas doce candidatas, y el navegador manda las
+       * ULTIMAS 24 que ya se enseñaron. A partir de la tercera o cuarta
+       * busqueda seguida ya se habian visto casi todas, y el numero de ofertas
+       * iba bajando solo: cuatro, dos, una, ninguna.
+       *
+       * `preferUnseen` dice preferir, no exigir. Ahora ordena: primero las que
+       * no ha visto, detras las que si. El conjunto no mengua nunca, y quien
+       * repite una busqueda sigue viendo coches aunque ya se los hayamos
+       * enseñado antes, que es muchisimo mejor que no ver ninguno.
+       */
+      const prioritizedPool = context.preferUnseen
+        ? [
+            ...rankedInventory.filter((l) => !isPreviouslySeenListing(l, context.excludedUrls, context.excludedTitles)),
+            ...rankedInventory.filter((l) => isPreviouslySeenListing(l, context.excludedUrls, context.excludedTitles)),
+          ]
         : rankedInventory;
-      const prioritizedPool = unseenFirstPool.length > 0 ? unseenFirstPool : rankedInventory;
       /*
        * Se cuela ANTES de elegir los tres modelos distintos.
        *

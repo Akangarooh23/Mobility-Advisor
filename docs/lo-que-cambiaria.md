@@ -37,8 +37,8 @@ Los 150 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**84 están cerrados** —✅—. De los 66 que quedan, esto es el orden en
-que yo los tocaría: **3 🔴, 16 🟠, 31 🟡 y 16 ⚪**.
+**86 están cerrados** —✅—. De los 64 que quedan, esto es el orden en
+que yo los tocaría: **3 🔴, 14 🟠, 31 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -3295,7 +3295,7 @@ O sea que el fallo de §26 —un identificador que no existe— aquí es **impos
 diseño**: TypeScript no compila. Eso es mejor que el lint que acabo de poner en
 Mobility, porque no hay que acordarse de activar una regla.
 
-### 🟠 27.2 — Pero la suite está en rojo, y el ERP no tiene CI
+### ✅ 27.2 — La suite estaba en rojo y el ERP no tenía CI — **hecho**
 
 Lancé `npm test` por primera vez:
 
@@ -3315,7 +3315,7 @@ Es la sexta vez hoy que aparece la misma forma: §11.1 (el CI de Mobility no cor
 comprueba las cabeceras), §15.2 (nadie lee los latidos), §13.1 (nadie reexporta los
 flujos). **La ausencia no hace ruido.**
 
-### 🟠 27.3 — Y la que está roja es justo el guardia de §19.1
+### ✅ 27.3 — Y la que estaba roja era justo el guardia de §19.1 — **hecho**
 
 La prueba se llama `las-tablas-del-taller-son-gemelas.test.ts`, y su cabecera explica
 exactamente el riesgo que apunté en §19.1 sin conocerla:

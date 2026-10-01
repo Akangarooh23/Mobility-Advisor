@@ -66,8 +66,8 @@ Lo que hace que mañana sea más caro. Invisible hoy, caro en seis meses.
 
 | | Qué | Dónde |
 |---|---|---|
-| 🟠 | **El ERP no tiene CI**, y su suite está en rojo: nadie lo ve | §27.2 |
-| 🟠 | **Y la que está roja es justo el guardia** de las 280 sentencias de esquema | §27.3 |
+| ✅ | ~~El ERP no tiene CI, y su suite está en rojo~~ — **hecho**: tipos, 2.813 pruebas y build en cada empujón. Los ocho `comprueba-*.js` quedan fuera: leen el `.env` del repositorio y la base de verdad | §27.2 |
+| ✅ | ~~Y la que está roja es justo el guardia~~ — **hecho**: no era regresión, PopCar añadió dos puertas al panel y el flujo no las traía | §27.3 |
 | 🟠 | **280 sentencias de esquema dentro de las peticiones** del ERP, y ninguna migración | §19.1 |
 | 🟠 | **`npm run test:lib` corre 934 de las 1.690 en Linux** | §11.2 |
 | 🟠 | **Nadie lee los latidos de n8n**, que son la mitad de su diseño | §15.2 |
@@ -151,5 +151,6 @@ dan `ECONNREFUSED`, así que hoy ni su propia puerta de pruebas se pasa entera.
 3. **Los seis buscadores del ERP** (§29.2). El patrón del arreglo ya está escrito en el
    propio repositorio: `MarketplacePage` retarda sus filtros de columna 350 ms cuatro
    veces, en el mismo fichero donde no retarda el buscador.
-4. **El CI del ERP** (§27.2). Es lo que sostiene todo lo demás: hoy su suite está en rojo
-   y nadie se entera.
+4. ~~El CI del ERP~~ (§27.2) — **hecho.** Tipos, 2.813 pruebas y construcción en cada
+   empujón. Y su suite vuelve a estar verde: lo rojo era el guardia del panel, que PopCar
+   había cambiado.

@@ -103,7 +103,19 @@ export default function ResultsOffersView({
     bestOffers: t("resultsOffersView.bestOffers"),
     recalculating: t("resultsOffersView.recalculating"),
     recalculateOffers: t("resultsOffersView.recalculateOffers"),
-    featuredIntro: t("resultsOffersView.featuredIntro"),
+    /*
+     * El número sale de las ofertas que hay, no de un «3» escrito a mano.
+     *
+     * Visto en producción el 1 de octubre de 2026: salió una oferta debajo de
+     * la destacada y el texto seguía prometiendo «otras 3». Quien lo lee da por
+     * hecho que faltan dos y que algo se ha roto.
+     */
+    featuredIntro: (() => {
+      const cuantas = (otherOffers || []).length;
+      if (cuantas === 0) return t("resultsOffersView.featuredIntroNone");
+      if (cuantas === 1) return t("resultsOffersView.featuredIntroOne");
+      return t("resultsOffersView.featuredIntroMany", { cuantas });
+    })(),
     listingCoveragePrefix: "🔎",
     refineWarning: t("resultsOffersView.refineWarning"),
     loadingRealtime: t("resultsOffersView.loadingRealtime"),

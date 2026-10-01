@@ -29,7 +29,7 @@ const OFERTA = {
   mercado: { mediana: 26380, ahorro: 7690, comparables: 1268 },
 };
 
-function pinta(featuredOffer) {
+function pinta(featuredOffer, otherOffers = []) {
   render(
     <ResultsOffersView
       themeMode="light"
@@ -44,7 +44,7 @@ function pinta(featuredOffer) {
       canSearchListing
       searchRealListing={() => {}}
       featuredOffer={featuredOffer}
-      otherOffers={[]}
+      otherOffers={otherOffers}
       ResolvedOfferImage={() => null}
       openOfferInProductSheet={() => {}}
       openOfferInNewTab={() => {}}
@@ -131,5 +131,35 @@ describe("cuando no hay ofertas se dice por que", () => {
      * frase generica que la contradice.
      */
     expect(FUENTE).toContain("{!featuredOffer && !listingLoading && !listingError && !listingInsight && (");
+  });
+});
+
+
+/**
+ * El texto de arriba cuenta las ofertas que hay, no las que esperaba quien lo
+ * escribio.
+ *
+ * Visto en produccion el 1 de octubre de 2026: debajo de la destacada salio
+ * UNA oferta, y el texto seguia diciendo «debajo veras otras 3 que tambien
+ * podrian encajar». El 3 estaba escrito a mano en la traduccion. Quien lo lee
+ * da por hecho que faltan dos y que algo se ha roto, cuando lo que pasa es que
+ * solo dos cumplian de verdad, que es justo lo que se pidio que hiciera.
+ */
+describe("el texto de la cabecera cuenta las que hay", () => {
+  const OTRA = { ...OFERTA, id: "o-2", title: "Seat Leon 2021" };
+
+  test("con dos mas, el texto en plural", () => {
+    pinta(OFERTA, [OTRA, { ...OTRA, id: "o-3" }]);
+    expect(screen.getByText("resultsOffersView.featuredIntroMany")).toBeInTheDocument();
+  });
+
+  test("con una sola, el texto en singular", () => {
+    pinta(OFERTA, [OTRA]);
+    expect(screen.getByText("resultsOffersView.featuredIntroOne")).toBeInTheDocument();
+  });
+
+  test("y sin ninguna, no se promete nada", () => {
+    pinta(OFERTA, []);
+    expect(screen.getByText("resultsOffersView.featuredIntroNone")).toBeInTheDocument();
   });
 });

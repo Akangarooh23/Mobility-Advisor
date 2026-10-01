@@ -4362,6 +4362,28 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
          */
         filterInsight = null;
       }
+      /*
+       * Ninguna oferta sale sin decir por que esta ahi.
+       *
+       * Esta rama devuelve las ofertas tal cual, sin pasar por
+       * `buildRankedListingResponse`, que es la unica funcion que escribe
+       * `positionReason`. Asi que aqui la frase solo existia si la ponia el
+       * cerebro, y se quedaba vacia en tres casos que no son raros: cuando el
+       * cerebro no contesta, cuando la oferta entra por el relleno de
+       * `sinRepetirCoche` -que la anade con `porque` vacio a proposito, porque
+       * no la eligio el- y cuando la anaden los bucles de ensanchado de mas
+       * abajo.
+       *
+       * Visto en produccion el 1 de octubre de 2026: la tarjeta destacada
+       * mostraba «Por que va la 1a:» y debajo nada. El titulo prometia una
+       * explicacion que no llegaba, que es peor que no prometerla.
+       */
+      rankedInventory = rankedInventory.map((listing, index) => (
+        String((listing && listing.positionReason) || "").trim()
+          ? listing
+          : { ...listing, positionReason: buildPositionReason(listing, index) }
+      ));
+
       return {
         listing: rankedInventory[0] || null,
         listings: rankedInventory,

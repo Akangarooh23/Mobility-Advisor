@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { getMarketplaceVoJson, getImportOffersJson, getVehicleCatalogJson } from "../utils/apiClient";
 import { getBrandOptionSegments } from "../utils/brandCatalog";
 import { getRentingDesde, describeRentingDesde } from "../utils/portalVoHelpers";
+import { laFichaDe, abreLaFicha } from "../laFichaDeUnCoche";
 
 const IMPORT_POR_PAGINA = 60;
 
@@ -908,13 +909,15 @@ export default function PortalVoMarketplacePage({
             </div>
             <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))`, gap: 12 }}>
               {importOffers.map((offer) => (
-                <div key={offer.id}
-                  onClick={() => onOpenOffer(offer)}
+                <a key={offer.id}
+                  href={laFichaDe(offer)}
+                  onClick={(e) => abreLaFicha(e, offer, onOpenOffer)}
                   title="Ver ficha completa"
                   style={{
                     background: isDark ? "var(--gris-900)" : "#fff",
                     border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(150,150,143,0.22)",
                     borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer",
+                    textDecoration: "none", color: "inherit",
                   }}>
                   <div style={{ position: "relative" }}>
                     {offer.image
@@ -949,7 +952,7 @@ export default function PortalVoMarketplacePage({
                       Ver ficha →
                     </div>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
             {importOffers.length < importTotal && (
@@ -983,11 +986,15 @@ export default function PortalVoMarketplacePage({
         {modefeatured.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 12 }}>
             {modefeatured.map((offer) => (
-              <div
+              <a
                 key={offer.id}
-                onClick={() => onOpenOffer(offer)}
+                href={laFichaDe(offer)}
+                onClick={(e) => abreLaFicha(e, offer, onOpenOffer)}
                 title={t("marketplace.seeFullCard")}
                 style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  display: "block",
                   position: "relative",
                   background: isDark
                     ? "linear-gradient(135deg,rgba(22,163,74,0.16),rgba(16,185,129,0.08) 45%,rgba(5,150,105,0.16))"
@@ -1059,7 +1066,7 @@ export default function PortalVoMarketplacePage({
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         ) : (
@@ -1098,9 +1105,10 @@ export default function PortalVoMarketplacePage({
               const hasReservedLead = (offer.url && reservedVoUrls.has(offer.url)) || (offer.id && reservedMarketplaceIds.has(offer.id));
               const isReserved = isRenting && hasReservedLead && offer.unitsAvailable <= 1;
               return (
-              <div
+              <a
                 key={offer.id}
-                onClick={() => onOpenOffer(offer)}
+                href={laFichaDe(offer)}
+                onClick={(e) => abreLaFicha(e, offer, onOpenOffer)}
                 title={t("marketplace.seeFullCard")}
                 style={{
                   background: cardBg,
@@ -1109,6 +1117,9 @@ export default function PortalVoMarketplacePage({
                   overflow: "hidden",
                   cursor: "pointer",
                   opacity: isReserved ? 0.82 : 1,
+                  textDecoration: "none",
+                  color: "inherit",
+                  display: "block",
                 }}
               >
                 <ResolvedOfferImage
@@ -1158,7 +1169,7 @@ export default function PortalVoMarketplacePage({
                     {t("marketplace.offerAvailableIn", { title: offer.title, location: offer.location })}
                   </p>
                 </div>
-              </div>
+              </a>
               );
             })}
           </div>

@@ -37,8 +37,8 @@ Los 149 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**66 están cerrados** —✅—. De los 83 que quedan, esto es el orden en
-que yo los tocaría: **2 🔴, 25 🟠, 39 🟡 y 17 ⚪**.
+**82 están cerrados** —✅—. De los 67 que quedan, esto es el orden en
+que yo los tocaría: **2 🔴, 18 🟠, 31 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -203,7 +203,7 @@ ocupan casi nada y sirven a una consulta concreta.
 
 **«Poco uso» no es «se borra». Solo los ocho grandes de la tabla.**
 
-### 🟡 1.2 — 9 claves ajenas sin índice
+### ✅ 1.2 — 9 claves ajenas sin índice — **hecho** (A13)
 
 `vehicle_id` en seis tablas del usuario (`appointments`, `insurances`,
 `maintenances`, `vehicle_states`, `saved_offers`), más `erp_tickets.user_id`,
@@ -1280,7 +1280,7 @@ sesión deslizante, una escritura de cada muchas. Y de paso poner un **tope
 absoluto** —90 días desde que se creó, se use o no—, que es la otra mitad de
 §10.1.
 
-### 🟡 10.7 — Seis caracteres de contraseña
+### ✅ 10.7 — Seis caracteres de contraseña — **hecho** (A10)
 
 `password.length < 6`, en el alta y en el cambio. Para 2026 es poco —la
 recomendación estándar son 8 como mínimo, sin reglas de composición—, y aquí la
@@ -1493,7 +1493,7 @@ lo he borrado: es el único sitio donde queda escrito cómo era la validación
 contra SQL Server, y arranca solo a mano. Cuando decidas que SQL Server no
 vuelve, se va entero.
 
-### 🟡 11.5 — Cuatro entradas de `package.json` que no llevan a ninguna parte
+### ✅ 11.5 — Cuatro entradas de `package.json` que no llevan a ninguna parte — **hecho** (A11)
 
 - `migrate:attachments:sqlserver` → `scripts/migrate-attachments-filesystem-sqlserver.js`,
   **que no existe**. Lo comprobé contra el disco.
@@ -1698,7 +1698,7 @@ ya ensancha cinco veces, y `percentile` de una lista vacía devuelve `null`,
 `tukeyFence` devuelve una valla abierta y `removeOutliers` devuelve `[]`. Las
 estadísticas salen en `null`, que es lo que hay que decir.
 
-### 🟡 12.2 — Una tabla de otro repositorio, vacía, y un `catch` que lo tapa
+### ✅ 12.2 — Una tabla de otro repositorio, vacía, y un `catch` que lo tapa — **hecho** (A5)
 
 `lib/el-motor-de-la-ficha.js` ordena la lista de versiones del coche usando la
 cilindrada y los kilovatios de su ficha técnica:
@@ -1758,7 +1758,7 @@ No digo que haya que servir las 49 en local; algunas no tienen sentido fuera de
 Vercel. Digo que **hay que saber cuáles no se prueban**, porque ahora mismo la
 lista no está escrita en ninguna parte y la diferencia se descubre en producción.
 
-### 🟡 12.4 — Sin `?route=`, la ruta se decide buscando trozos en la URL entera
+### ✅ 12.4 — Sin `?route=`, la ruta se decide buscando trozos en la URL entera — **hecho** (A6)
 
 Los tres enrutadores reparten por `?route=`. Cuando no viene, `lib/api/enrutador.js`
 cae a una lista de alias:
@@ -1865,7 +1865,7 @@ contra los 61 flujos que hay dentro, uno a uno, por su contenido.
 Me costó tres intentos y los dos primeros los di por buenos antes de mirarlos
 (§13.6). El resultado, después de quitar el ruido:
 
-### 🟠 13.1 — El avisador de fallos que corre es mejor que la copia guardada
+### ✅ 13.1 — El avisador de fallos que corre es mejor que la copia guardada — **hecho** (A2)
 
 De las 60 parejas, **una divergencia de verdad en un flujo activo**, y es
 justamente el que avisa cuando fallan los demás: `⚠️ Error Handler – Aviso por
@@ -1894,7 +1894,7 @@ con dos avisadores, uno bueno y uno malo.
 exportación no dependa de que alguien se acuerde: `npm run` con la llamada al API
 de n8n y los 61 ficheros al disco.
 
-### 🟠 13.2 — Un `DELETE` sin límite sobre la tabla de 2,8 millones, guardado y esperando
+### ✅ 13.2 — Un `DELETE` sin límite sobre la tabla de 2,8 millones, guardado y esperando — **hecho** (A1)
 
 `n8n-workflows/mantenimiento-activas.json`, nodo «PG: Recalcular is_active»:
 
@@ -2088,7 +2088,7 @@ delicadas: levantar procesos y borrar de una base con el fichero abierto.
 cuando falla algo de alrededor, y **el peor sale de cómo se juntan los dos
 scripts**, no de ninguno por separado.
 
-### 🟠 15.1 — El guardián necesita Postgres para poder levantar n8n
+### ✅ 15.1 — El guardián necesita Postgres para poder levantar n8n — **hecho** (A3)
 
 `scripts/vigila-n8n.js`, línea 126:
 
@@ -2144,7 +2144,7 @@ falta para detectar que la máquina está apagada:
 Añadirle al primero un «¿el último latido es de hace más de media hora?» son unas
 líneas, y cierra el diseño que la migración describe.
 
-### 🟡 15.3 — Un freno de mano sin caducidad es un interruptor de apagado
+### ✅ 15.3 — Un freno de mano sin caducidad es un interruptor de apagado — **hecho** (A4)
 
 Los dos scripts se coordinan con un fichero, `~/.n8n/no-me-levantes`: la limpieza
 lo pone antes de parar n8n y el guardián no toca nada mientras exista. Es la
@@ -2389,7 +2389,7 @@ Al preguntarme si quedaba algo, conté los tipos de fichero versionados en vez d
 contestar de memoria. Y había categorías que no había mencionado ni una vez: 8
 ficheros `.py`, 6 `.log`, 12 `.csv`, 30 `.xml`, 7 `.docx`.
 
-### ⚪ 18.1 — Seis ficheros de registro versionados, y no llevan nada grave
+### ✅ 18.1 — Seis ficheros de registro versionados, y no llevan nada grave — **hecho** (A12)
 
 `cochesnet-refill.log`, `phase1`, `phase2`, `phase3`, `incremental-top4` e
 `incremental-secondary12`. Están en UTF-16 y suman 139 líneas.
@@ -2407,7 +2407,7 @@ hay es:
 No es una fuga. Es basura de una ejecución de agosto que se colgó del repositorio,
 y `*.log` debería estar en el `.gitignore` como está `.env*`.
 
-### 🟡 18.2 — 3.406 líneas de Python que son el scraping de la era SQL Server
+### ✅ 18.2 — 3.406 líneas de Python que son el scraping de la era SQL Server — **hecho** (A11)
 
 | Fichero | Líneas |
 |---|---:|
@@ -2562,7 +2562,7 @@ Dos consecuencias, y la primera es mía:
 `SET` contra este `DATABASE_URL` está tocando a los demás, así que eso merece un
 aviso en `lib/postgres.js`.
 
-### 🟡 19.5 — El secreto compartido se compara con `!==` y el resto del repositorio no
+### ✅ 19.5 — El secreto compartido se compara con `!==` y el resto del repositorio no — **hecho** (A7)
 
 `apps/api/src/routes/idcars.ts`, la puerta por la que este repositorio le pide al
 ERP que lea una ficha técnica:
@@ -2655,7 +2655,7 @@ Fui a la numeración porque en España tiene que ser correlativa y sin huecos �
 Decreto 1619/2012— y porque una carrera en un contador de facturas no es un fallo
 de estilo. El contador está bien. Lo que hay alrededor, no del todo.
 
-### 🟠 20.1 — Dos rectificativas de la misma factura, si se piden a la vez
+### ✅ 20.1 — Dos rectificativas de la misma factura, si se piden a la vez — **hecho** (A0)
 
 `routes/invoice-download.ts`, la ruta que emite una rectificativa:
 
@@ -3085,7 +3085,7 @@ las cinco correcciones que me costaron aquellas pasadas ya metidas en la herrami
 | Carga que no se apaga | 46 de 91 | **46, y por una sola causa** |
 | Errores que nadie lee | 0 de 27 | 0 |
 
-### 🟠 25.1 — Un corte de red deja 46 pantallas girando para siempre, y la causa es una
+### ✅ 25.1 — Un corte de red deja 46 pantallas girando para siempre, y la causa es una — **hecho** (A0b)
 
 `apps/web/src/api/client.ts`:
 
@@ -3900,7 +3900,7 @@ Lo sensible no me lo inventé otra vez: las columnas de texto **sin longitud má
 salieron de `information_schema`. Son **82 columnas en 50 tablas**, todas `text`, o sea
 sin tope por el lado de la base.
 
-### 🟠 32.1 — Una petición podía más que duplicar la tabla del embudo — **hecho**
+### ✅ 32.1 — Una petición podía más que duplicar la tabla del embudo — **hecho**
 
 `/api/funnel-event` **no pide sesión**, y no debe pedirla: es la analítica de la web
 pública y cuenta visitas anónimas. Escribía **quince columnas de texto sin ningún
@@ -4287,7 +4287,7 @@ Las 62 de Mobility siguen pendientes. Después de esto subo su prioridad: no es 
 se filtre el nombre de una columna, es que **un 500 con jerga de Postgres es lo que ve un
 cliente** en vez de «no hemos podido buscar, inténtalo otra vez».
 
-### 🟠 34.2b — La mitad de la API no existía en desarrollo — **hecho**
+### ✅ 34.2b — La mitad de la API no existía en desarrollo — **hecho**
 
 Esto salió de seguir recorriendo, y explica por qué §34.1 llevaba ahí tanto tiempo.
 

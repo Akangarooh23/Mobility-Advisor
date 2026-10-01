@@ -800,6 +800,10 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         taller={meta.taller || null}
                         /* Y por dónde va, para cuando ya lo ha traído todo. */
                         estado={meta.estado_encargo || null}
+                        /* Dónde ha pedido que se le haga la peritación —en un
+                           taller o en su dirección— y cuándo puede. Antes esto
+                           no se le preguntaba: se le daba cita y ya. */
+                        peritacion={meta.peritacion || null}
                         /* El precio de salida, que es la última fila y solo
                            aparece cuando el coche ya ha pasado por el taller. */
                         precio={meta.precio_de_salida || null}

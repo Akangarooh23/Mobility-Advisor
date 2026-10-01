@@ -330,7 +330,7 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
  * del panel antes de esa llamada es la peor manera de enterarse. Lo que dice
  * esta caja es que la revisión está hecha y que le llamamos.
  */
-function PorDondeVa({ estado, isDark }) {
+function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "" }) {
   if (!estado) return null;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
@@ -361,8 +361,15 @@ function PorDondeVa({ estado, isDark }) {
     // La cita se enseña entera en su propia caja, justo encima de esta.
     return null;
   } else {
-    titulo = "Buscándole cita en el taller";
-    detalle = "Es la revisión mecánica que nos permite anunciarlo como comprobado. Te decimos el día en cuanto la tengamos.";
+    /*
+     * Antes de la cita, lo elige él.
+     *
+     * Esto decía «buscándole cita en el taller» y ahí se acababa: el que no
+     * puede mover el coche -sin seguro al día, en el pueblo, trabajando a las
+     * horas del taller- no tenía dónde decirlo, y se enteraba cuando le
+     * llamábamos para darle una cita a la que no podía ir.
+     */
+    return <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} />;
   }
 
   return (
@@ -387,9 +394,188 @@ function PorDondeVa({ estado, isDark }) {
   );
 }
 
+/**
+ * Dónde quiere que se le haga la peritación, y cuándo puede.
+ *
+ * Es la revisión que nos deja anunciar el coche como comprobado y se le hace a
+ * todos. Hasta ahora solo había una manera —llevarlo a un taller de la red, con
+ * la cita puesta por nosotros— y eso deja fuera a quien no puede moverlo: el
+ * que no tiene el seguro al día, el que lo tiene en el pueblo, el que trabaja a
+ * las horas del taller. Se enteraba de que no podía cuando ya le habíamos dado
+ * una cita.
+ *
+ * ## Lo que esto no promete
+ *
+ * Que el perito vaya a la hora que marque. La agenda es nuestra: él dice cuándo
+ * puede y confirmamos nosotros por correo. Una hora dada por buena aquí y
+ * movida después es peor que una que tarda un día en llegar.
+ *
+ * ## Por qué tres selectores y no un calendario
+ *
+ * Esto es el panel y se usa desde un ordenador: el selector del navegador ya
+ * sabe de días, horas y husos. La rejilla de catorce días está en la app, que
+ * es donde se toca con el pulgar y donde cabe. Son dos gestos distintos para lo
+ * mismo, sí; una rejilla aquí empujaría hacia abajo todo lo demás de la
+ * tarjeta.
+ */
+function EligeLaPeritacion({ peritacion, vehicleId, isDark }) {
+  const yaPidio = (peritacion && peritacion.modalidad) || "";
+  const [donde, setDonde] = useState(yaPidio);
+  const [direccion, setDireccion] = useState((peritacion && peritacion.direccion) || "");
+  const [horas, setHoras] = useState(() => {
+    const suyas = ((peritacion && peritacion.horas) || []).map(paraElSelector);
+    return [suyas[0] || "", suyas[1] || "", suyas[2] || ""];
+  });
+  const [enviando, setEnviando] = useState(false);
+  const [hecho, setHecho] = useState(false);
+  const [fallo, setFallo] = useState("");
+
+  const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
+  const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
+
+  async function manda(modalidad) {
+    setFallo("");
+    setEnviando(true);
+    try {
+      const res = await fetch(rutaApi("/api/peritacion"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          vehicle_id: vehicleId,
+          modalidad,
+          direccion,
+          horas: horas.filter(Boolean).map((h) => new Date(h).toISOString()),
+        }),
+      });
+      const datos = await res.json().catch(() => ({}));
+      if (!res.ok || !datos.ok) {
+        setFallo(datos.error || "No se ha podido guardar. Prueba otra vez.");
+        return;
+      }
+      setHecho(true);
+    } catch {
+      setFallo("No se ha podido guardar. Prueba otra vez.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  const caja = {
+    background: isDark ? "rgba(5,150,105,0.10)" : "rgba(5,150,105,0.06)",
+    border: "1px solid rgba(5,150,105,0.25)", borderRadius: 10,
+    padding: "12px 14px", marginBottom: 8,
+  };
+
+  if (hecho) {
+    /*
+     * Se dice aquí y no se espera a recargar: acaba de pedirlo, y si la caja
+     * siguiera preguntándole lo pediría otra vez pensando que no entró.
+     */
+    return (
+      <div style={caja}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: "#059669" }}>✓ Recibido</div>
+        <div style={{ fontSize: 12, color: textoFlojo, lineHeight: 1.45, marginTop: 4 }}>
+          {donde === "en_taller"
+            ? "Te llamamos con el día y el taller."
+            : "Te confirmamos el día por correo."}
+        </div>
+      </div>
+    );
+  }
+
+  const boton = (activo) => ({
+    flex: 1, padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+    border: "1.5px solid " + (activo ? "#059669" : "var(--gris-200)"),
+    background: activo ? "rgba(5,150,105,0.12)" : "transparent",
+    color: textoFuerte, fontSize: 12.5, fontWeight: activo ? 700 : 400,
+  });
+
+  const campo = {
+    width: "100%", boxSizing: "border-box", padding: "7px 9px", marginBottom: 6,
+    borderRadius: 8, border: "1.5px solid var(--gris-200)", fontSize: 12.5,
+  };
+
+  const faltaAlgo = donde === "a_domicilio" && (!direccion.trim() || !horas.some(Boolean));
+
+  return (
+    <div style={caja}>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: textoFuerte, marginBottom: 4 }}>
+        {yaPidio === "a_domicilio" ? "Has pedido que vaya un perito" : "Falta la peritación"}
+      </div>
+      <div style={{ fontSize: 12, color: textoFlojo, lineHeight: 1.45, marginBottom: 8 }}>
+        {yaPidio === "a_domicilio"
+          ? "Te confirmamos el día por correo. Puedes cambiar los huecos mientras tanto."
+          : "Es la revisión que nos permite anunciarlo como comprobado, y se la hacemos a todos. Elige cómo prefieres."}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+        <button type="button" onClick={() => setDonde("a_domicilio")} style={boton(donde === "a_domicilio")}>
+          Que venga un perito
+        </button>
+        <button type="button" onClick={() => setDonde("en_taller")} style={boton(donde === "en_taller")}>
+          Lo llevo a un taller
+        </button>
+      </div>
+
+      {donde === "a_domicilio" && (
+        <>
+          <input
+            value={direccion}
+            onChange={(e) => setDireccion(e.target.value)}
+            maxLength={300}
+            placeholder="¿Dónde está el coche? Calle, número y ciudad"
+            style={campo}
+          />
+          <div style={{ fontSize: 11.5, color: textoFlojo, marginBottom: 4 }}>
+            ¿Cuándo puedes? Hasta tres huecos; te confirmamos uno. Tienes que estar tú o alguien con las llaves.
+          </div>
+          {horas.map((valor, i) => (
+            <input
+              key={i}
+              type="datetime-local"
+              value={valor}
+              onChange={(e) => setHoras((previas) => previas.map((v, n) => (n === i ? e.target.value : v)))}
+              style={campo}
+            />
+          ))}
+        </>
+      )}
+
+      {donde && (
+        <button
+          type="button"
+          disabled={enviando || faltaAlgo}
+          onClick={() => manda(donde)}
+          style={{
+            marginTop: 4, padding: "7px 12px", borderRadius: 8, border: "none",
+            background: "var(--marca)", color: "#fff", fontSize: 12.5, fontWeight: 700,
+            cursor: enviando ? "wait" : "pointer", opacity: enviando || faltaAlgo ? 0.6 : 1,
+          }}
+        >
+          {enviando ? "Enviando…" : donde === "en_taller" ? "Prefiero llevarlo" : "Pedir la visita"}
+        </button>
+      )}
+
+      {fallo && <div style={{ fontSize: 12, color: "#b45309", marginTop: 6 }}>{fallo}</div>}
+    </div>
+  );
+}
+
+/** Lo que entiende un selector de fecha y hora: sin zona y sin segundos. */
+function paraElSelector(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const dos = (n) => String(n).padStart(2, "0");
+  return (
+    d.getFullYear() + "-" + dos(d.getMonth() + 1) + "-" + dos(d.getDate()) +
+    "T" + dos(d.getHours()) + ":" + dos(d.getMinutes())
+  );
+}
+
 export default function LoQueTeFaltaDelEncargo({
   puertas = [], mandato = null, taller = null, estado = null, precio = null,
-  vehicleId = "", isDark = false,
+  peritacion = null, vehicleId = "", isDark = false,
 }) {
   const suyas = Array.isArray(puertas) ? puertas : [];
   if (suyas.length === 0 && !mandato && !taller && !estado && !precio) return null;
@@ -605,7 +791,9 @@ export default function LoQueTeFaltaDelEncargo({
         * diciendo «estamos preparando tu anuncio» encima de «te faltan dos
         * cosas» se contradice con ella y gana la que menos trabajo da.
         */}
-      {faltan === 0 && <PorDondeVa estado={estado} isDark={isDark} />}
+      {faltan === 0 && (
+        <PorDondeVa estado={estado} isDark={isDark} peritacion={peritacion} vehicleId={vehicleId} />
+      )}
     </>
   );
 }

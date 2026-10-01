@@ -37,8 +37,8 @@ Los 149 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**61 están cerrados** —✅—. De los 88 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 25 🟠, 39 🟡 y 17 ⚪**.
+**66 están cerrados** —✅—. De los 83 que quedan, esto es el orden en
+que yo los tocaría: **2 🔴, 25 🟠, 39 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -240,7 +240,7 @@ tocar la configuración.
 
 ## Zona 2 — Conexiones ✔ revisada
 
-### 🔴 2.1 — Ocho manejadores cerraban el pool compartido *(arreglado: `2f0b412`)*
+### ✅ 2.1 — Ocho manejadores cerraban el pool compartido — **hecho** (`2f0b412`)
 
 `elPool()` memoriza el pool. `pool.end()` **no** resetea esa memoria, así que la
 siguiente petición de la misma instancia de Vercel recibía **el pool cerrado** y
@@ -497,7 +497,7 @@ Ya estaba en la revisión anterior y sigue en pie:
 
 ## Zona 4 — `api/analyze.js` y `api/find-listing.js` ✔ revisada
 
-### 🔴 4.1 — `/api/analyze` era un proxy abierto a la cuenta de Gemini *(arreglado: `e8e59c0`)*
+### ✅ 4.1 — `/api/analyze` era un proxy abierto a la cuenta de Gemini — **hecho** (`e8e59c0`)
 
 Acepta `body.prompt` —una cadena **arbitraria** de quien llama—, el navegador
 construye el prompt entero (`src/utils/analysisFlows.js`) y el servidor lo relaya
@@ -863,7 +863,7 @@ falsos positivos. `ConfirmarVisitaPage` —el enlace que llega por correo— tie
 
 ## Zona 7 — `scripts/`, la parte destructiva ✔ revisada
 
-### 🔴 7.1 — Un `node scripts/reset-…` borraba 2,8 millones de filas *(arreglado: `357fa8f`)*
+### ✅ 7.1 — Un `node scripts/reset-…` borraba 2,8 millones de filas — **hecho** (`357fa8f`)
 
 Tres de los ocho guiones destructivos no pedían nada. El peor terminaba en un
 `(async () => { … })()`: bastaba ejecutarlo para hacer
@@ -2522,7 +2522,7 @@ Le pasé el resto del checklist y sale bien parado:
 - **Ni una credencial.** Lo único con forma de secreto es
   `SECRET = 'secreto-de-mentira'` en un test.
 
-### 🔴 19.4 — Corrección: dije que probar `work_mem` «en mi sesión» no afectaba a nadie, y es falso
+### ✅ 19.4 — Corrección mía, ya hecha: dije que probar `work_mem` «en mi sesión» no afectaba a nadie, y es falso
 
 Esto salió tirando del hilo de las conexiones, y corrige la zona 9.
 
@@ -3200,7 +3200,7 @@ verdad. La primera llamada contestó esto:
 **cada** llamada a `readInventoryUniverse`: la referencia de mercado y la tasación,
 caídas en producción varias horas, empujadas por mí.
 
-### 🔴 26.1 — Y nada lo cazó: `lib/` y `api/` no se lintan
+### ✅ 26.1 — Y nada lo cazó: `lib/` y `api/` no se lintaban — **hecho**
 
 46.514 líneas que corren en producción y nunca pasaron por un lint. El
 `eslintConfig` del `package.json` extiende `react-app`, que CRA aplica **solo a

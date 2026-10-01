@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 134 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 139 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**53 están cerrados** —✅—. De los 81 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 21 🟠, 37 🟡 y 16 ⚪**.
+**56 están cerrados** —✅—. De los 83 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 22 🟠, 37 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -3865,6 +3865,137 @@ encima*, así que dentro de un `Promise.all` con varias consultas puede coger la
 es. Por eso `tickets.ts:82` lo encontré leyendo y no con el guion. O sea que este
 barrido **infra-informa** en ese punto, y los dos de §31.3 podrían ser más.
 
+## Zona 32 — Validación y límites de tamaño ✔ clase cerrada
+
+Era **parcial** en Mobility desde §4 y **sin empezar** en el ERP. La clase tiene cuatro
+preguntas y conviene no mezclarlas: cuánto se puede mandar de una vez, cuánto se puede
+guardar en un campo, cuántas filas se pueden pedir, y quién puede hacer cada cosa.
+
+Lo sensible no me lo inventé otra vez: las columnas de texto **sin longitud máxima**
+salieron de `information_schema`. Son **82 columnas en 50 tablas**, todas `text`, o sea
+sin tope por el lado de la base.
+
+### 🟠 32.1 — Una petición podía más que duplicar la tabla del embudo — **hecho**
+
+`/api/funnel-event` **no pide sesión**, y no debe pedirla: es la analítica de la web
+pública y cuenta visitas anónimas. Escribía **quince columnas de texto sin ningún
+tope**, así que el único límite era el del cuerpo de la petición: los ~4 MB que pone
+Vercel.
+
+Y la aritmética, medida:
+
+| | |
+|---|---:|
+| `moveadvisor_funnel_events` | **1.696 kB** |
+| filas | **~2.102** |
+
+**La tabla entera pesa 1,7 MB. Una petición abusiva la más que duplica.** Repetida, es
+la factura de Neon.
+
+**Los topes salen de lo que hay guardado**, no de lo que me pareciera razonable. Lo más
+largo en las 2.102 filas reales:
+
+| campo | lo más largo que hay | tope puesto |
+|---|---:|---:|
+| `landing_url` | 1.168 | 2.000 |
+| `offer_title` | 54 | 300 |
+| `utm_*` | 34 | 200 |
+| `anon_id` | 26 | 100 |
+| `user_email` | — | 254 (RFC 5321) |
+
+Entre dos y seis veces por encima del máximo real: puestos para que no quepa un abuso,
+no para que no quepa un caso legítimo.
+
+Dos ayudantes, el mismo patrón que `error-del-navegador-handler`. Y `oNada()` separado
+de `texto()` por un motivo que no es estético: en estas columnas `''` y `NULL` **no
+significan lo mismo**. El panel cuenta `WHERE offer_title IS NOT NULL`, así que
+convertir un ausente en cadena vacía habría cambiado sus números sin que nadie tocara el
+panel.
+
+Seis pruebas, y la que protege es la última: **cada valor del `INSERT` tiene que pasar
+por un tope**, o ser nuestro —el `id` lo generamos y `event_type` va contra una lista
+cerrada—. Comprobado mutando el fichero: añadir una columna dieciséis sin tope la pone
+roja. Con una afirmación más de que esa lista cerrada sigue ahí, porque si alguien la
+quitara, `event_type` pasaría a ser texto libre y la otra prueba dejaría de cubrirlo sin
+ponerse roja.
+
+**Y lo que no arregla, que es tuyo decidir**: el ritmo. Nada impide mandar un millón de
+eventos de 2 kB en vez de uno de 4 MB. `lib/freno.js` existe y se usa en el login, pero
+el umbral de la analítica tiene coste —demasiado apretado y se pierden visitas de
+verdad, que es el dato por el que existe la tabla—. Va a las decisiones.
+
+### ✅ 32.2 — El tamaño del cuerpo estaba resuelto, y alguien ya lo había investigado
+
+Esto iba a ser un hallazgo y resultó estar cerrado, con el razonamiento escrito en
+`api/user.js`. Había esto, y no hacía nada:
+
+```js
+module.exports.config = { api: { bodyParser: { sizeLimit: "20mb" } } };
+```
+
+Dos veces nada: estaba **antes** de `module.exports = …`, que reemplaza el objeto
+entero; y aunque hubiera estado bien puesta, `config.api.bodyParser` es de las rutas de
+API de Next.js y esto son funciones sueltas de Vercel sobre CRA. El tope lo pone la
+plataforma.
+
+Lo que de verdad resuelve el problema ya está hecho: **los ficheros grandes no viajan en
+el cuerpo**. Se pide una URL firmada a `storage-presign` y el navegador sube directo al
+depósito. Y el ERP tiene su `express.json({ limit: '4mb' })`.
+
+### ✅ 32.3 — El `limit` de las dos búsquedas públicas está acotado, una capa más abajo
+
+| Dónde | Cómo |
+|---|---|
+| `search-offers-handler.js:803` | `Math.min(MAX_LIMITE, Math.max(1, …))` |
+| `marketplace-vo-handler.js:133` | **no acota aquí**… |
+| …pero `inventoryStore.js:2475` | `Number(limit) > 0 ? Math.max(1, Math.min(Number(limit), 2500)) : 50` |
+
+El segundo parecía un hallazgo mirando solo el manejador, y es exactamente la trampa de
+§3.3: las defensas viven en capas distintas. Acota a 2.500 y además trata el `NaN` de un
+`?limit=hola`.
+
+El `offset` **no tiene techo** en ninguno de los dos, y lo dejo sin marcar a propósito:
+no amplifica. Postgres para al final del conjunto de resultados, así que un
+`?offset=100000000` sobre 50.000 filas cuesta lo mismo que un escaneo completo, que es
+lo que ya cuesta `offset=0` sin índice.
+
+### ✅ 32.4 — Y `/api/error` ya recortaba, y además tapa los correos
+
+`texto(cuerpo.mensaje, 2000)` y `tapaElCorreo(mensaje)`. Es el otro endpoint público que
+escribe texto libre y estaba bien.
+
+### ⚪ 32.5 — El ERP valida poco, pero detrás de `requireRole`
+
+| | |
+|---|---:|
+| `z.string()` en `apps/api` | **96** |
+| …con `.max(…)` | **16** |
+| …con `.email()` / `.uuid()` | **3** |
+| ficheros de rutas que usan Zod | **7 de 38** |
+
+Sesenta y pico cadenas sin longitud máxima, y 31 de los 38 ficheros de rutas sin
+validación de esquema. Suena mal y es ⚪ por una razón concreta: **las 264 rutas del ERP
+están detrás de `requireRole`** —comprobado guardia a guardia en §19.7—, así que llenar
+una columna de basura exige una cuenta de personal. Eso no es un atacante, es un
+empleado, y para un empleado el problema no es el tope: es el acceso, que ya está
+resuelto.
+
+Lo que sí haría cuando haya CI (C6): `.max()` en las 96. Cuesta una tarde y evita que un
+pegado accidental de 2 MB en un campo de notas se convierta en una fila de 2 MB.
+
+### Nota de método: mi grep dijo que tres manejadores no pedían sesión, y dos sí
+
+Buscando quién escribe sin autenticar, un `grep` de `requireSession|sesionDe|token|…` me
+dio tres manejadores «sin sesión»: `funnel-event`, `user-alerts` y `vehicle-publish`.
+
+Los tres los abrí antes de escribirlos. Los dos últimos empiezan con
+`identidadDeLaPeticion(req)` —un nombre que mi lista no tenía— y **sí autentican**. O
+sea que de tres candidatos, uno era real.
+
+Es la tercera vez en esta revisión que me pasa lo mismo con la autenticación, y siempre
+por el mismo motivo: busco los nombres que espero en vez de los que hay. Por eso §3.3
+existe y por eso ningún candidato de esta zona se escribió sin abrir el fichero.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -3957,20 +4088,22 @@ mirado este fichero».
 | Dependencias que mienten | ✅ §30 | ✅ §30 |
 | Accesibilidad | ✗ | ✗ |
 | Fugas de datos en las respuestas | ✅ §31 | ✅ §31 |
-| Validación y límites de tamaño | parcial §4 | ✗ |
+| Validación y límites de tamaño | ✅ §32 | ✅ §32 |
 
-**Mobility: 16 clases cerradas, 1 parcial, 2 sin pasar — ≈ 87 %.**
-**ERP: 14 cerradas, 0 parciales, 2 sin pasar — ≈ 85 %.**
+**Mobility: 17 clases cerradas, 0 parciales, 1 sin pasar — ≈ 94 %.**
+**ERP: 15 cerradas, 0 parciales, 1 sin pasar — ≈ 94 %.**
 
 El 1 de octubre se cerraron tres: «efectos sin limpieza» (§29), «dependencias que
 mienten» (§30) y «fugas de datos en las respuestas» (§31), las tres en los dos
 repositorios a la vez. La última era la que estaba parcial desde §3.2, y al pasarla
 entera los tres endpoints se convirtieron en 103.
 
-Quedan dos: **accesibilidad** en los dos, y **validación y límites de tamaño** —parcial
-en Mobility desde §4, sin empezar en el ERP—. Más **pruebas que no pueden fallar**, que
-en el ERP no se puede pasar igual porque no tiene CI (§30.4). O sea: **dos pasadas** y
-la capa 4 está cerrada.
+El 1 de octubre se cerraron cuatro: §29, §30, §31 y §32 —«validación y límites de
+tamaño», que estaba parcial desde §4—.
+
+**Queda una: accesibilidad**, en los dos. Y **pruebas que no pueden fallar** en el ERP,
+que no se puede pasar igual porque no tiene CI (§30.4): ahí el trabajo es el CI, no la
+clase.
 
 ### Y por qué la capa 1 no va a llegar al 100 %
 

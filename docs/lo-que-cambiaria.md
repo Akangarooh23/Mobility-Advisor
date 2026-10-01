@@ -3113,86 +3113,95 @@ reales. Las mías a mano ya fallaron tres veces (§9).
 ### Cuánto se ha revisado, en porcentaje y por capas
 
 Un solo porcentaje engañaría: leer mil líneas de autenticación no es lo mismo que
-leer mil de estilos. Así que va por capas, y solo la primera es una estimación —las
-otras dos son cuentas exactas.
+leer mil de estilos. Van cuatro capas, de la más engañosa a la más útil, y solo la
+primera es una estimación.
 
-Denominadores, medidos con el mismo filtro en los dos: código `.js .jsx .mjs .ts
-.tsx .sql`, sin ficheros de prueba.
+Denominadores con el mismo filtro en los dos: código `.js .jsx .mjs .ts .tsx .sql`,
+sin ficheros de prueba.
 
 | | Mobility-Advisor | ERP |
 |---|---:|---:|
 | Código | **174.953 líneas** | **80.232 líneas** |
 
-**Capa 1 — leído de verdad.** Los ficheros que he abierto y leído, no barrido.
-`api/auth.js` entero, `src/App.js` durante el refactor, los trozos concretos de
-`billingStore`, `inventoryStore`, `sellReportGenerator`, `enrutador`, `freno`,
-`registra`, `postgres`, seis migraciones, el workflow del CI, `vercel.json`, el
-servidor local, y las pruebas que escribí o audité.
+#### Capa 1 — leído de verdad: 13 % y 2 %
 
-| | Mobility-Advisor | ERP |
+Ficheros abiertos y leídos, no barridos. En Mobility: `api/auth.js` entero,
+`src/App.js` durante el refactor, los trozos concretos de `billingStore`,
+`inventoryStore`, `sellReportGenerator`, `BuscarCochePage`, `PortalVoDetailPage`,
+`enrutador`, `freno`, `registra`, `postgres`, seis migraciones, el workflow del CI y
+las pruebas que escribí o audité. En el ERP: `middleware/auth.ts`, `app.ts`,
+`db/pool.ts`, `api/client.ts`, `invoice-pdf.ts`, `invoice-download.ts`,
+`comision-de-financiacion.ts`, `AgendaDelTaller.tsx` y trozos de `schema.ts`.
+
+| | Mobility | ERP |
 |---|---:|---:|
-| Leído | ~22.000 líneas | ~600 líneas |
-| **En porcentaje** | **≈ 13 %** | **≈ 0,7 %** |
+| Leído | ~23.500 líneas | ~1.500 líneas |
+| **Porcentaje** | **≈ 13 %** | **≈ 2 %** |
 
-Es una estimación, y la doy con el método delante para que se pueda discutir.
+Es la cifra que suena a poco y la que menos dice.
 
-**Capa 2 — barrido con comprobaciones.** Aquí sí es exacto, porque los guiones que
-escribí recorrieron todos los ficheros:
+#### Capa 2 — barrido con comprobaciones: 100 % y 100 %
 
-| | Mobility-Advisor | ERP |
-|---|---:|---:|
-| Ficheros barridos | **100 %** | **100 %** |
+Exacto, porque los guiones recorrieron todos los ficheros de los dos repositorios.
 
-Credenciales, quién escribe en la base, quién cierra el pool, `catch` vacíos, SQL
-concatenado, esquema creado en caliente, rutas y sus guardias, y las 217 pruebas.
-Barrido no es leído: caza lo que se busca y no lo que no se te ocurre.
-
-**Capa 3 — las superficies completas.** Esto es lo que de verdad contesta «¿está
-revisado?», y aquí no hay estimación ninguna:
+#### Capa 3 — las superficies completas: 100 %
 
 | Superficie | Cobertura |
 |---|---|
-| Entradas HTTP de Mobility | **49 de 49** reescrituras, y las 6 funciones |
-| Entradas HTTP del ERP | **264 de 264** rutas, con su guardia mirada una a una |
-| Tareas programadas | **8 de 8** crones de Vercel, y las 61 de n8n |
-| Flujos de n8n | **61 de 61**, comparados contra la instancia que corre |
-| Esquema de la base | **110 de 110** tablas y **1.391 columnas**, comparadas contra las migraciones |
-| Guiones que borran | **todos**, uno a uno (§7) |
-| Ficheros de prueba | **217 de 217**, más seis mutaciones reales (§16) |
-| Cabeceras de seguridad | los **3** dominios, contra producción (§17) |
+| Entradas HTTP de Mobility | **49 de 49** reescrituras, 6 funciones |
+| Entradas HTTP del ERP | **264 de 264** rutas, guardia a guardia |
+| Tareas programadas | **8 de 8** de Vercel, **61 de 61** de n8n |
+| Flujos de n8n | **61 de 61** contra la instancia que corre |
+| Esquema de la base | **110 tablas, 1.391 columnas** contra las migraciones |
+| Guiones que borran | **todos** |
+| Ficheros de prueba | **217 de 217**, más seis mutaciones reales |
+| Cabeceras de seguridad | los **3** dominios contra producción |
 
-Así que **el 13 % leído convive con el 100 % de las superficies por donde entra
-algo**. Las dos cifras son verdad y dicen cosas distintas: no he leído este
-código, he revisado por dónde puede entrar y salir el daño.
+#### Capa 4 — clases de defecto, que es donde se mide el avance ahora
 
-### Y el ERP, que es donde queda trabajo de verdad
+Esta es la que importa desde §22. Cada clase se pasa por **todos** los ficheros, y
+cerrarla significa «este defecto no está en ninguno», que es más fuerte que «he
+mirado este fichero».
 
-| Repositorio | Código | Estado |
-|---|---:|---|
-| **Mobility-Advisor** | 174.953 líneas | 18 zonas, todas las superficies |
-| **carswise-erp-backoffice** | 80.232 líneas | **3 zonas** (§19, §20, §21): esquema, autorización, facturas y dinero |
-| **La app (PopCar Pocket Advisor)** | otro repositorio, no está aquí | sin revisar |
+| Clase de defecto | Mobility | ERP |
+|---|---|---|
+| Credenciales en el código | ✅ | ✅ |
+| Esquema creado en caliente | ✅ | ✅ §19.1 |
+| Pool compartido mal usado | ✅ §2 | ✅ |
+| Borrados sin guardia | ✅ §7, §13.2 | ✅ |
+| SQL concatenado | ✅ | ✅ |
+| Rutas sin autorización | ✅ §10 | ✅ §19.7 |
+| Entradas sin freno de ritmo | ✅ §10.2 | — |
+| `catch` que tragan escrituras | ✅ §5.8 | ✅ |
+| Dinero mal formateado | ✅ §22 | ✅ §25.3 |
+| Fechas y zonas horarias | ✅ §23 | ✅ §25.2 |
+| Carga y error sin enseñar | ✅ §24 | ✅ §25.1 |
+| Pruebas que no pueden fallar | ✅ §16 | ✗ |
+| Cabeceras de seguridad | ✅ §17 | ✅ §17 |
+| Numeración y aritmética de facturas | — | ✅ §20, §21 |
+| Efectos sin limpieza | ✗ | ✗ |
+| Dependencias que mienten | ✗ | ✗ |
+| Accesibilidad | ✗ | ✗ |
+| Fugas de datos en las respuestas | parcial §3.2 | ✗ |
+| Validación y límites de tamaño | parcial §4 | ✗ |
 
-Del ERP queda `apps/web` entero —37.561 líneas—, la lógica de encargos, pedidos,
-trámites, peritaciones y gastos, y sus 20 guiones `comprueba-*`. Su superficie de
-entrada sí está al 100 %, que es lo que evita sorpresas.
+**Mobility: 13 clases cerradas, 2 parciales, 4 sin pasar — ≈ 70 %.**
+**ERP: 11 cerradas, 0 parciales, 5 sin pasar — ≈ 65 %.**
 
-Del ERP hay una primera pasada en §19: le pasé el checklist de este documento y
-salieron 280 sentencias de esquema dentro de las peticiones sin ninguna migración,
-más una corrección importante de la zona 9. Pero son 80.232 líneas y he mirado
-cuatro cosas: `apps/web` entero —37.561 líneas—, la lógica de encargos, pedidos,
-trámites y facturación están sin abrir —cómo autentica sí, y está en §19.7—.
+### Y por qué la capa 1 no va a llegar al 100 %
 
-Y las dos cosas que sé de ellos ya apuntan a que hay trabajo: el ERP **crea una
-tabla al vuelo** con un `aseguraLaTabla()` en medio de una petición —el patrón
-exacto que `el-esquema-tiene-un-dueno.test.js` eliminó de este repositorio porque
-rompió la descarga de facturas—, y esa tabla la lee este lado con un `catch` que
-lo tapa. Ninguna prueba de ninguno de los dos repositorios puede ver eso, porque
-el fallo vive **entre** los dos.
+Leer las 232.000 líneas que quedan son unas diez sesiones como esta, y **las tres
+últimas pasadas dicen que no es ahí donde está el rendimiento**: §24 salió entera en
+cero, §22 dio un hallazgo y §23 cuatro. Mientras que §25 —una clase nueva sobre un
+repositorio sin tocar— dio el mejor hallazgo del día: 46 pantallas que se quedan
+girando por una línea.
 
-Si hay que seguir, yo empezaría por el ERP: es el que más código tiene, el que
-toca la misma base de datos, y el único desde el que se escriben tablas que este
-repositorio lee.
+O sea que lo que avanza no es leer más código, es **pasarle una clase nueva a todo el
+código**. Por eso la capa 4 es la que llevo contando desde §22.
+
+Lo que daría hallazgos que ningún barrido ve es cambiar de método otra vez:
+**arrancar la aplicación y recorrer los caminos de verdad** —el alta, la tasación,
+reservar un taller, el pago—. Eso es la capa 5, y está sin empezar.
 
 ## Y las tareas que no son leer código
 

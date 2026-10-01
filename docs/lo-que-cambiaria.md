@@ -3317,6 +3317,38 @@ suficientes muestras eso sigue siendo medible. Cerrarlo del todo significaría i
 también la búsqueda, y eso ya es más caro que el problema — pero el problema no está
 en cero, está en un quinto de lo que estaba.
 
+### ✅ 28.3 — Y el calendario del taller está bien hecho, con la forma correcta a la vista
+
+Fui a ejecutar la reserva de taller esperando ver ahí el desfase de §23 —solo el lado
+de leer, que no escribe nada en producción— y el servidor lo hace bien:
+
+```
+GET /api/workshop-availability?workshopId=…&monthKey=2026-10
+  31 días · del 2026-10-01 al 2026-10-31 · ninguno fuera de octubre
+  cerrados: 2026-10-04, 11, 18, 25
+```
+
+Los cuatro cerrados son **los domingos exactos** de octubre de 2026, **incluido el
+25**, que es el día en que España cambia de hora. Y ningún día se escapa a septiembre
+o a noviembre, que es justo lo que haría el error de UTC en los bordes del mes.
+
+El motivo está en tres líneas:
+
+```js
+function dateKeyFromDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+```
+
+**Componentes locales, sin pasar por UTC.** Eso es inmune a la zona horaria y al
+cambio de hora, y es exactamente lo que les falta a las tres pantallas de §23.1.
+
+Lo cual mejora ese hallazgo en vez de añadir uno nuevo: **la forma correcta ya está
+escrita en este repositorio**, en `lib/api/workshop-availability-handler.js`. El
+arreglo de §23.1 no es inventar nada, es usar eso — y el sitio natural para dejarlo
+una vez es `src/utils/`, donde lo vean las tres.
+
+
 ### Lo que no se puede comprobar así, y lo digo en vez de fingirlo
 
 El tercer arreglo de §10 —el freno del alta— **no se ejecuta en este recorrido**, y no

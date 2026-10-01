@@ -37,8 +37,11 @@ Los 122 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de po
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**Cuarenta y ocho están cerrados** —✅—. De los 74 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 20 🟠, 33 🟡 y 14 ⚪**.
+**Cuarenta y nueve están cerrados** —✅—. De los 74 que quedan, esto es el orden en
+que yo los tocaría: **6 🔴, 20 🟠, 34 🟡 y 14 ⚪**.
+
+El 🔴 que se cayó a 🟡 es §3.1: lo había escrito como una avería y al medirlo resultó
+que WhatsApp no ha recibido un mensaje nunca. Queda dicho ahí por qué.
 
 De los cerrados, unos se arreglaron en esta revisión —llevan **hecho** o
 **arreglado** en el título— y otros estaban bien desde antes y lo único que hice fue
@@ -304,10 +307,60 @@ propósito, y es la versión que el webhook de Stripe tenía mal —`if (secreto
 sin variable, puerta abierta, y nadie se enteraba—. Tiene una consecuencia
 inmediata:
 
-> 🔴 **Hay que poner `WHATSAPP_APP_SECRET` en Vercel** —el «App Secret» de la app de
-> Meta, el mismo valor que ya usa el ERP— **o los leads de WhatsApp dejan de
-> llegar**. Mientras falte, cada aviso de Meta se rechaza con 503 y se apunta con
-> `registra()`, así que sale en el aviso horario en vez de perderse callando.
+> 🟡 **Hace falta `WHATSAPP_APP_SECRET` (o `META_WA_APP_SECRET`, valen las dos) en
+> Vercel** antes de que WhatsApp se encienda. Mientras falte, cada aviso de Meta se
+> rechaza con 503 y se apunta con `registra()`, así que sale en el aviso horario en
+> vez de perderse callando.
+
+**Esto empezó siendo 🔴 y se cayó a 🟡 al medirlo.** Lo escribí como «los leads de
+WhatsApp dejan de llegar», que suena a avería en producción. Fui a comprobar cuántos
+llegaban:
+
+| tabla | filas |
+|---|---|
+| `whatsapp_leads` | **0** |
+| `whatsapp_sessions` | **0** |
+| `pre_clientes` | **0** |
+
+WhatsApp **no ha recibido un mensaje nunca**. No hay nada que dejar de llegar, así
+que fallar cerrado no rompe nada hoy: es una casilla de la lista de lanzamiento, no
+una urgencia. Y la casilla no se puede marcar todavía por un motivo que no es
+técnico: mandar mensajes de verdad exige una cuenta de empresa verificada en Meta, y
+para eso la empresa tiene que estar constituida.
+
+#### 🟠 3.1b — Y el mismo fallar abierto estaba treinta líneas más arriba, en el GET — **hecho**
+
+Esto salió de la comprobación de antes, no de buscarlo. La verificación de Meta hacía:
+
+```js
+if (mode === 'subscribe' && token === process.env.META_WA_VERIFY_TOKEN)
+```
+
+Sin la variable puesta el lado derecho es `undefined`. Si la petición tampoco trae
+`hub.verify_token`, el izquierdo también. Y `undefined === undefined` es `true`, así
+que
+
+    GET /api/whatsapp?hub.mode=subscribe&hub.challenge=X
+
+devolvía **200 con la X**: cualquiera pasaba la verificación de Meta y podía apuntar
+la suscripción del webhook donde quisiera.
+
+En producción está cerrado, y eso lo medí antes de alarmar: el GET contesta **403, no
+200**, que es la prueba de que la variable está puesta. Lo que no la tiene es un
+despliegue de vista previa o un entorno nuevo.
+
+**Lo que esto dice** es más interesante que el fallo: yo había revisado esta zona y
+escrito «el `GET` verifica el token de Meta correctamente». Lo leí, vi una
+comparación contra una variable de entorno y lo di por bueno. El fallo no estaba en
+el POST; estaba en la costumbre de comparar contra una variable sin comprobar que
+existe, y en que leer una línea no es lo mismo que preguntarse qué vale cada lado
+cuando falta algo.
+
+Arreglado con la misma forma que el POST: sin la variable, 503. Y el secreto vale
+ahora con `WHATSAPP_APP_SECRET` o `META_WA_APP_SECRET`, porque el ERP usa el primero
+y todo lo de Meta en este fichero se llama `META_WA_*`: elegir uno solo dejaba la
+trampa de poner la variable con el nombre que pide la convención del fichero y
+quedarse en 503 sin más pista que el 503.
 
 Y el recurso del cuerpo en bruto tiene un límite que hay que decir: cuando
 `req.rawBody` no viene, se rearma con `JSON.stringify(req.body)`, que **no garantiza

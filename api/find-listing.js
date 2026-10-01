@@ -2225,6 +2225,11 @@ function isPreviouslySeenListing(listing, excludedUrls = new Set(), excludedTitl
  * la tarjeta —«OFERTA DESTACADA · PUESTO #1»—, así que la frase se queda con
  * lo único que no cambia al reordenar: por qué ese coche encaja contigo.
  */
+/** Segundos entre dos marcas, con un decimal. Para el registro del embudo. */
+function seg(desde, hasta) {
+  return ((hasta - desde) / 1000).toFixed(1);
+}
+
 function buildPositionReason(listing) {
   const rankingSignals = Array.isArray(listing?.rankingSignals) ? listing.rankingSignals : [];
   // Profile signals come first in rankingSignals; exclude quality metadata from the reason text
@@ -3925,6 +3930,17 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
   try {
     const inventoryOnly = Boolean(filters?.inventoryOnly);
     const requestedInventoryLimit = Math.max(20, Math.min(Number(filters?.limit || 30), 5000));
+    /*
+     * El reloj de cada etapa cara, para el registro del embudo.
+     *
+     * Juntas y con `let` porque las etapas viven en bloques distintos: la de
+     * las medianas solo corre si hay ofertas que comparar, y declararla alli
+     * dejaria al registro leyendo una variable que no existe.
+     */
+    let _t_consulta = Date.now();
+    let _t_medianas = _t_consulta;
+    let _t_cerebro = _t_consulta;
+    let _t_fichas = _t_consulta;
     const inventory = await listInventoryOffers({
       desiredType,
       /*
@@ -4018,6 +4034,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
     try {
       const pool = getPostgresPool();
       if (pool) {
+        _t_medianas = Date.now();
         loQueVale = await laMedianaDeCada(pool, porCalidadPrecio);
         porCalidadPrecio = ordenaPorCalidadPrecio(porCalidadPrecio, loQueVale);
       }
@@ -4222,6 +4239,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
        * Si no hay clave, si falla o si tarda, devuelve nada y se sigue con
        * el orden que traia. Ver lib/el-cerebro-elige.js.
        */
+      _t_cerebro = Date.now();
       const loQueEligeElCerebro = await elCerebroElige({
         ofertas: dedupedPrioritizedPool,
         answers,
@@ -4429,6 +4447,7 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
        *
        * Ver lib/la-ficha-dice-si-esta-danado.js.
        */
+      _t_fichas = Date.now();
       const trasLaFicha = await lasQueLaFichaNoDescarta(rankedInventory);
       /*
        * Se aplica siempre, no solo si hay danadas: tambien caen las que su ficha
@@ -4512,7 +4531,12 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         + " traselcerebro=" + distinctByModel.length
         + " trasclolador=" + colado.cumplen.length
         + " traslaficha=" + trasLaFicha.cumplen.length
-        + " salen=" + rankedInventory.length;
+        + " salen=" + rankedInventory.length
+        + "  |  segundos: consulta=" + seg(_t_consulta, _t_medianas)
+        + " medianas=" + seg(_t_medianas, _t_cerebro)
+        + " cerebro=" + seg(_t_cerebro, _t_fichas)
+        + " fichas=" + seg(_t_fichas, Date.now())
+        + " TOTAL=" + seg(_t_consulta, Date.now());
 
       if (rankedInventory.length === 0) {
         console.warn(elEmbudo + "  <-- SIN OFERTAS");

@@ -358,7 +358,16 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
  * del panel antes de esa llamada es la peor manera de enterarse. Lo que dice
  * esta caja es que la revisión está hecha y que le llamamos.
  */
-function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "" }) {
+function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta = 0 }) {
+  /*
+   * Con cosas por traer, lo único que se enseña es la elección.
+   *
+   * Las demás fases cuentan lo que pasa después de la peritación y todavía no
+   * ha pasado nada: enseñarlas sería contarle un futuro.
+   */
+  if (leFalta > 0) {
+    return <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />;
+  }
   if (!estado) return null;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
@@ -397,7 +406,7 @@ function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "" }) {
      * horas del taller- no tenía dónde decirlo, y se enteraba cuando le
      * llamábamos para darle una cita a la que no podía ir.
      */
-    return <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} />;
+    return <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />;
   }
 
   return (
@@ -446,7 +455,7 @@ function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "" }) {
  * mismo, sí; una rejilla aquí empujaría hacia abajo todo lo demás de la
  * tarjeta.
  */
-function EligeLaPeritacion({ peritacion, vehicleId, isDark }) {
+function EligeLaPeritacion({ peritacion, vehicleId, isDark, leFalta = 0 }) {
   const yaPidio = (peritacion && peritacion.modalidad) || "";
   const [donde, setDonde] = useState(yaPidio);
   const [direccion, setDireccion] = useState((peritacion && peritacion.direccion) || "");
@@ -506,7 +515,9 @@ function EligeLaPeritacion({ peritacion, vehicleId, isDark }) {
         <div style={{ fontSize: 12, color: textoFlojo, lineHeight: 1.45, marginTop: 4 }}>
           {donde === "en_taller"
             ? "Te llamamos con el día y el taller."
-            : "Te confirmamos el día por correo."}
+            : leFalta > 0
+              ? "Te confirmamos el día en cuanto completes lo que te falta arriba."
+              : "Te confirmamos el día por correo."}
         </div>
       </div>
     );
@@ -545,6 +556,25 @@ function EligeLaPeritacion({ peritacion, vehicleId, isDark }) {
           Lo llevo a un taller
         </button>
       </div>
+
+      {/*
+        * Y por qué va a tardar, si es que va a tardar.
+        *
+        * La peritación es lo último que pasa antes de publicar, y no se manda
+        * a nadie a ver un coche que todavía no se puede anunciar. Decírselo
+        * aquí -y no después, con el silencio- es la diferencia entre esperar
+        * sabiendo y pensar que nos hemos olvidado.
+        */}
+      {donde === "a_domicilio" && leFalta > 0 && (
+        <div style={{
+          fontSize: 11.5, lineHeight: 1.45, marginBottom: 8, padding: "6px 8px",
+          borderRadius: 8, background: "rgba(180,83,9,0.10)", color: isDark ? "#fbbf24" : "#92400e",
+        }}>
+          Puedes decirnos ya cuándo te viene bien, pero el día te lo confirmamos cuando
+          esté completo lo de arriba: no mandamos al perito a un coche que todavía no
+          podemos anunciar.
+        </div>
+      )}
 
       {donde === "a_domicilio" && (
         <>
@@ -819,8 +849,26 @@ export default function LoQueTeFaltaDelEncargo({
         * diciendo «estamos preparando tu anuncio» encima de «te faltan dos
         * cosas» se contradice con ella y gana la que menos trabajo da.
         */}
-      {faltan === 0 && (
-        <PorDondeVa estado={estado} isDark={isDark} peritacion={peritacion} vehicleId={vehicleId} />
+      {/*
+        * Por dónde va, y lo que puede elegir mientras tanto.
+        *
+        * Antes esto solo salía con todo traído. Pero elegir dónde se hace la
+        * peritación no depende de que haya subido las fotos, y decidirlo
+        * pronto nos ahorra la llamada: lo que depende de las fotos es que
+        * podamos confirmarle el día, y eso se le dice dentro.
+        *
+        * Las fases de después -«peritación hecha», «ya está anunciado»- sí
+        * siguen necesitando que no le falte nada, porque hasta entonces no
+        * pasan.
+        */}
+      {(estado || peritacion) && (
+        <PorDondeVa
+          estado={estado}
+          isDark={isDark}
+          peritacion={peritacion}
+          vehicleId={vehicleId}
+          leFalta={faltan}
+        />
       )}
     </>
   );

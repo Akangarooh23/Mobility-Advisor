@@ -154,6 +154,57 @@ function detectCompatibleApiOnPort(port) {
   });
 }
 
+/**
+ * Las reescrituras de `vercel.json`, leídas una vez.
+ *
+ * Solo las concretas: las que llevan `:parametro` o `(.*)` las sirve Vercel con su
+ * propia semántica y aquí no se imitan -mentir sobre cómo enrutan sería peor que no
+ * servirlas-.
+ */
+const REESCRITURAS = (() => {
+  const mapa = new Map();
+  let vercel;
+  try {
+    vercel = JSON.parse(fs.readFileSync(path.join(__dirname, "vercel.json"), "utf8"));
+  } catch (e) {
+    console.warn(`⚠️  No se ha podido leer vercel.json (${e.message}): solo las rutas escritas a mano.`);
+    return mapa;
+  }
+
+  for (const r of vercel.rewrites || []) {
+    const origen = String(r.source || "");
+    const destino = String(r.destination || "");
+    if (!origen.startsWith("/api/")) continue;
+    if (origen.includes("(") || origen.includes(":")) continue;      // comodines, no
+    if (destino.includes(":") || destino.includes("$")) continue;    // con parámetros, no
+
+    const [camino, consulta = ""] = destino.split("?");
+    const fichero = camino.replace(/^\/api\//, "");
+    const query = Object.fromEntries(new URLSearchParams(consulta).entries());
+    mapa.set(origen, { fichero, query });
+  }
+  return mapa;
+})();
+
+/** El manejador de una reescritura, cargado al pedirlo por primera vez. */
+const cargados = new Map();
+function reescrituraDe(camino) {
+  const r = REESCRITURAS.get(camino);
+  if (!r) return null;
+
+  if (!cargados.has(r.fichero)) {
+    try {
+      cargados.set(r.fichero, require(`./api/${r.fichero}`));
+    } catch (e) {
+      // Que se vea cuál falló y por qué, en vez de un 404 que no explica nada.
+      console.error(`❌ ${camino} -> api/${r.fichero}: ${e.message}`);
+      cargados.set(r.fichero, null);
+    }
+  }
+  const handler = cargados.get(r.fichero);
+  return handler ? { handler, query: r.query } : null;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
@@ -177,7 +228,55 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const handler = handlers[url.pathname];
+  /*
+   * El reparto, con `vercel.json` como fuente de la verdad.
+   *
+   * ## Por qué
+   *
+   * El mapa `handlers` de arriba está escrito a mano, y `vercel.json` tiene **49
+   * reescrituras**. Medido el 1-oct-2026: de las 42 rutas concretas, **21 devolvían el
+   * 404 de este servidor**. O sea que la mitad de la API no existía en desarrollo.
+   *
+   * Entre las que faltaban: `/api/error` -el recogedor de fallos del navegador, que en
+   * local no grababa nada-, `/api/invoice-pdf`, las dos del pago de la fianza, los
+   * papeles de la venta -`mandato-firmado`, `papeles-venta`, `clausula-precio`-,
+   * `/api/whatsapp`, `/api/ping` y los seis crons.
+   *
+   * Eso no es una incomodidad: es la razón de que **nadie recorriera esos caminos
+   * nunca**. Y el día que se recorrieron -arrancando la aplicación, no barriendo
+   * código- apareció que cualquier filtro de la búsqueda devolvía un 500 en
+   * producción. Un servidor de desarrollo que no sirve la mitad de la API es un
+   * servidor que garantiza que no se pruebe la mitad de la aplicación.
+   *
+   * ## Cómo
+   *
+   * Se leen las reescrituras y se arma el reparto a partir de ellas. Una reescritura
+   * como
+   *
+   *     /api/viewing-get  ->  /api/user?route=viewing-get
+   *
+   * se convierte en «carga `api/user` y pon `route=viewing-get` en la consulta», que
+   * es exactamente lo que hace Vercel.
+   *
+   * El mapa de arriba **gana**: lo que esté puesto a mano se respeta, porque alguna
+   * ruta local apunta a un manejador distinto a propósito. Esto solo rellena huecos.
+   *
+   * Y los manejadores se cargan al usarse, no al arrancar: cargar los 49 en el
+   * arranque haría de este servidor lo que `api/market.js` era antes de `enrutador.js`
+   * -311 módulos y 313 ms-, y además un fallo de sintaxis en cualquier manejador
+   * impediría arrancar para probar los demás.
+   */
+  let handler = handlers[url.pathname];
+
+  if (!handler) {
+    const derivada = reescrituraDe(url.pathname);
+    if (derivada) {
+      handler = derivada.handler;
+      for (const [k, v] of Object.entries(derivada.query)) {
+        if (!url.searchParams.has(k)) url.searchParams.set(k, v);
+      }
+    }
+  }
 
   if (!handler) {
     sendJson(res, 404, { error: "Not Found" });
@@ -225,11 +324,24 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(API_PORT, () => {
-  console.log(`✅ Local API disponible en http://localhost:${API_PORT}`);
-  console.log(`🔑 GEMINI_API_KEY ${process.env.GEMINI_API_KEY ? "detectada" : "no configurada"}`);
-  console.log(`📧 RESEND_API_KEY ${process.env.RESEND_API_KEY ? "detectada" : "no configurada (modo local/simulado)"}`);
-});
+/*
+ * Solo se levanta si se ejecuta; si se importa, no.
+ *
+ * Hace falta para poder **probar el reparto sin arrancar un servidor**. La alternativa
+ * era que la prueba volviera a derivar el mapa de `vercel.json` con sus propias reglas,
+ * y entonces no estaría comprobando este fichero: estaría comprobando una copia de él,
+ * que es lo mismo que no comprobar nada. Hoy ya me ha costado ocho botones tener la
+ * misma regla escrita dos veces.
+ */
+if (require.main === module) {
+  server.listen(API_PORT, () => {
+    console.log(`✅ Local API disponible en http://localhost:${API_PORT}`);
+    console.log(`🔑 GEMINI_API_KEY ${process.env.GEMINI_API_KEY ? "detectada" : "no configurada"}`);
+    console.log(`📧 RESEND_API_KEY ${process.env.RESEND_API_KEY ? "detectada" : "no configurada (modo local/simulado)"}`);
+  });
+}
+
+module.exports = { REESCRITURAS, reescrituraDe, handlers };
 
 server.on("error", async (error) => {
   if (error && error.code === "EADDRINUSE") {

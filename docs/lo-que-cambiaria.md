@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 131 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 134 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**51 están cerrados** —✅—. De los 80 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 21 🟠, 37 🟡 y 15 ⚪**.
+**52 están cerrados** —✅—. De los 82 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 21 🟠, 38 🟡 y 16 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -3699,6 +3699,139 @@ construye en su máquina**.
 Eso cambia el orden de C6: el CI del ERP no es «estaría bien», es lo que sostiene el
 único control de calidad que tiene.
 
+## Zona 31 — Fugas de datos en las respuestas ✔ clase cerrada
+
+Era la clase que estaba **parcial** en Mobility —§3.2 miró tres endpoints— y **sin
+empezar** en el ERP. Aquí se pasa entera, a los 139 ficheros de servidor de Mobility y
+los 260 del ERP.
+
+La lista de lo que es sensible **no me la inventé**: salió de `information_schema` de la
+base que corre. Son **20 columnas en 12 tablas**: `password_hash`, `password_salt`,
+`token_hash`, los pares `token_buyer`/`token_seller`, `erp_refresh_tokens.token`,
+`erp_staff_passwords.password_hash`, `moveadvisor_users.iban`, `tax_id`,
+`erp_proveedores.iban` y `nif`, `erp_encargos_venta.comprador_dni` y `vendedor_dni`.
+
+### ✅ 31.1 — Ni una columna sensible sale en una respuesta
+
+Las cuatro que el guion marcó, leídas una a una, son correctas:
+
+| Dónde | Qué | Veredicto |
+|---|---|---|
+| ERP `auth.ts:150` | `refresh_token: refreshToken` | Es **el token que se le está entregando** a quien acaba de autenticarse. Y el usuario va en lista blanca: `{ email, role, name }` |
+| ERP `encargos.ts:769` | `vendedor_dni` | Trasera, detrás de `requireRole`. Es el dato que esa pantalla existe para enseñar |
+| `api/auth.js:1577` | `debugResetCode` | Detrás de `AUTH_EXPOSE_RESET_CODE`, por defecto `false`. Es la **decisión pendiente nº 1**, no un hallazgo nuevo |
+| ERP `proveedores.ts:509` | el `iban` de la tabla | Falso positivo: lo que se esparce es `...partes`, un objeto calculado |
+
+Y lo mejor de la zona: `viewing-handler.js` tiene **dos tokens de dos partes en la
+misma fila** —`token_buyer` y `token_seller`, que son permisos— y los carga con
+`SELECT *`. Pero al responder construye una lista blanca explícita campo por campo. Los
+dos tokens nunca se cruzan. Eso está bien hecho y es lo difícil.
+
+### 🟡 31.2 — 103 respuestas devuelven el mensaje del error: §3.2 encontró tres
+
+| | Respuestas con `.message` dentro |
+|---|---:|
+| Mobility (`lib/` + `api/`) | **60**, en 25 ficheros |
+| ERP (`apps/api`) | **43** |
+
+`visit-availability-handler.js` tiene veinte. `personal.ts` del ERP, siete.
+
+**Y aquí está lo que mide la gravedad, porque la medí en vez de suponerla.** Lancé tres
+consultas rotas contra la base para ver el texto exacto que llegaría al cliente:
+
+```
+column "columna_inventada" does not exist      (42703)
+relation "tabla_que_no_existe" does not exist  (42P01)
+```
+
+Nombres de columna y de tabla: **revelación del esquema**. La pregunta siguiente era si
+puede llevar **datos de otra persona**, que es lo que lo convertiría en 🔴. Lo probé con
+una violación de unicidad en una tabla temporal:
+
+```
+.message : duplicate key value violates unique constraint "prueba_fuga_correo_key"
+.detail  : Key (correo)=(victima@ejemplo.com) already exists.
+```
+
+**El valor está en `.detail`, no en `.message`.** Y nadie devuelve `.detail`: el único
+sitio que lo lee es `lib/registra.js`, que lo manda al registro, que es su trabajo. Así
+que la fuga es del esquema y no de los datos, y por eso esto es 🟡.
+
+#### Por qué está en 103 sitios y no en tres
+
+Porque `e.message` se usa a la vez como **canal de control** y como texto de error:
+
+```js
+if (e.message === "not_found")        return res.status(404).json({ … });
+if (e.message === "slot_unavailable") return res.status(409).json({ … });
+return res.status(500).json({ ok: false, error: e.message });   // ← lo que no es señal
+```
+
+Las señales que se lanzan a mano están tratadas; lo que cae al final es justo lo que no
+se esperaba, o sea los errores de Postgres. El patrón no es descuido, es una
+consecuencia de usar el mensaje para dos cosas.
+
+#### Y el arreglo ya está escrito, en el propio ERP
+
+`apps/api/src/lib/fallos.ts`:
+
+```ts
+export function falloInterno(res: Response, codigo: string, err: unknown): void {
+  const mensaje = err instanceof Error ? err.message : String(err);
+  console.error(`[${codigo}]`, mensaje);
+  res.status(500).json({
+    ok: false,
+    error: codigo,
+    // En desarrollo se devuelve: quien mira la pantalla es quien arregla.
+    ...(config.NODE_ENV === 'production' ? {} : { detail: mensaje }),
+  });
+}
+```
+
+Código estable al cliente, mensaje al registro, detalle solo fuera de producción. Es
+exactamente lo correcto, y **116 rutas del ERP ya lo usan**. Las 43 fugas son las que no
+lo usaron.
+
+**Lo que haría**: las 43 del ERP a `falloInterno`, que es mecánico y ya está probado por
+las otras 116. Y en Mobility, el mismo ayudante sobre `registra()`, que ya existe: las
+60 pasan a un código estable y el mensaje al registro, donde además sirve para algo.
+
+### ⚪ 31.3 — Dos `SELECT *` que se esparcen en la respuesta
+
+ERP `tickets.ts:82` y `tickets.ts:213`:
+
+```ts
+`SELECT t.*, u.name AS user_name, … FROM erp_tickets t …`
+…
+res.json({ ok: true, data: { ...ticket.rows[0], events: events.rows } });
+```
+
+Hoy no filtra nada: `erp_tickets` no tiene ninguna de las 20 columnas sensibles. Es ⚪
+por lo que puede pasar mañana: con `t.*` y esparcido, **cualquier columna que entre en
+esa tabla se publica sola**, sin que nadie lo decida. Una lista explícita de columnas
+cuesta lo mismo y no tiene esa propiedad.
+
+En Mobility no hay ninguno: los siete candidatos que salieron son objetos calculados
+—`...snapshot`, `...availability`, `...parseado`, `...partes`—, comprobados uno a uno.
+
+### Nota de método: tres errores del guion, y uno que sigue ahí
+
+1. **El primer grep confundía el registro con la respuesta.** `console.error("fallo:",
+   e.message)` es correcto y `res.json({ error: e.message })` es una fuga, y salían
+   juntos: cuarenta líneas de las que la mayoría estaban bien. Se arregló mirando solo
+   el argumento de `res.json(...)` / `res.send(...)`, con paréntesis emparejados.
+2. **El esparcido marcaba de todo**: 24 candidatos, y los cuatro que leí a mano eran
+   falsos positivos. El criterio bueno no es «esparce algo», es «esparce una fila de un
+   `SELECT *`»: con lista explícita, añadir una columna a la tabla no la publica.
+3. **Y al afinarlo buscaba el `SELECT` en el código ya limpiado de cadenas**, donde la
+   consulta son espacios porque vive dentro de una plantilla. No disparó ni en el caso
+   que había puesto a propósito — que es exactamente para lo que está el autotest.
+
+**Y el que no he arreglado, dicho a las claras**: busca la consulta más cercana *por
+encima*, así que dentro de un `Promise.all` con varias consultas puede coger la que no
+es. Por eso `tickets.ts:82` lo encontré leyendo y no con el guion. O sea que este
+barrido **infra-informa** en ese punto, y los dos de §31.3 podrían ser más.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -3790,18 +3923,21 @@ mirado este fichero».
 | Efectos sin limpieza | ✅ §29 | ✅ §29 |
 | Dependencias que mienten | ✅ §30 | ✅ §30 |
 | Accesibilidad | ✗ | ✗ |
-| Fugas de datos en las respuestas | parcial §3.2 | ✗ |
+| Fugas de datos en las respuestas | ✅ §31 | ✅ §31 |
 | Validación y límites de tamaño | parcial §4 | ✗ |
 
-**Mobility: 15 clases cerradas, 2 parciales, 2 sin pasar — ≈ 82 %.**
-**ERP: 13 cerradas, 0 parciales, 3 sin pasar — ≈ 76 %.**
+**Mobility: 16 clases cerradas, 1 parcial, 2 sin pasar — ≈ 87 %.**
+**ERP: 14 cerradas, 0 parciales, 2 sin pasar — ≈ 85 %.**
 
-El 1 de octubre se cerraron dos: «efectos sin limpieza» (§29) y «dependencias que
-mienten» (§30), las dos en los dos repositorios a la vez.
+El 1 de octubre se cerraron tres: «efectos sin limpieza» (§29), «dependencias que
+mienten» (§30) y «fugas de datos en las respuestas» (§31), las tres en los dos
+repositorios a la vez. La última era la que estaba parcial desde §3.2, y al pasarla
+entera los tres endpoints se convirtieron en 103.
 
-Queda **accesibilidad** en los dos, **pruebas que no pueden fallar** en el ERP, y las
-dos parciales de Mobility —fugas de datos en las respuestas y validación de tamaños—,
-que en el ERP están sin empezar. O sea: **tres pasadas** y la capa 4 está cerrada.
+Quedan dos: **accesibilidad** en los dos, y **validación y límites de tamaño** —parcial
+en Mobility desde §4, sin empezar en el ERP—. Más **pruebas que no pueden fallar**, que
+en el ERP no se puede pasar igual porque no tiene CI (§30.4). O sea: **dos pasadas** y
+la capa 4 está cerrada.
 
 ### Y por qué la capa 1 no va a llegar al 100 %
 

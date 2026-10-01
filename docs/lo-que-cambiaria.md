@@ -2919,6 +2919,63 @@ medirla, y lo que la descarta es exactamente el mismo trabajo.
 
 ---
 
+## Zona 24 — Los estados de carga y de error, en los 170 ficheros ✅ sin hallazgos
+
+Tercera pasada por clase de defecto, y la primera que sale **entera en verde**. Lo
+cuento igual, porque «no hay nada» es un resultado y porque lo que costó llegar a
+él es la lección.
+
+El defecto que buscaba: una pantalla que se queda girando para siempre porque el
+indicador de «cargando» se enciende y solo se apaga en el camino bueno; y su
+hermano, un error que se guarda en un estado y no se pinta nunca.
+
+| | |
+|---|---:|
+| Ficheros barridos | **170 de 170** |
+| Indicadores de carga encontrados | **64** |
+| Que se apagan también si algo falla | **64** |
+| Estados de error, mensaje o aviso | **33** |
+| Que se leen en algún sitio | **33** |
+
+Sesenta y cuatro de sesenta y cuatro, y treinta y tres de treinta y tres. No hay
+ninguna pantalla que pueda quedarse girando, y no hay ningún error que se guarde y
+no se cuente.
+
+### Lo que costó saberlo, que es el apunte de verdad
+
+Mi barrido dijo primero **20 candidatas**, luego **5**, y al final **0**. Las veinte
+y las cinco eran mi herramienta, no el código:
+
+1. **Diecisiete se apagaban con `.then().catch().finally()` en cadena** y mi patrón
+   solo buscaba `} catch` y `finally {`, la forma con llaves. `BuscarCochePage.js`
+   salía como candidata siendo un ejemplo de cómo se hace bien: `.catch()` pone el
+   error y `.finally()` apaga la rueda, las dos con su comprobación de petición
+   obsoleta (`if (mio !== peticion.current) return`).
+2. **Las cinco restantes tenían el `finally` fuera de mi ventana de 2.500
+   caracteres.** Son funciones de guardado de 125, 132, 147, 205 y 251 líneas, y el
+   `finally` está al final. Lo resolví buscando la función entera contando llaves en
+   vez de mirar un trozo fijo.
+
+Y una de ellas me lo decía a la cara. `UserDashboardVehicles.js`, tres líneas debajo
+del encendido:
+
+> *«Todo el guardado va en try/finally, y ésta es la corrección de verdad.»*
+
+O sea que alguien ya había tenido este fallo, lo había arreglado y lo había dejado
+escrito. Mi herramienta lo marcó como roto de todas formas.
+
+### Lo que esta pasada no cubre
+
+Que el indicador se apague y el error se guarde no significa que el mensaje sea
+**útil**. No he mirado si lo que se enseña dice algo que se pueda hacer —«Error» a
+secas cumple las dos comprobaciones de arriba y no sirve de nada—. Eso no se barre:
+se lee.
+
+Tampoco cubre los errores que nunca llegan a un estado porque se tragan antes. Eso
+es lo que miré en §5.8 y §5.9 por el lado del servidor.
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

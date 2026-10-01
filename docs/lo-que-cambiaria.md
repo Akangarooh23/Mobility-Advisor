@@ -33,12 +33,12 @@ tamaño, está al final.
 
 ## El plan, en cuatro montones
 
-Los 139 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
+Los 143 hallazgos, agrupados por **lo que hay que hacer con ellos** en vez de por
 dónde están. Salido del propio documento y no de memoria: la lista se extrae de los
 encabezados, así que si aparece un hallazgo nuevo arriba, aquí no se olvida.
 
-**56 están cerrados** —✅—. De los 83 que quedan, esto es el orden en
-que yo los tocaría: **7 🔴, 22 🟠, 37 🟡 y 17 ⚪**.
+**57 están cerrados** —✅—. De los 86 que quedan, esto es el orden en
+que yo los tocaría: **7 🔴, 23 🟠, 39 🟡 y 17 ⚪**.
 
 Estos números se cuentan, no se deducen. Se me desviaron dos veces por escribirlos
 razonando «he cerrado una, baja una», así que se saca del propio documento:
@@ -3996,6 +3996,147 @@ Es la tercera vez en esta revisión que me pasa lo mismo con la autenticación, 
 por el mismo motivo: busco los nombres que espero en vez de los que hay. Por eso §3.3
 existe y por eso ningún candidato de esta zona se escribió sin abrir el fichero.
 
+## Zona 33 — Accesibilidad ✔ clase cerrada (la última de la capa 4)
+
+Estaba sin pasar en los dos. Y no es solo cortesía: la Ley Europea de Accesibilidad
+cubre el comercio electrónico, así que la web pública tiene obligación y el ERP la tiene
+como puesto de trabajo.
+
+Cuatro comprobaciones, elegidas porque se pueden medir sin abrir un navegador y porque
+son las que dejan a alguien **fuera** en vez de incómodo: un control al que el teclado no
+llega, un botón sin nombre, una imagen sin `alt` y un campo sin etiqueta.
+
+### 🟠 33.1 — Un usuario de teclado no puede abrir un coche desde el listado
+
+`PortalVoMarketplacePage.js`, tres veces —líneas 911, 986 y 1101—. Las tarjetas de
+vehículo son así:
+
+```jsx
+<div
+  key={offer.id}
+  onClick={() => onOpenOffer(offer)}
+  title={t("marketplace.seeFullCard")}
+  style={{ …, cursor: "pointer" }}>
+```
+
+Un `<div>` con `onClick`. Sin `role`, sin `tabIndex`, sin `onKeyDown`. Y **dentro de la
+tarjeta no hay ningún `<button>` ni `<a>`** —lo comprobé: los botones que hay cerca son
+la paginación, fuera de la tarjeta—.
+
+Consecuencias, y son dos cosas distintas:
+
+- **Con el tabulador no se llega.** El foco no para en las tarjetas, así que no hay
+  manera de abrir una ficha sin ratón.
+- **Un lector de pantalla no dice que sea pulsable.** Lee el contenido como si fuera
+  texto suelto.
+
+Esto no es un rincón de la aplicación: es **el camino del listado a la ficha**, o sea la
+acción principal del producto. Por eso es 🟠 y no 🟡.
+
+**En total 20 controles así en Mobility**, en once ficheros: además de las tarjetas, el
+cierre de dos modales, las pestañas de modalidad y varios elementos de los paneles.
+
+**El arreglo mínimo** son tres atributos por sitio:
+
+```jsx
+role="button"
+tabIndex={0}
+onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpenOffer(offer); } }}
+```
+
+**El arreglo bueno es otro**, y para las tarjetas merece la pena: que sean un `<a href>`
+de verdad. Se gana el teclado, el «abrir en otra pestaña», el botón de atrás… y los
+enlaces del listado a las fichas, que hoy no existen para un buscador. Eso es más trabajo
+y cambia cosas visibles, así que no lo he tocado sin decírtelo.
+
+### 🟡 33.2 — Treinta y tres botones que no dicen cómo se llaman
+
+Botones cuyo único contenido es un carácter de adorno. Leídos uno a uno:
+
+| Dónde | Lo que hay dentro | Lo que debería decir |
+|---|---|---|
+| `SellReportMarketPage.js:770` | `‹` | «Anterior» |
+| `SellReportMarketPage.js:772` | `›` | «Siguiente» |
+| `SellReportMarketPage.js:1435` | `✕` | «Cerrar» |
+| `VehicleDetailPage.js:802` | `×` | «Cerrar» |
+| `VehicleDetailPage.js:836` | `×` | «Cerrar» |
+| `App.js:5557` | `x` | «Cerrar» |
+
+Un lector de pantalla no dice «cerrar»: dice «signo de multiplicación», o «comilla
+angular simple izquierda», o se lo salta. **14 en Mobility y 19 en el ERP.**
+
+El arreglo es un `aria-label` por botón y no cambia nada visible. Es el más barato de
+esta zona.
+
+### 🟡 33.3 — Campos sin etiqueta: 117 en Mobility y 325 en el ERP
+
+| | sin etiqueta ninguna | solo con `placeholder` |
+|---|---:|---:|
+| Mobility | **65** | **52** |
+| ERP | **171** | **154** |
+
+El `placeholder` **no es una etiqueta**: desaparece al escribir, así que quien vuelve a
+un formulario a medias no sabe qué pedía ese campo. Va en su propia cesta porque es mejor
+que nada, no porque valga.
+
+Los peores son los que no tienen ni eso. Dos ejemplos leídos:
+
+- `DecisionPage.js`, el presupuesto: dos `<input type="range">` seguidos —«desde» y
+  «hasta»— cuya etiqueta es un `<div className="cw-f-lbl">`. Visualmente está clara; para
+  un lector de pantalla son **dos deslizadores idénticos sin nombre**.
+- ERP `MarketplacePage.tsx:1275`: la casilla de «seleccionar todo» de la cabecera de la
+  tabla. Dice «casilla» y nada más.
+
+El ERP tiene más del triple, y es 🟡 y no 🟠 por lo mismo que §32.5: es una herramienta
+de trabajo con usuarios conocidos. Sigue siendo una obligación como empleador.
+
+### ✅ 33.4 — Lo que está bien: ni una imagen sin `alt`, y el idioma puesto
+
+**Cero `<img>` sin `alt`** en los dos repositorios. Y `alt=""` donde toca, que es lo
+correcto para una imagen decorativa y no un olvido.
+
+El idioma también:
+
+```html
+<html lang="es" class="notranslate" translate="no">    <!-- Mobility -->
+<html lang="es">                                       <!-- ERP -->
+```
+
+Y Mobility hace algo que casi nadie hace: `App.js:1898` **actualiza
+`documentElement.lang`** cuando el cliente cambia de idioma, así que un lector de pantalla
+cambia de voz con él.
+
+### Nota de método: 703 candidatos, 485 hallazgos, y dos errores míos de los gordos
+
+El barrido dio **703** entre los dos repositorios y acabó en **485**. Las dos
+correcciones, las dos encontradas comparando números en vez de creyéndomelos:
+
+1. **No sabía que envolver también asocia.** Daba 260 campos «sin etiqueta» en Mobility.
+   Pero los números no cuadraban: **188 `<label>` para 70 `<input>`**, o sea más etiquetas
+   que campos. Y eso solo tiene una explicación:
+
+   ```jsx
+   <label>Código postal <input value={v} /></label>
+   ```
+
+   Es HTML correcto y no necesita `htmlFor`: la asociación es implícita. Detectarlo quitó
+   **135 falsos positivos**. Un número que no cuadra con otro número es la señal de que
+   falta una comprobación, no de que haya mucho trabajo.
+
+2. **Contaba los comentarios.** El único «`<img>` sin alt» de Mobility estaba dentro de un
+   JSDoc de `ConditionReportAr.js` que explicaba por qué el código es como es; el `<img>`
+   de verdad, cuatro líneas más abajo, lleva su `alt={etiqueta}`. Quitando los comentarios,
+   esa categoría pasó a **cero en los dos**.
+
+   Es la **cuarta vez** en esta revisión que un comentario se cuenta como código. A estas
+   alturas debería ser lo primero que hace cualquier analizador que escriba, y por eso
+   está dicho aquí y no como nota al pie.
+
+Y lo que no es un error pero conviene decir: de los seis botones sin nombre de Mobility los
+leí **los seis**, y de los 20 controles sin teclado leí cinco. Las categorías 3 y 4 se
+verificaron con un ejemplo cada una. O sea que los números de §33.3 son el candidato
+medido, no 485 cosas leídas de una en una.
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin
@@ -4086,24 +4227,30 @@ mirado este fichero».
 | Numeración y aritmética de facturas | — | ✅ §20, §21 |
 | Efectos sin limpieza | ✅ §29 | ✅ §29 |
 | Dependencias que mienten | ✅ §30 | ✅ §30 |
-| Accesibilidad | ✗ | ✗ |
+| Accesibilidad | ✅ §33 | ✅ §33 |
 | Fugas de datos en las respuestas | ✅ §31 | ✅ §31 |
 | Validación y límites de tamaño | ✅ §32 | ✅ §32 |
 
-**Mobility: 17 clases cerradas, 0 parciales, 1 sin pasar — ≈ 94 %.**
-**ERP: 15 cerradas, 0 parciales, 1 sin pasar — ≈ 94 %.**
+**Mobility: 18 clases cerradas, 0 parciales, 0 sin pasar — 100 %.**
+**ERP: 16 cerradas, 0 parciales, 0 sin pasar — 100 %, con una salvedad.**
+
+La salvedad del ERP es «pruebas que no pueden fallar», que no se puede pasar como las
+demás: en Mobility se midió con seis mutaciones reales contra el CI, y el ERP no tiene
+CI (§30.4). Ahí el trabajo no es la clase, es el CI.
+
+**O sea que la capa 4 está cerrada.** Que no quiere decir que no haya defectos: quiere
+decir que las dieciocho clases que sé buscar se han pasado por todo el código de los dos
+repositorios. Lo que encuentre más hallazgos a partir de aquí no es otra clase, es la
+capa 5: arrancar la aplicación y recorrer los caminos de verdad.
 
 El 1 de octubre se cerraron tres: «efectos sin limpieza» (§29), «dependencias que
 mienten» (§30) y «fugas de datos en las respuestas» (§31), las tres en los dos
 repositorios a la vez. La última era la que estaba parcial desde §3.2, y al pasarla
 entera los tres endpoints se convirtieron en 103.
 
-El 1 de octubre se cerraron cuatro: §29, §30, §31 y §32 —«validación y límites de
-tamaño», que estaba parcial desde §4—.
-
-**Queda una: accesibilidad**, en los dos. Y **pruebas que no pueden fallar** en el ERP,
-que no se puede pasar igual porque no tiene CI (§30.4): ahí el trabajo es el CI, no la
-clase.
+El 1 de octubre se cerraron cinco de una tirada: §29 efectos sin limpieza, §30
+dependencias que mienten, §31 fugas en las respuestas, §32 validación y tamaños, y §33
+accesibilidad. Las cinco en los dos repositorios.
 
 ### Y por qué la capa 1 no va a llegar al 100 %
 

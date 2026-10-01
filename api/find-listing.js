@@ -4402,6 +4402,37 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
           : { ...listing, positionReason: buildPositionReason(listing) }
       ));
 
+      /*
+       * El embudo entero en una linea, siempre.
+       *
+       * El 1 de octubre de 2026 el consejero devolvio CERO ofertas en
+       * produccion y no hubo forma de saber donde se habian quedado. Se
+       * probaron veinte combinaciones en local -diesel solo, con etiqueta, con
+       * carroceria, con marcas, con antiguedad, con el encargo completo que
+       * sale de las respuestas- y todas devolvian doce. El fallo solo pasaba
+       * alli, y alli no habia ni un numero que mirar.
+       *
+       * Cada paso de aqui puede vaciar la lista por motivos muy distintos: la
+       * consulta no encuentra nada, el colador lo descarta, la ficha dice que
+       * ya no existe. Sin los cuatro numeros juntos hay que adivinar cual fue,
+       * y adivinar es lo que costo media tarde.
+       *
+       * Va como `warn` y no como `log` cuando sale vacio, para que se vea en
+       * el panel sin tener que quitar filtros.
+       */
+      const elEmbudo = "[find-listing] embudo:"
+        + " pool=" + dedupedPrioritizedPool.length
+        + " traselcerebro=" + distinctByModel.length
+        + " trasclolador=" + colado.cumplen.length
+        + " traslaficha=" + trasLaFicha.cumplen.length
+        + " salen=" + rankedInventory.length;
+
+      if (rankedInventory.length === 0) {
+        console.warn(elEmbudo + "  <-- SIN OFERTAS");
+      } else {
+        console.log(elEmbudo);
+      }
+
       return {
         listing: rankedInventory[0] || null,
         listings: rankedInventory,

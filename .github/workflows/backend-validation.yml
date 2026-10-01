@@ -128,6 +128,18 @@ jobs:
       - name: Lint server code
         run: npm run lint:servidor
 
+      # El trinquete del esquema. Cuenta cuantos ficheros crean tablas o anaden
+      # columnas dentro de una peticion, en los dos repositorios, y falla si suben.
+      #
+      # Existia y no estaba en ningun CI: llevaba nueve dias en rojo sin que nadie lo
+      # supiera —el ERP gano ficheros con DDL el 23 y el 24 de septiembre, los topes se
+      # escribieron el 22—. Un trinquete que nadie ejecuta no es un trinquete.
+      #
+      # Necesita el repositorio del ERP al lado para contar su mitad; si no esta, lo
+      # dice y cuenta solo la de aqui, asi que en el CI no falla por eso.
+      - name: Schema ratchet
+        run: npm run test:migraciones
+
       - name: Run lib tests
         run: node --test $(find lib -name '*.test.js')
 

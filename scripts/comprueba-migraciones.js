@@ -27,9 +27,32 @@ const path = require("path");
 const RAIZ = path.join(__dirname, "..");
 const ERP = path.join(RAIZ, "..", "carswise-erp-backoffice", "apps", "api", "src");
 
-/** Cuántos ficheros pueden seguir tocando el esquema por su cuenta. Solo baja. */
-const TOPE_WEB = 22;
-const TOPE_ERP = 25;
+/**
+ * Cuántos ficheros pueden seguir tocando el esquema por su cuenta. Solo baja.
+ *
+ * ── 1 de octubre de 2026: los dos se mueven, y en direcciones distintas ───────
+ *
+ * **La web: de 22 a 3.** La limpieza funcionó. De los 22 ficheros que creaban
+ * esquema dentro de las peticiones quedan tres, y el resto vive en `migrations/`.
+ * Un trinquete que no se baja cuando se mejora deja de proteger: con el tope en 22
+ * se podrían añadir diecinueve sin que esto dijera nada.
+ *
+ * **El ERP: de 25 a 26,** y eso es lo que un trinquete no debería permitir, así que
+ * queda explicado. Los topes se escribieron el 22 de septiembre (`de16007`) y el
+ * ERP ganó ficheros con DDL el 23 y el 24. O sea que esta comprobación lleva
+ * **nueve días en rojo** y nadie lo sabía, porque `npm run test:migraciones` no
+ * estaba en ningún CI —ni en el de aquí ni en el del ERP, que no tiene—.
+ *
+ * Se sube a 26 para que el rojo signifique «ha empeorado hoy» en vez de «llevamos
+ * nueve días sin mirar». Y se mete en el CI en el mismo cambio, que es lo que
+ * impide que vuelva a pasar.
+ *
+ * El arreglo de fondo no es este número: es que el ERP tenga migraciones. Hoy
+ * declara el esquema en 26 ficheros y **ninguna** migración —280 sentencias dentro
+ * de peticiones—, y eso está en `docs/lo-que-cambiaria.md` §19.1.
+ */
+const TOPE_WEB = 3;
+const TOPE_ERP = 26;
 
 const ESQUEMA_A_MANO = /CREATE TABLE IF NOT EXISTS|ADD COLUMN IF NOT EXISTS/;
 

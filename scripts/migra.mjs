@@ -124,7 +124,25 @@ async function main() {
      * es la tabla del buscador. Así que lo que se cambia es esto y no la
      * migración.
      */
-    const aSolas = /\bCONCURRENTLY\b/i.test(p.texto);
+    /*
+     * Sin los comentarios, y eso no es un detalle.
+     *
+     * Esto miraba el fichero entero, así que una migración que **mencionaba**
+     * `CONCURRENTLY` en un comentario se aplicaba fuera de transacción sin
+     * necesitarlo. Pasó con la 0020: su comentario dice «con tráfico habría que
+     * usar CONCURRENTLY» y el detector lo leyó como si lo usara.
+     *
+     * No reventó nada —eran siete `CREATE INDEX IF NOT EXISTS` sobre tablas
+     * vacías, repetibles— pero perder la transacción es perder la vuelta atrás:
+     * si la cuarta falla, las tres primeras se quedan hechas. Eso se paga solo
+     * cuando Postgres lo exige, no cuando alguien escribe una palabra.
+     *
+     * Se quitan los comentarios de línea y los de bloque antes de buscar.
+     */
+    const sinComentarios = p.texto
+      .replace(/\/\*[\s\S]*?\*\//g, " ")
+      .replace(/--[^\n]*/g, " ");
+    const aSolas = /\bCONCURRENTLY\b/i.test(sinComentarios);
 
     try {
       if (!aSolas) await cliente.query("BEGIN");

@@ -56,8 +56,89 @@ const LEVANTA = process.argv.includes("--levanta");
 /** El freno de mano que pone la limpieza. Ver scripts/limpia-n8n.js. */
 const FRENO = path.join(os.homedir(), ".n8n", "no-me-levantes");
 
+/**
+ * Cuánto se respeta el freno de mano antes de pasar de él.
+ *
+ * Sin caducidad, ese fichero es un interruptor de apagado permanente. La limpieza
+ * lo borra en un `finally`, que cubre una excepción pero **no** que el proceso
+ * muera de golpe: un Ctrl-C, un reinicio, un corte de luz o un `kill` entre el
+ * `ponFreno()` y el `finally`. Y la limpieza corre a las 03:00 sin nadie delante,
+ * que es justo cuando un reinicio no lo ve nadie.
+ *
+ * Si eso pasa: n8n apagado, el guardián viéndolo apagado cada cinco minutos y
+ * decidiendo no tocarlo, y el latido diciendo «alguien lo ha parado a propósito»
+ * —que es lo que cualquiera leería como normal—. Un fichero de cero bytes apagando
+ * los 52 flujos indefinidamente.
+ *
+ * Media hora es de sobra: la limpieza entera tarda minutos.
+ */
+const FRENO_CADUCA_EN_MINUTOS = 30;
+
+/**
+ * ¿Hay que respetar el freno de mano?
+ *
+ * Tres respuestas, no dos: no está, está y vale, o está y ha caducado. La tercera
+ * es la que faltaba.
+ */
+function elFreno() {
+  let stat;
+  try { stat = fs.statSync(FRENO); } catch { return { puesto: false }; }
+
+  const minutos = Math.round((Date.now() - stat.mtimeMs) / 60000);
+  if (minutos > FRENO_CADUCA_EN_MINUTOS) {
+    return { puesto: false, caducado: true, minutos };
+  }
+
+  let quien = "";
+  try { quien = fs.readFileSync(FRENO, "utf8").trim().slice(0, 120); } catch { /* da igual */ }
+  return { puesto: true, minutos, quien };
+}
+
 /** Cuántas veces se intenta levantarlo en una hora antes de rendirse. */
 const MAX_INTENTOS = 3;
+
+/**
+ * Los intentos, en un fichero local y no en Postgres.
+ *
+ * ## Por qué se movieron
+ *
+ * El enfriamiento —«¿se intentó hace menos de cinco minutos?»— y la cuenta de
+ * intentos por hora se consultaban con dos `SELECT` a Postgres, y el `connect()`
+ * estaba **fuera de todo `try`**. O sea que si Neon no contestaba —o cambiaba la
+ * contraseña, o se iba la red— este guion salía con 1 y **n8n se quedaba caído**.
+ *
+ * Eso es la dependencia al revés: un vigilante de n8n no puede necesitar que
+ * Postgres esté bien para poder reiniciar n8n. Y una parada de n8n y un problema de
+ * base no son sucesos independientes: comparten máquina y comparten red.
+ *
+ * ## Qué sigue en Postgres
+ *
+ * El latido, que es un **registro** y no una condición: sirve para ver desde fuera
+ * —desde Vercel, donde corren los avisos— que esta máquina sigue encendida. Si no
+ * se puede escribir, se dice y se sigue; levantar n8n no depende de ello.
+ */
+const LOS_INTENTOS = path.join(os.homedir(), ".n8n", "ultimos-intentos.json");
+
+/** Los intentos de la última hora, y de paso se tira lo viejo. */
+function losIntentos() {
+  let lista = [];
+  try { lista = JSON.parse(fs.readFileSync(LOS_INTENTOS, "utf8")); } catch { lista = []; }
+  if (!Array.isArray(lista)) lista = [];
+  const desde = Date.now() - 60 * 60 * 1000;
+  return lista.map(Number).filter((n) => Number.isFinite(n) && n >= desde);
+}
+
+function apuntaElIntento() {
+  const lista = [...losIntentos(), Date.now()];
+  try {
+    fs.mkdirSync(path.dirname(LOS_INTENTOS), { recursive: true });
+    fs.writeFileSync(LOS_INTENTOS, JSON.stringify(lista));
+  } catch (e) {
+    // Si no se puede escribir, se sigue: perder la cuenta es menos grave que no
+    // levantar n8n. Lo que no se puede es callarlo.
+    console.error("  no he podido apuntar el intento: " + e.message);
+  }
+}
 
 const ps = (cmd) => execSync('powershell -NoProfile -Command "' + cmd.replace(/"/g, '\\"') + '"',
   { encoding: "utf8", timeout: 60000 });
@@ -121,11 +202,34 @@ function levanta() {
   { stdio: "ignore", windowsHide: true, timeout: 30000 });
 }
 
-(async () => {
+/**
+ * La base, si se puede. Y si no, se sigue.
+ *
+ * Devuelve `null` cuando no se puede conectar, y lo dice por el registro. El
+ * guardián funciona sin ella: lo único que se pierde es el latido.
+ */
+async function laBaseSiSePuede() {
   const c = new Client({ connectionString: DB_URL, statement_timeout: 60000 });
-  await c.connect();
+  try {
+    await c.connect();
+    return c;
+  } catch (e) {
+    console.error("  sin base de datos (" + e.message + "): sigo sin apuntar el latido");
+    try { await c.end(); } catch { /* ya estaba cerrada */ }
+    return null;
+  }
+}
+
+(async () => {
+  const c = await laBaseSiSePuede();
 
   const apunta = async (vivo, actuo, detalle) => {
+    if (!c) {
+      console.log("  " + new Date().toLocaleTimeString("es")
+        + "   " + (vivo ? "vivo" : "CAIDO") + (actuo ? "  -> levantado" : "")
+        + (detalle ? "   " + detalle : "") + "   [sin apuntar: no hay base]");
+      return;
+    }
     await c.query(
       "INSERT INTO moveadvisor_latidos_n8n (vivo, actuo, detalle) VALUES ($1, $2, $3)",
       [vivo, actuo, detalle]);
@@ -135,9 +239,17 @@ function levanta() {
   };
 
   try {
-    if (fs.existsSync(FRENO)) {
-      await apunta(escucha(), false, "freno de mano puesto: alguien lo ha parado a proposito");
+    const freno = elFreno();
+    if (freno.puesto) {
+      await apunta(escucha(), false,
+        "freno de mano puesto hace " + freno.minutos + " min"
+        + (freno.quien ? ": " + freno.quien : ": alguien lo ha parado a proposito"));
       return;
+    }
+    if (freno.caducado) {
+      // Caducado = la limpieza murió sin borrarlo. Se sigue como si no estuviera, y
+      // se dice, porque significa que algo se cortó a medias.
+      console.log("  el freno de mano lleva " + freno.minutos + " min puesto: caducado, sigo");
     }
 
     if (escucha()) {
@@ -168,9 +280,8 @@ function levanta() {
      * Así que si ya se intentó hace poco, se deja arrancar. Cinco minutos
      * cubren de sobra los 60-100 segundos que tarda en escuchar.
      */
-    const reciente = (await c.query(
-      `SELECT count(*)::int n FROM moveadvisor_latidos_n8n
-        WHERE actuo AND momento > now() - interval '5 minutes'`)).rows[0].n;
+    const hace5min = Date.now() - 5 * 60 * 1000;
+    const reciente = losIntentos().filter((n) => n > hace5min).length;
     if (reciente) {
       await apunta(false, false, "ya se lanzo hace menos de 5 min: dejandolo arrancar");
       return;
@@ -180,15 +291,14 @@ function levanta() {
      * Cuántas veces se ha intentado en la última hora. Si n8n no arranca por
      * un motivo de fondo, insistir cada cinco minutos no lo arregla.
      */
-    const intentos = (await c.query(
-      `SELECT count(*)::int n FROM moveadvisor_latidos_n8n
-        WHERE actuo AND momento > now() - interval '1 hour'`)).rows[0].n;
+    const intentos = losIntentos().length;
     if (intentos >= MAX_INTENTOS) {
       await apunta(false, false,
         "ya se ha intentado " + intentos + " veces en una hora: no arranca solo, hay que mirarlo");
       return;
     }
 
+    apuntaElIntento();
     levanta();
     await apunta(false, true, "intento " + (intentos + 1) + " de " + MAX_INTENTOS);
   } finally {
@@ -196,7 +306,9 @@ function levanta() {
      * La poda. Son 288 latidos al día y pasado un mes no dicen nada; sin esto
      * seria otra tabla que crece sola y que hay que limpiar a mano algun dia.
      */
-    await c.query("DELETE FROM moveadvisor_latidos_n8n WHERE momento < now() - interval '30 days'");
-    await c.end();
+    if (c) {
+      await c.query("DELETE FROM moveadvisor_latidos_n8n WHERE momento < now() - interval '30 days'");
+      await c.end();
+    }
   }
 })().catch((e) => { console.error("ERROR:", e.message); process.exit(1); });

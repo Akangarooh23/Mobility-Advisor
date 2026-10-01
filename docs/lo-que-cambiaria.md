@@ -3273,6 +3273,70 @@ repositorio y nunca he commiteado ahí.
 
 ---
 
+## Zona 28 — Capa 5: los tres arreglos de auth, ejecutados ✔
+
+Verifiqué con pruebas los tres cambios de §10 y nunca los había ejecutado. Después de
+lo de §26 —romper la tasación y enterarme un día después— no me parecía razonable
+dejarlo así. Arranqué la API con `AUTH_PROVIDER=local`, que escribe en un JSON y no en
+la base, con copia de seguridad de los dos ficheros antes y restaurados después.
+
+### ✅ 28.1 — Cambiar la contraseña echa a los demás, y no a ti
+
+El recorrido, con dos tarros de cookies distintos para simular dos dispositivos:
+
+```
+1) alta                                 ok  · sesión creada
+2) login desde un segundo dispositivo    ok
+3) ¿las dos vivas?        dispositivo 1: DENTRO   dispositivo 2: DENTRO
+4) cambio la contraseña desde el 1       ok
+5) ¿y ahora?              dispositivo 1: DENTRO   dispositivo 2: FUERA
+```
+
+Es exactamente lo que tenía que pasar, y lo que importa es el paso 5 completo: el
+dispositivo 2 queda fuera **y el 1 sigue dentro**. Esa segunda mitad es la que depende
+del orden —el borrado antes de crear la sesión nueva— y es la que habría convertido el
+arreglo en un bloqueo de la propia cuenta si lo hubiera puesto al revés. La prueba
+comprobaba el orden leyendo el fuente; esto lo comprueba ejecutándolo.
+
+### ✅ 28.2 — Y el reloj ya no dice qué correos existen, aunque no del todo
+
+Nueve intentos de cada caso, medianas, contra el servidor de verdad:
+
+| | Mediana | |
+|---|---:|---|
+| Cuenta que **existe**, contraseña mala | **130,7 ms** | HTTP 401 |
+| Cuenta que **no existe** | **119,1 ms** | HTTP 401 |
+| | **11,6 ms de diferencia** | |
+
+Antes del arreglo la diferencia era el coste entero de `scrypt`: **46 ms medidos**. Eso
+ha desaparecido, que era el 80 % de la señal.
+
+**Pero no digo que esté cerrado.** Quedan 11,6 ms, y no son ruido: son la búsqueda del
+usuario, que para una cuenta que existe devuelve una fila y para una que no, nada. Con
+suficientes muestras eso sigue siendo medible. Cerrarlo del todo significaría igualar
+también la búsqueda, y eso ya es más caro que el problema — pero el problema no está
+en cero, está en un quinto de lo que estaba.
+
+### Lo que no se puede comprobar así, y lo digo en vez de fingirlo
+
+El tercer arreglo de §10 —el freno del alta— **no se ejecuta en este recorrido**, y no
+por casualidad:
+
+```js
+const frenoAlta = usePostgres ? getPgPool() : null;
+```
+
+Con `AUTH_PROVIDER=local` no hay pool, y `FRENO.pide` devuelve `{ paso: true }` cuando
+no se lo dan. Así que en local **no hay freno ninguno**, por diseño: el freno cuenta en
+la base para que valga entre instancias de Vercel.
+
+Lo correcto sería probarlo contra una base de pruebas. No la hay, y montarla pasa por
+decidir si el ERP y la web comparten base (§B9), así que queda apuntado y no probado.
+Lo que sí está probado es que el límite existe en `LIMITES` y que la llamada está antes
+del 409, por las pruebas de §10.
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

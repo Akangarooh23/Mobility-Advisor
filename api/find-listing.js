@@ -4063,6 +4063,8 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       let rankedInventory = inventoryRelevant.slice(0, 20);
       let broadLocationInventoryPool = [];
       let filterInsight = null;
+      // Si al final salen de otra provincia, el aviso lo dice y no lo pisa nadie.
+      let sonDeOtraProvincia = false;
       let inventorySourceUsed = inventory?.source || "unknown";
       let inventoryUniverseUsed = Number(inventory?.totalUniverse || 0);
 
@@ -4371,6 +4373,49 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
       }
 
       /*
+       * ── Y si aun asi no queda NINGUNA, las de al lado ──────────────────────
+       *
+       * Una pantalla en blanco es la peor respuesta posible: el cliente ha
+       * contestado veinte preguntas y no se lleva nada, ni siquiera algo que
+       * mirar. Y pasa de verdad: visto en produccion el 1 de octubre de 2026
+       * con un diesel en Madrid por debajo de 10.000 EUR, la respuesta era
+       *
+       *     "listings": [], "filterInsight": "No hay ninguna oferta que cumpla
+       *      lo que pediste: las que hay estan en otra provincia."
+       *
+       * El mensaje era correcto y aun asi inutil: el cliente se queda mirando
+       * una caja vacia.
+       *
+       * ## Por que se relaja la PROVINCIA y no otra cosa
+       *
+       * Porque es el unico criterio que el cliente puede querer estirar. Un
+       * coche a ochenta kilometros se puede ir a ver; uno que cuesta el doble
+       * de lo que tiene, no, y uno con 200.000 km mas tampoco. El precio y los
+       * kilometros son lo que ha dicho que NO quiere, y eso no se toca.
+       *
+       * Y se dice. `filterInsight` explica que estan en otra provincia, asi
+       * que nadie cree que le estamos ensenando coches de su ciudad. Ensenar
+       * algo util diciendo lo que es vale mas que no ensenar nada.
+       */
+      if (rankedInventory.length === 0 && loQueNoSeNegocia.provinciaFormas) {
+        const deAlLado = loQueDeVerdadCumple(lasQueLlegaron, {
+          ...loQueNoSeNegocia,
+          provinciaFormas: null,
+        }).cumplen;
+
+        if (deAlLado.length) {
+          console.warn(
+            "[find-listing] sin ofertas en la provincia pedida: salen "
+            + deAlLado.length + " de otras, dichas como tales"
+          );
+          rankedInventory = deAlLado.slice(0, 20);
+          sonDeOtraProvincia = true;
+          filterInsight = "No hay ninguna oferta en la provincia que pediste."
+            + " Estas son las que mejor encajan en el resto de cosas, aunque estan en otra.";
+        }
+      }
+
+      /*
        * Y lo último: se mira la ficha de las que van a salir.
        *
        * El dato de daños solo está en la ficha de cada anuncio, y enriquecer
@@ -4398,7 +4443,17 @@ async function findListing({ result, answers: respuestasDelTest, filters }) {
         rankedInventory = trasLaFicha.cumplen;
       }
 
-      if (colado.descartadas > 0 && rankedInventory.length < TOP_LISTINGS_LIMIT) {
+      /*
+       * El aviso de «son de otra provincia» manda sobre el recuento general.
+       *
+       * Si no, lo pisaba justo despues: `loQueSeLeDice` cuenta los descartes
+       * del colador y escribe su propia frase, y el cliente leia por que se
+       * habian caido unas ofertas en vez de leer lo unico que necesita saber,
+       * que las que esta viendo no son de su provincia.
+       */
+      if (sonDeOtraProvincia) {
+        // Ya se le ha dicho lo que hace falta.
+      } else if (colado.descartadas > 0 && rankedInventory.length < TOP_LISTINGS_LIMIT) {
         filterInsight = loQueSeLeDice(rankedInventory.length, colado.descartes) || filterInsight;
       } else if (rankedInventory.length >= TOP_LISTINGS_LIMIT) {
         /*

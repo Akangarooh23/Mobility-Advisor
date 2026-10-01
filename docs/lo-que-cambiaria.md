@@ -3183,6 +3183,96 @@ solo ejecutar demuestra que la cosa funciona.
 
 ---
 
+## Zona 27 — El ERP, ejecutado: una suite en rojo que nadie ve ✔ revisada
+
+Después de §26 le hice al ERP lo mismo: comprobar que lo que debería protegerlo está
+funcionando. Y la respuesta es que sí existe y nadie lo mira.
+
+### ✅ 27.1 — Su protección por tipos es buena, y mejor que un lint
+
+El ERP es TypeScript y lo tiene bien puesto:
+
+- `tsconfig.base.json` con **`strict: true`**, heredado por la API y por la web.
+- `apps/api` con **`noEmitOnError: true`**: si hay un error de tipos, no se construye.
+- Y compila limpio: lancé `tsc --noEmit` sobre los dos y **salen con código 0**.
+
+O sea que el fallo de §26 —un identificador que no existe— aquí es **imposible por
+diseño**: TypeScript no compila. Eso es mejor que el lint que acabo de poner en
+Mobility, porque no hay que acordarse de activar una regla.
+
+### 🟠 27.2 — Pero la suite está en rojo, y el ERP no tiene CI
+
+Lancé `npm test` por primera vez:
+
+```
+ℹ tests 2783
+ℹ pass 2782
+ℹ fail 1
+```
+
+**2.783 pruebas, una roja.** Y no hay `.github/workflows` en el repositorio: ni un
+CI, ni una comprobación automática. Así que su `tsc`, sus 2.783 pruebas y sus 20
+guiones `comprueba-*` **solo corren cuando alguien se acuerda**, y la roja lleva ahí
+sin que nadie lo sepa.
+
+Es la sexta vez hoy que aparece la misma forma: §11.1 (el CI de Mobility no corría
+2.624 pruebas), §16.3 (una tarea podía desaparecer sin que nada gritara), §17.4 (nada
+comprueba las cabeceras), §15.2 (nadie lee los latidos), §13.1 (nadie reexporta los
+flujos). **La ausencia no hace ruido.**
+
+### 🟠 27.3 — Y la que está roja es justo el guardia de §19.1
+
+La prueba se llama `las-tablas-del-taller-son-gemelas.test.ts`, y su cabecera explica
+exactamente el riesgo que apunté en §19.1 sin conocerla:
+
+> *«Las reservas las escribe PopCar y los cierres el ERP, sobre las mismas dos tablas
+> de la misma base. Cada repositorio las crea con su `CREATE TABLE IF NOT EXISTS`: la
+> que arranca primero crea, y la otra no hace nada. […] Un `IF NOT EXISTS` no avisa de
+> que la tabla que ya estaba no es la que él iba a crear.»*
+
+Compara las dos declaraciones leyendo `../Mobility-Advisor/lib/huecos-del-taller.js`.
+**Y ese fichero ya no declara nada.** Lo dice su propio comentario, aquí:
+
+> *«Aquí vivía `ASEGURA`, el `CREATE TABLE IF NOT EXISTS` de las dos tablas del taller
+> —`moveadvisor_workshop_reservations` y `moveadvisor_workshop_blocks`—, que se
+> ejecutaba en cada reserva y en cada bloqueo.»*
+
+Se movió a `migrations/0013-lo-que-solo-existia-si-alguien-pasaba-por-ahi.sql`, que es
+**lo correcto** y es lo que exige `el-esquema-tiene-un-dueno.test.js`.
+
+Así que: **el guardia se rompió porque el otro repositorio mejoró**. Compara 8
+columnas del ERP contra una lista vacía, falla, y con él se perdió en silencio la
+única comprobación que vigilaba que las dos declaraciones digan lo mismo.
+
+**Lo comprobé a mano, que es lo que el guardia debería hacer**, contra la migración
+0013 en vez de contra el fichero viejo:
+
+| Tabla | ERP | `migrations/` | Diferencias |
+|---|---:|---:|---|
+| `moveadvisor_workshop_reservations` | 8 columnas | 8 | **ninguna** |
+| `moveadvisor_workshop_blocks` | 7 columnas | 7 | **ninguna** |
+
+En la segunda salió una «diferencia» —`hora text, -- nulo = el día entero`— y era mi
+limpiador de comentarios, que no quita los que van después de una coma en la misma
+línea. Sexta vez hoy que mi herramienta da un falso positivo.
+
+O sea que **están de acuerdo hoy**, igual que las columnas de §19.2. El problema es
+que ya nada lo comprueba.
+
+**El arreglo es un camino**: que la prueba lea `../Mobility-Advisor/migrations/` en vez
+de `lib/huecos-del-taller.js`. Con eso el guardia vuelve a funcionar y vuelve a
+proteger de lo que §19.1 describe. No lo he hecho yo porque es un cambio en el otro
+repositorio y nunca he commiteado ahí.
+
+### Lo que esto añade al plan
+
+| | Qué | Dónde |
+|---|---|---|
+| A14 | Apuntar la prueba de las tablas gemelas a `migrations/` del otro repositorio | §27.3 |
+| C6 | **Un CI para el ERP**: `tsc`, `npm test` y los `comprueba-*`. El de Mobility sirve de plantilla | §27.2 |
+
+---
+
 ## Lo que queda, y de qué tamaño
 
 Contado, no de memoria. Este repositorio tiene **170.166 líneas** de código sin

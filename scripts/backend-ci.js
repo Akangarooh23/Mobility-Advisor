@@ -39,12 +39,14 @@ try {
   });
   runScript("test:auth-security-local");
 
-  if (isEnabled(process.env.RUN_MOBILITY_BACKEND_TESTS)) {
-    runScript("test:mobility-backend-local");
-    console.log("[backend-ci] OK: marca, auth, seguridad y movilidad verificados.");
-  } else {
-    console.log("[backend-ci] OK: marca, auth y seguridad verificados. Movilidad SQL omitida por RUN_MOBILITY_BACKEND_TESTS!=true.");
-  }
+  /*
+   * Aquí había una rama más, tras `RUN_MOBILITY_BACKEND_TESTS`, que lanzaba
+   * `test:mobility-backend-local`. Esa prueba consultaba tablas
+   * `dbo.MoveAdvisorUser…` por `sqlcmd` y su mensaje de éxito era «OK: endpoints
+   * persisted data in SQL Server without fallback». No podía pasar, y la variable
+   * que la activaba estaba en `false` en el único sitio que la ponía.
+   */
+  console.log("[backend-ci] OK: marca, auth y seguridad verificados.");
 } catch (error) {
   console.error("[backend-ci] FAIL:", error?.message || error);
   process.exit(1);

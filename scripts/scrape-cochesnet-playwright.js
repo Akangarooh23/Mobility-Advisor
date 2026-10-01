@@ -627,13 +627,12 @@ async function main() {
     console.log(`[cochesnet-playwright] output=${args.output}`);
     console.log(`[cochesnet-playwright] validOffers=${offers.length} blocked=${blocked} invalid=${invalid} errors=${errors}`);
 
-    if (args.persistSqlServer) {
-      console.log("[cochesnet-playwright] syncing to SQL Server...");
-      execFileSync("node", [path.join(ROOT, "scripts", "sync-inventory-sqlserver.js"), args.output], {
-        cwd: ROOT,
-        stdio: "inherit",
-      });
-    }
+    /*
+     * Aquí había un `--persist-sqlserver` que llamaba a
+     * `scripts/sync-inventory-sqlserver.js`. Los dos se han ido: SQL Server no
+     * existe en ninguna parte y `sqlcmd` tampoco. Lo rascado se queda en
+     * `args.output` y de ahí lo recoge quien tenga que recogerlo.
+     */
   } finally {
     await context.close();
   }

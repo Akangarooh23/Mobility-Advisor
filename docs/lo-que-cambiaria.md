@@ -4512,9 +4512,13 @@ cronometrar una. El `work_mem` de la base son **4 MB** —el valor por defecto�
 
 ### Cuánto se ha revisado, en porcentaje y por capas
 
-Un solo porcentaje engañaría: leer mil líneas de autenticación no es lo mismo que
-leer mil de estilos. Van cuatro capas, de la más engañosa a la más útil, y solo la
-primera es una estimación.
+Un solo porcentaje engañaría: leer mil líneas de autenticación no es lo mismo que leer
+mil de estilos. Van **cinco** capas, de la más engañosa a la más útil, y solo la primera
+es una estimación.
+
+La quinta se añadió el 1 de octubre, y no por completar la lista: es la que encontró que
+cualquier filtro de la búsqueda devolvía un 500 en producción (§34.1), después de que las
+cuatro primeras estuvieran al 100 % y no lo vieran.
 
 Denominadores con el mismo filtro en los dos: código `.js .jsx .mjs .ts .tsx .sql`,
 sin ficheros de prueba.
@@ -4605,6 +4609,49 @@ entera los tres endpoints se convirtieron en 103.
 El 1 de octubre se cerraron cinco de una tirada: §29 efectos sin limpieza, §30
 dependencias que mienten, §31 fugas en las respuestas, §32 validación y tamaños, y §33
 accesibilidad. Las cinco en los dos repositorios.
+
+#### Capa 5 — arrancar y recorrer: ≈ 25 % de la API y 0 % del navegador
+
+La capa que encontró el fallo más grave de toda la revisión, y la que estaba al 10 %
+cuando la 4 estaba al 100 %.
+
+**El denominador son los caminos que hace una persona**, no los ficheros. Nueve:
+
+| Camino | Recorrido |
+|---|---|
+| Buscar un coche: listado, los 12 filtros, facetas, ficha | **✔ entero**, por la API |
+| Pedir una visita | **◐ a medias**: lecturas y caminos de error sí; **no se creó ninguna reserva** |
+| Tasar mi coche | **◐ a medias**: el precio de mercado sí (§35); el pago y el informe, no |
+| Pagar la fianza o la tasación | **◐ solo la puerta**: se comprobó que exige sesión (§34.4) y nada más |
+| Darse de alta y entrar | ✗ |
+| Reservar taller | ✗ |
+| El panel del cliente | ✗ |
+| Vender: el informe de venta | ✗ |
+| El ERP, entero | ✗ |
+
+Uno entero, tres a medias, cinco sin empezar: **≈ 25 %**.
+
+**Y cero por ciento del navegador.** Todo lo de hoy se hizo con `curl` contra la API.
+No se ha pintado una pantalla ni una vez, así que nada de lo que falla *al mirarlo* —un
+texto cortado, un botón que no responde, una rueda que no para, el orden del tabulador
+que cambié con los `aria-label`— está comprobado. Las 1.821 pruebas de `lib/` y las 942
+del front son otra cosa: prueban piezas, no la pantalla.
+
+#### Por qué cinco caminos están sin empezar, y no es pereza
+
+Tres de los cinco **escriben en la base de producción**, porque el servidor local lee
+`.env.local` y ahí está la buena: darse de alta crea un usuario de verdad, reservar
+crea una reserva de verdad y manda un correo de verdad. Y la clave de Stripe de
+`.env.local` es **de producción**: una sesión de pago sería un objeto real en la cuenta.
+
+Eso no es una excusa, es la siguiente tarea: **hacen falta credenciales de prueba**
+—una base de desarrollo y las claves `sk_test_` de Stripe— para poder recorrer el alta,
+el pago y la reserva sin ensuciar nada. Mientras no las haya, de esos tres caminos solo
+se pueden ejercitar las validaciones, que es lo que se hizo con el pago.
+
+El ERP es otra cosa: ahí lo que falta es **levantarlo**. Su `test:rutas` y cinco guiones
+más piden la API en el puerto 4000 y dan `ECONNREFUSED`, así que ni su propia puerta de
+pruebas se pasa entera hoy (§30.4).
 
 ### Y por qué la capa 1 no va a llegar al 100 %
 

@@ -204,6 +204,16 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
   });
 
   const aDomicilio = cita.modalidad === "a_domicilio";
+  /*
+   * Y si ya pasó.
+   *
+   * Hasta ahora la caja decía «Confirmada · lunes 5 a las 12:00» tres días
+   * después del lunes 5. Quien la lee no sabe si se le olvidó ir, si fuimos,
+   * o si estamos esperando algo suyo. No se cambia a «hecha» -que pase la
+   * hora no prueba que nadie viera el coche-: se dice lo que de verdad pasa,
+   * que es que falta apuntar el resultado.
+   */
+  const yaFue = cuando.getTime() < Date.now();
 
   return (
     <div style={{
@@ -231,13 +241,16 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
         */}
       <div style={{
         display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em",
-        textTransform: "uppercase", color: "#047857", background: "rgba(5,150,105,0.14)",
+        textTransform: "uppercase", color: yaFue ? "#92400e" : "#047857",
+        background: yaFue ? "rgba(180,83,9,0.12)" : "rgba(5,150,105,0.14)",
         borderRadius: 6, padding: "2px 7px", marginBottom: 6,
       }}>
-        Confirmada
+        {yaFue ? "Ya pasó" : "Confirmada"}
       </div>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: isDark ? "var(--gris-100)" : "#1f2937", marginBottom: 4 }}>
-        {aDomicilio ? "Un perito va a ver tu coche" : "Tu coche tiene cita en el taller"}
+        {yaFue
+          ? (aDomicilio ? "Ya hemos visto tu coche" : "Tu coche ya ha pasado la revisión")
+          : (aDomicilio ? "Un perito va a ver tu coche" : "Tu coche tiene cita en el taller")}
       </div>
       <div style={{ fontSize: 13, color: isDark ? "var(--gris-200)" : "#374151", lineHeight: 1.5 }}>
         <strong>{aDomicilio ? (cita.perito || "Un perito nuestro") : cita.taller}</strong>
@@ -245,9 +258,11 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
         <br />{dia} a las {hora}
       </div>
       <div style={{ fontSize: 12, color: isDark ? "var(--gris-400)" : "#6b7280", marginTop: 6, lineHeight: 1.45 }}>
-        {aDomicilio
-          ? "Es la revisión que nos permite anunciarlo como comprobado. No tienes que moverlo, pero sí estar tú o alguien con las llaves."
-          : "Es la revisión mecánica que nos permite anunciarlo como comprobado. Solo hay que acercarlo."}
+        {yaFue
+          ? "Estamos apuntando el resultado. En cuanto esté, preparamos tu anuncio y te avisamos."
+          : aDomicilio
+            ? "Es la revisión que nos permite anunciarlo como comprobado. No tienes que moverlo, pero sí estar tú o alguien con las llaves."
+            : "Es la revisión mecánica que nos permite anunciarlo como comprobado. Solo hay que acercarlo."}
       </div>
 
       {/*
@@ -257,7 +272,14 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
         * en nuestra pantalla, nadie la movía y el día señalado el coche no
         * aparecía. Decírnoslo tenía que ser más fácil que no decirlo.
         */}
-      {yaPidio ? (
+      {/*
+        * Pasada la cita no se ofrece moverla ni anularla.
+        *
+        * «No puedo ese día» sobre un día que ya fue no es una petición, es
+        * una confusión: lo que sea que pasara ya pasó, y lo que falta es
+        * nuestro.
+        */}
+      {yaFue ? null : yaPidio ? (
         <div style={{ fontSize: 12.5, fontWeight: 600, color: isDark ? "var(--gris-200)" : "#374151", marginTop: 10, lineHeight: 1.45 }}>
           {yaPidio === "cancelar"
             ? "Nos has pedido que la anulemos. Te llamamos para buscar otro momento."

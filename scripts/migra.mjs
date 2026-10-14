@@ -39,7 +39,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import pg from "pg";
-import { lasSentencias, vaSinTransaccion } from "../lib/las-sentencias-de-una-migracion.js";
+import { lasSentencias, vaSinTransaccion, sinElPooler } from "../lib/las-sentencias-de-una-migracion.js";
 
 /**
  * Una sentencia en una línea, para decir por cuál va.
@@ -68,11 +68,37 @@ function delEntorno(nombre) {
   return l.length ? l[l.length - 1].slice(nombre.length + 1).trim().replace(/^["']|["']$/g, "") : "";
 }
 
-const cadena = delEntorno("DATABASE_URL") || delEntorno("POSTGRES_URL");
-if (!cadena) {
+const cadenaDelEntorno = delEntorno("DATABASE_URL") || delEntorno("POSTGRES_URL");
+if (!cadenaDelEntorno) {
   console.error("Falta DATABASE_URL.");
   process.exit(1);
 }
+
+/**
+ * Las migraciones NO pasan por el pooler, y esto costó un índice de mentira.
+ *
+ * La aplicación se conecta al punto `-pooler` de Neon, que es un PgBouncer en
+ * modo transacción: reparte las consultas entre sesiones compartidas. Para una
+ * web es justo lo que hace falta, y para `CREATE INDEX CONCURRENTLY` es veneno.
+ *
+ * Ese índice se construye en **varias transacciones de la misma sesión**,
+ * esperando entre ellas a que terminen las que estaban abiertas. Con el pooler
+ * cada transacción puede caer en una sesión distinta, así que el proceso no
+ * llega a completarse. Lo peor no es que falle: es **cómo** falla. Postgres
+ * contesta que sí, deja el índice marcado como inválido —existiendo, vacío y
+ * sin usarse— y la orden vuelve en 200 ms.
+ *
+ * Pasó el 14-oct-2026 con la 0024: salió un `✓` con «(203 ms)» en una
+ * migración que construye un índice sobre 2,6 millones de filas. Y como la
+ * segunda sentencia tiraba el índice viejo, la tabla se quedó sin ninguno de
+ * los dos. Un fallo que se anuncia como éxito es peor que uno que revienta.
+ *
+ * Quitando `-pooler` se va al punto directo, que es una sesión de verdad. Una
+ * migración son cuatro consultas en treinta segundos: el pooler no aporta nada
+ * aquí, y se lleva por delante lo único que necesita una sesión entera.
+ */
+const cadena = sinElPooler(cadenaDelEntorno);
+const porElDirecto = cadena !== cadenaDelEntorno;
 
 const huellaDe = (texto) => crypto.createHash("sha256").update(texto).digest("hex").slice(0, 16);
 
@@ -85,6 +111,9 @@ const LA_CUENTA = `
   )`;
 
 async function main() {
+  // Que se vea por dónde va: si alguien se extraña de un índice que tarda,
+  // lo primero que hay que saber es si fue por el pooler o por el directo.
+  if (porElDirecto) console.log("Conectando por el punto directo (sin pooler), que es lo que piden las migraciones.");
   const pool = new pg.Pool({ connectionString: cadena });
   await pool.query(LA_CUENTA);
 
@@ -176,6 +205,30 @@ async function main() {
       } else {
         await cliente.query(p.texto);
       }
+      /*
+       * Y antes de apuntarla, comprobar que de verdad está.
+       *
+       * Un `CREATE INDEX CONCURRENTLY` que no llega a terminar **no da error**:
+       * deja el índice marcado como inválido y contesta que sí. Si eso se
+       * apunta como aplicada, la migración no vuelve a intentarse nunca y la
+       * tabla se queda con un índice que existe, está vacío y no usa nadie.
+       *
+       * Así que un `✓` tiene que significar que está. Se mira después de cada
+       * migración sin transacción, que son las únicas que pueden dejarlo así.
+       */
+      if (aSolas) {
+        const { rows: malos } = await cliente.query(
+          `SELECT indexrelid::regclass::text AS nombre
+             FROM pg_index WHERE NOT indisvalid`
+        );
+        if (malos.length) {
+          throw new Error(
+            `el índice ha quedado INVÁLIDO: ${malos.map((m) => m.nombre).join(", ")}. ` +
+            "Postgres dijo que sí pero no llegó a construirlo"
+          );
+        }
+      }
+
       const tardo = Date.now() - empezo;
       await cliente.query(
         "INSERT INTO migraciones_aplicadas (nombre, huella, tardo_ms) VALUES ($1, $2, $3)",

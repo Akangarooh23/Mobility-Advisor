@@ -380,7 +380,7 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
  * del panel antes de esa llamada es la peor manera de enterarse. Lo que dice
  * esta caja es que la revisión está hecha y que le llamamos.
  */
-function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta = 0 }) {
+function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta = 0, precio = null }) {
   /*
    * Con cosas por traer, lo único que se enseña es la elección.
    *
@@ -410,8 +410,36 @@ function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta
     detalle = "A partir de aquí las llamadas entran por nosotros: filtramos y solo te pasamos las visitas que valen la pena.";
     enlace = estado.anuncio_url || "";
   } else if (estado.taller_hecho && estado.taller_ok) {
-    titulo = "Revisión del taller hecha";
-    detalle = "Ya está todo comprobado. Estamos preparando tu anuncio y te avisamos en cuanto salga.";
+    /*
+     * Pasada la revisión, lo siguiente es el precio y no el anuncio.
+     *
+     * Aquí ponía «Ya está todo comprobado, estamos preparando tu anuncio» y
+     * dejó de ser verdad: entre la revisión y el anuncio está el papel del
+     * precio de salida, que firma él. Decirle que estamos en ello cuando lo
+     * que falta es suyo es la forma de que no lo haga.
+     *
+     * Tres momentos, y solo el del medio le pide algo.
+     */
+    if (!precio) {
+      // Todavía no se lo hemos mandado. No tiene nada que hacer, pero hay que
+      // decirlo: un silencio justo después de la revisión se lee como que se
+      // nos ha olvidado, y es cuando más pendiente está.
+      titulo = "Revisión del taller hecha";
+      detalle = "Ya está todo comprobado. Ahora te mandamos el precio de salida para que lo aceptes, y publicamos tu anuncio.";
+    } else if (!precio.aceptada) {
+      /*
+       * Mandado y sin firmar: aquí no se dice nada, y es a propósito.
+       *
+       * Esa fila ya está en la lista de arriba, con el importe y el botón
+       * para subirlo. Repetirla aquí son dos mensajes para una cosa, y
+       * obliga a decidir cuál es el bueno — es lo mismo que ya se hace con
+       * el mandato.
+       */
+      return null;
+    } else {
+      titulo = "Ya está todo";
+      detalle = "Precio aceptado y coche comprobado. Estamos preparando tu anuncio y te avisamos en cuanto salga.";
+    }
   } else if (estado.taller_hecho) {
     // El taller cerró la puerta. Aquí no se dice más: se dice que llamamos.
     titulo = "Revisión del taller hecha";
@@ -890,6 +918,7 @@ export default function LoQueTeFaltaDelEncargo({
           peritacion={peritacion}
           vehicleId={vehicleId}
           leFalta={faltan}
+          precio={precio}
         />
       )}
     </>

@@ -176,6 +176,19 @@ describe("la cita del taller", () => {
     cliente_pidio: "",
   };
 
+  /*
+   * La misma cita, pero por llegar. Y con una fecha que se calcula, no escrita.
+   *
+   * Una cita fija caduca sola: la de arriba era del 18 de septiembre y estas
+   * dos pruebas se pusieron rojas al llegar octubre, cuando se añadió que
+   * pasada la hora no se ofrece ni mover ni anular —sobre un día que ya fue,
+   * «no puedo ese día» no es una petición, es una confusión—.
+   *
+   * La fecha de arriba se queda como está porque la usa la prueba del formato,
+   * que sí necesita un día concreto para comprobar que pone «16:30».
+   */
+  const CITA_FUTURA = { ...CITA, cita_at: new Date(Date.now() + 7 * 86400000).toISOString() };
+
   test("dice dónde, cuándo y a qué hora", () => {
     render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
     expect(screen.getByText(/Norauto Alcobendas/)).toBeInTheDocument();
@@ -207,7 +220,7 @@ describe("la cita del taller", () => {
   test("y puede decir que no puede ir", () => {
     // Sin esto, el que no podía ir simplemente no iba: la cita seguía en pie en
     // nuestra pantalla y el día señalado el coche no aparecía.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA_FUTURA} vehicleId="v1" />);
     expect(screen.getByRole("button", { name: /No puedo ese día/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Anular la cita/i })).toBeInTheDocument();
   });
@@ -217,7 +230,7 @@ describe("la cita del taller", () => {
      * Viene del servidor. Sin esto, el que pide el cambio y vuelve mañana ve los
      * botones como si no hubiera dicho nada y lo pide otra vez.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={{ ...CITA, cliente_pidio: "cambio" }} vehicleId="v1" />);
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={{ ...CITA_FUTURA, cliente_pidio: "cambio" }} vehicleId="v1" />);
     expect(screen.getByText(/Nos has pedido cambiarla/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /No puedo ese día/i })).not.toBeInTheDocument();
   });
@@ -250,10 +263,15 @@ describe("por dónde va el encargo", () => {
     expect(screen.getByRole("button", { name: /Lo llevo a un taller/i })).toBeInTheDocument();
   });
 
-  test("con la revisión hecha, que ya está comprobado", () => {
+  test("con la revisión hecha, que lo siguiente es el precio", () => {
+    /*
+     * Esto decía «estamos preparando tu anuncio» y dejó de ser verdad: entre
+     * la revisión y el anuncio está el papel del precio de salida, que firma
+     * él. Los tres momentos están probados abajo, en su propio bloque.
+     */
     pinta({ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false });
     expect(screen.getByText(/Revisión del taller hecha/i)).toBeInTheDocument();
-    expect(screen.getByText(/preparando tu anuncio/i)).toBeInTheDocument();
+    expect(screen.getByText(/te mandamos el precio de salida/i)).toBeInTheDocument();
   });
 
   test("si el taller cerró la puerta, no se le cuenta aquí: se le llama", () => {
@@ -345,5 +363,43 @@ describe("el precio de salida, como paso", () => {
      */
     render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={null} />);
     expect(screen.queryByText("El precio de salida")).not.toBeInTheDocument();
+  });
+});
+
+describe("después de la revisión, lo siguiente es el precio", () => {
+  /*
+   * Esta caja decía «Ya está todo comprobado, estamos preparando tu anuncio»
+   * en cuanto la revisión salía bien. Dejó de ser verdad cuando el precio de
+   * salida entró en medio: entre la revisión y el anuncio hay un papel que
+   * firma él.
+   *
+   * Y es el peor momento para equivocarse. Le estábamos diciendo que el
+   * trabajo era nuestro justo cuando era suyo, y encima convivía con la fila
+   * de la lista que sí se lo pedía: dos mensajes, y gana el que menos trabajo
+   * da.
+   */
+  const HECHA = { taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false };
+
+  test("sin mandárselo todavía, se le dice que viene", () => {
+    // No tiene nada que hacer, pero el silencio justo después de la revisión
+    // se lee como que se nos ha olvidado, y es cuando más pendiente está.
+    render(<LoQueTeFaltaDelEncargo estado={HECHA} />);
+    expect(screen.getByText(/te mandamos el precio de salida/i)).toBeInTheDocument();
+    expect(screen.queryByText(/preparando tu anuncio/i)).not.toBeInTheDocument();
+  });
+
+  test("mandado y sin firmar, esta caja se calla", () => {
+    /*
+     * La fila con el importe y el botón ya está en la lista de arriba.
+     * Repetirlo aquí obliga a decidir cuál de los dos es el bueno.
+     */
+    render(<LoQueTeFaltaDelEncargo estado={HECHA} precio={{ encargo_id: "enc-1", aceptada: false, importe: "13.500 €" }} />);
+    expect(screen.queryByText(/Revisión del taller hecha/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/preparando tu anuncio/i)).not.toBeInTheDocument();
+  });
+
+  test("y firmado, entonces sí: ya está todo", () => {
+    render(<LoQueTeFaltaDelEncargo estado={HECHA} precio={{ encargo_id: "enc-1", aceptada: true, importe: "13.500 €" }} />);
+    expect(screen.getByText(/Precio aceptado y coche comprobado/i)).toBeInTheDocument();
   });
 });

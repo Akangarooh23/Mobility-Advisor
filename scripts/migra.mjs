@@ -22,6 +22,12 @@
  * El precio es que ésas no tienen vuelta atrás: si una falla, puede quedar un
  * índice inválido y hay que tirarlo a mano. El error lo explica cuando pasa.
  *
+ * Y a ésas se les mandan **las sentencias de una en una**, porque Postgres
+ * envuelve en una transacción implícita todo lo que llega en un mismo envío:
+ * saltarse el BEGIN no basta si el fichero tiene dos. Ver
+ * `lib/las-sentencias-de-una-migracion.js`, que es quien sabe dónde acaba
+ * cada una.
+ *
  * Los ficheros viven en `migrations/`, se llaman `NNNN-lo-que-hace.sql` y se
  * aplican por orden de nombre. El 0001 es la foto de lo que ya había.
  *
@@ -33,6 +39,22 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import pg from "pg";
+import { lasSentencias, vaSinTransaccion } from "../lib/las-sentencias-de-una-migracion.js";
+
+/**
+ * Una sentencia en una línea, para decir por cuál va.
+ *
+ * Sin los comentarios, que es lo que ocupa: la cabecera de una migración
+ * nuestra son veinte líneas de explicación y una de SQL.
+ */
+function enUnaLinea(sentencia) {
+  const limpia = sentencia
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/--[^\n]*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return limpia.length > 72 ? limpia.slice(0, 69) + "..." : limpia;
+}
 
 const RAIZ = path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), "..");
 const CARPETA = path.join(RAIZ, "migrations");
@@ -124,29 +146,36 @@ async function main() {
      * es la tabla del buscador. Así que lo que se cambia es esto y no la
      * migración.
      */
-    /*
-     * Sin los comentarios, y eso no es un detalle.
-     *
-     * Esto miraba el fichero entero, así que una migración que **mencionaba**
-     * `CONCURRENTLY` en un comentario se aplicaba fuera de transacción sin
-     * necesitarlo. Pasó con la 0020: su comentario dice «con tráfico habría que
-     * usar CONCURRENTLY» y el detector lo leyó como si lo usara.
-     *
-     * No reventó nada —eran siete `CREATE INDEX IF NOT EXISTS` sobre tablas
-     * vacías, repetibles— pero perder la transacción es perder la vuelta atrás:
-     * si la cuarta falla, las tres primeras se quedan hechas. Eso se paga solo
-     * cuando Postgres lo exige, no cuando alguien escribe una palabra.
-     *
-     * Se quitan los comentarios de línea y los de bloque antes de buscar.
-     */
-    const sinComentarios = p.texto
-      .replace(/\/\*[\s\S]*?\*\//g, " ")
-      .replace(/--[^\n]*/g, " ");
-    const aSolas = /\bCONCURRENTLY\b/i.test(sinComentarios);
+    const aSolas = vaSinTransaccion(p.texto);
 
     try {
       if (!aSolas) await cliente.query("BEGIN");
-      await cliente.query(p.texto);
+
+      if (aSolas) {
+        /*
+         * De una en una, y ésta es la parte que costó un error desconcertante.
+         *
+         * Postgres mete **varias sentencias de un mismo envío en una
+         * transacción implícita**, aunque nadie escriba BEGIN. Así que una
+         * migración con dos CONCURRENTLY fallaba con «cannot run inside a
+         * transaction block» en un fichero donde no hay ninguna transacción, y
+         * mandaba a buscar el BEGIN que no existe. Pasó con la 0024, que crea
+         * el índice nuevo y tira el viejo.
+         *
+         * Mandadas una a una no hay envoltorio que valga. Y de paso se puede
+         * ir diciendo por cuál va: un índice sobre millones de filas tarda
+         * minutos, y una pantalla callada no se distingue de una colgada.
+         */
+        const sentencias = lasSentencias(p.texto);
+        for (let n = 0; n < sentencias.length; n += 1) {
+          if (sentencias.length > 1) {
+            console.log(`     ${n + 1}/${sentencias.length}  ${enUnaLinea(sentencias[n])}`);
+          }
+          await cliente.query(sentencias[n]);
+        }
+      } else {
+        await cliente.query(p.texto);
+      }
       const tardo = Date.now() - empezo;
       await cliente.query(
         "INSERT INTO migraciones_aplicadas (nombre, huella, tardo_ms) VALUES ($1, $2, $3)",
@@ -166,8 +195,11 @@ async function main() {
          * inválido para siempre, en silencio. Hay que tirarlo a mano.
          */
         console.error(
-          "\n  Esa migración va SIN transacción, porque lleva CONCURRENTLY.\n" +
-          "  Puede haber quedado un índice inválido. Míralo con:\n\n" +
+          "\n  Esa migración va SIN transacción, porque lleva CONCURRENTLY, y\n" +
+          "  sus sentencias se mandan de una en una. Así que **las de antes de\n" +
+          "  la que ha fallado se han aplicado** y no se deshacen solas: mira\n" +
+          "  arriba por cuál iba.\n\n" +
+          "  Y puede haber quedado un índice inválido. Míralo con:\n\n" +
           "    SELECT indexrelid::regclass FROM pg_index WHERE NOT indisvalid;\n\n" +
           "  Y si sale alguno, tíralo antes de volver a intentarlo:\n\n" +
           "    DROP INDEX CONCURRENTLY <el que salga>;\n\n" +

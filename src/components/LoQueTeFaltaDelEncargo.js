@@ -386,9 +386,31 @@ function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta
    *
    * Las demás fases cuentan lo que pasa después de la peritación y todavía no
    * ha pasado nada: enseñarlas sería contarle un futuro.
+   *
+   * **Salvo que la peritación ya vaya**, y esto no es un detalle: lo que
+   * cuenta `leFalta` son las puertas sin cerrar, y el precio de salida es una
+   * de ellas — pero va DESPUÉS de la peritación, no antes. Sin esta
+   * excepción, en cuanto se le mandaba el precio volvía a salirle «Falta la
+   * peritación. Elige cómo prefieres» con sus dos botones, sobre un coche que
+   * ya había visto el perito. Y esos botones no son decorativos: pulsarlos
+   * pide otra visita.
+   *
+   * Que la cita cuente igual que la revisión hecha es a propósito: con cita
+   * puesta tampoco hay nada que elegir.
    */
+  const laPeritacionYaVa = Boolean(estado && (estado.taller_hecho || estado.tiene_cita));
   if (leFalta > 0) {
-    return <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />;
+    /*
+     * Y si ya va, aquí no se dice nada en vez de ofrecerle elegir.
+     *
+     * Con cosas suyas por traer no se le cuenta el futuro —eso es lo de
+     * arriba—, pero ofrecerle elegir una peritación que ya tiene hecha es
+     * peor que callarse: esos botones piden otra visita. Lo que le falta ya
+     * se lo está diciendo la lista, línea a línea.
+     */
+    return laPeritacionYaVa
+      ? null
+      : <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />;
   }
   if (!estado) return null;
 
@@ -711,6 +733,43 @@ export default function LoQueTeFaltaDelEncargo({
     : suyas;
 
   /*
+   * La peritación, entre lo suyo y el precio.
+   *
+   * Vivía solo en su recuadro verde de abajo, así que la lista contaba «6 de
+   * 6» y debajo quedaba un paso entero sin contar. El que mira la lista para
+   * saber por dónde va no veía ni que existía, y cuando se hacía no quedaba
+   * rastro: el recuadro cuenta el momento, no el camino.
+   *
+   * Va aquí por orden de verdad: después de traer sus cosas —sin coche y sin
+   * papeles no hay nada que peritar— y antes del precio, que se fija con lo
+   * que diga.
+   *
+   * Y cuenta para publicar, igual que las demás: sin ella el anuncio no puede
+   * prometer que el coche está comprobado.
+   */
+  const conPeritacion = estado
+    ? [...conMandato, {
+      clave: 'peritacion',
+      nombre: 'La peritación',
+      abierta: Boolean(estado.taller_hecho && estado.taller_ok),
+      /*
+       * Lo que falta, según en qué punto esté. El que la tiene hecha no lee
+       * esta línea —la fila sale en verde—, así que aquí solo caben los tres
+       * momentos en los que de verdad falta algo.
+       *
+       * El rechazo no se cuenta aquí: eso se habla por teléfono, y enterarse
+       * por una línea del panel antes de esa llamada es la peor manera.
+       */
+      falta: estado.taller_hecho
+        ? 'Te llamamos para contarte el resultado.'
+        : estado.tiene_cita
+          ? 'Ya tienes día. Lo tienes justo debajo con la dirección y la hora.'
+          : 'Es la revisión que nos permite anunciarlo como comprobado. Elige abajo cómo prefieres hacerla.',
+      donde: null,
+    }]
+    : conMandato;
+
+  /*
    * Y el precio de salida, la última.
    *
    * Va al final porque va de verdad al final: el precio se fija con lo que diga
@@ -727,7 +786,7 @@ export default function LoQueTeFaltaDelEncargo({
    * no lo que le pedimos.
    */
   const todas = precio
-    ? [...conMandato, {
+    ? [...conPeritacion, {
       clave: 'precio',
       nombre: 'El precio de salida',
       abierta: Boolean(precio.aceptada),
@@ -740,7 +799,7 @@ export default function LoQueTeFaltaDelEncargo({
       ruta: '/api/clausula-precio',
       textoDelBoton: 'Subir el precio firmado',
     }]
-    : conMandato;
+    : conPeritacion;
 
   const hayPuertas = todas.length > 0;
   /*
@@ -754,6 +813,22 @@ export default function LoQueTeFaltaDelEncargo({
   const obligatorias = todas.filter((p) => !p.opcional);
   const faltan = obligatorias.filter((p) => !p.abierta).length;
   const hechas = obligatorias.length - faltan;
+
+  /*
+   * Y lo que le falta **antes** de la peritación, que no es lo mismo.
+   *
+   * El contador de arriba cuenta todo lo que queda, el precio incluido, y eso
+   * está bien: es lo que le falta para que se publique. Pero la caja de
+   * «por dónde va» usaba ese mismo número para decidir si el coche ya está
+   * listo para el taller, y el precio de salida **va después** de la
+   * peritación, no antes.
+   *
+   * Con el precio dentro de la cuenta, en cuanto se le mandaba el papel el
+   * panel volvía a tratar el encargo como si no hubiera traído nada: le
+   * ofrecía elegir una peritación que ya estaba hecha. Antes de que existiera
+   * el precio esto no se podía dar, porque todo lo que contaba iba antes.
+   */
+  const faltanAntesDelPrecio = obligatorias.filter((p) => !p.abierta && p.clave !== 'precio').length;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
   const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
@@ -917,7 +992,7 @@ export default function LoQueTeFaltaDelEncargo({
           isDark={isDark}
           peritacion={peritacion}
           vehicleId={vehicleId}
-          leFalta={faltan}
+          leFalta={faltanAntesDelPrecio}
           precio={precio}
         />
       )}

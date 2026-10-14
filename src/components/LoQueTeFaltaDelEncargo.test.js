@@ -403,3 +403,105 @@ describe("después de la revisión, lo siguiente es el precio", () => {
     expect(screen.getByText(/Precio aceptado y coche comprobado/i)).toBeInTheDocument();
   });
 });
+
+describe("con la peritación hecha no se vuelve a ofrecer elegirla", () => {
+  /*
+   * Pasó con el primer encargo real: al mandarle el precio de salida, el panel
+   * volvió a enseñar «Falta la peritación. Elige cómo prefieres» con sus dos
+   * botones, sobre un coche que ya había visto el perito.
+   *
+   * La causa es que la caja se escondía «si falta algo», y el precio de salida
+   * es algo que falta — pero va DESPUÉS de la peritación, no antes. Antes del
+   * precio esa cuenta no podía llegar aquí nunca, así que el fallo estaba
+   * escrito desde el principio y no se podía dar.
+   *
+   * Y no es cosmético: esos botones piden otra visita.
+   */
+  const CON_PRECIO = { encargo_id: "enc-1", aceptada: false, importe: "4.000 €" };
+
+  test("ni aunque falte el precio por firmar", () => {
+    render(<LoQueTeFaltaDelEncargo
+      estado={{ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false }}
+      precio={CON_PRECIO} />);
+    expect(screen.queryByRole("button", { name: /Que venga un perito/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Lo llevo a un taller/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Falta la peritación/i)).not.toBeInTheDocument();
+  });
+
+  test("ni con la cita puesta y cosas por traer", () => {
+    // Con cita tampoco hay nada que elegir: elegir otra vez cambiaría la que
+    // ya tiene sin querer.
+    render(<LoQueTeFaltaDelEncargo
+      puertas={PUERTAS}
+      estado={{ taller_hecho: false, taller_ok: false, tiene_cita: true, publicado: false }} />);
+    expect(screen.queryByRole("button", { name: /Que venga un perito/i })).not.toBeInTheDocument();
+  });
+
+  test("pero sin peritación y con cosas por traer, sí se le ofrece", () => {
+    // Es el caso para el que se escribió: mientras reúne papeles, lo único
+    // que se le enseña es la elección.
+    render(<LoQueTeFaltaDelEncargo
+      puertas={PUERTAS}
+      estado={{ taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false }} />);
+    expect(screen.getByRole("button", { name: /Que venga un perito/i })).toBeInTheDocument();
+  });
+});
+
+describe("la peritación es una fila más de la lista", () => {
+  /*
+   * Vivía solo en su recuadro verde de abajo, así que la lista decía «6 de 6»
+   * y debajo quedaba un paso entero sin contar. El que mira la lista para
+   * saber por dónde va no veía que existiera, y una vez hecha no quedaba
+   * rastro de ella: el recuadro cuenta el momento, no el camino.
+   */
+  const ENCARGO = { taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false };
+
+  test("sale aunque no esté hecha, y dice qué es", () => {
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} estado={ENCARGO} />);
+    expect(screen.getByText("La peritación")).toBeInTheDocument();
+  });
+
+  test("hecha, cuenta como hecha", () => {
+    render(<LoQueTeFaltaDelEncargo
+      puertas={PUERTAS}
+      estado={{ ...ENCARGO, taller_hecho: true, taller_ok: true }} />);
+    expect(screen.getByText("La peritación")).toBeInTheDocument();
+    // Su línea de «lo que falta» no se enseña cuando está abierta.
+    expect(screen.queryByText(/Elige abajo cómo prefieres/i)).not.toBeInTheDocument();
+  });
+
+  test("y va antes que el precio, no después", () => {
+    /*
+     * Es el orden de verdad: el precio se fija con lo que diga la peritación
+     * —un coche «con reparos» no vale lo mismo que uno limpio—. Al revés, la
+     * lista contaría una historia que no es la que pasa.
+     */
+    render(<LoQueTeFaltaDelEncargo
+      puertas={PUERTAS}
+      estado={{ ...ENCARGO, taller_hecho: true, taller_ok: true }}
+      precio={{ encargo_id: "enc-1", aceptada: false, importe: "4.000 €" }} />);
+    const texto = document.body.textContent ?? "";
+    expect(texto.indexOf("La peritación")).toBeGreaterThan(-1);
+    expect(texto.indexOf("El precio de salida")).toBeGreaterThan(texto.indexOf("La peritación"));
+  });
+
+  test("si el taller lo tumbó, no se da por hecha ni se cuenta el porqué", () => {
+    /*
+     * Eso se habla por teléfono: es lo único de todo esto que se resuelve
+     * hablando, y enterarse por una línea del panel antes de esa llamada es
+     * la peor manera de enterarse.
+     */
+    render(<LoQueTeFaltaDelEncargo
+      puertas={PUERTAS}
+      estado={{ ...ENCARGO, taller_hecho: true, taller_ok: false }} />);
+    expect(screen.getByText(/Te llamamos para contarte el resultado/i)).toBeInTheDocument();
+    expect(screen.queryByText(/no se puede vender/i)).not.toBeInTheDocument();
+  });
+
+  test("sin encargo todavía, no sale", () => {
+    // Antes de encargarnos la venta no hay peritación que esperar, y una fila
+    // que no puede tocar convierte la lista en un cartel.
+    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} />);
+    expect(screen.queryByText("La peritación")).not.toBeInTheDocument();
+  });
+});

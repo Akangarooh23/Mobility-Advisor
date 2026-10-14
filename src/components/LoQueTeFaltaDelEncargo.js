@@ -366,120 +366,33 @@ function LaCitaDelTaller({ cita, vehicleId, isDark }) {
 }
 
 /**
- * Por dónde va su encargo cuando ya lo ha traído todo.
+ * Por dónde va su encargo, tal como lo cuenta el servidor.
  *
- * Con las ocho puertas hechas, la pantalla decía «ya está todo, nos ponemos con
- * la venta» y ahí se acababa. Por dentro el coche va al taller, se prepara el
- * anuncio y se publica; para él no se movía nada en días, y el que no ve moverse
- * nada llama a preguntar — y la llamada se gasta en leerle un estado.
+ * Esto decidía aquí qué momento era y qué decir, y la app decidía lo mismo por
+ * su cuenta. Ahora llega hecho —`fase`— y aquí solo queda pintarlo, más la
+ * única cosa que no es un texto: la elección de la peritación, que es un
+ * formulario y vive en esta pantalla.
  *
- * ## El resultado del taller no se cuenta aquí
- *
- * Si el taller dijo que así no se puede vender, eso se habla por teléfono: es la
- * única de las seis puertas que se resuelve hablando, y enterarse por una línea
- * del panel antes de esa llamada es la peor manera de enterarse. Lo que dice
- * esta caja es que la revisión está hecha y que le llamamos.
+ * `fase` en `null` también es una decisión del servidor, y hay tres razones
+ * para ella: que le falten cosas suyas por traer, que la cita esté puesta —se
+ * cuenta entera en su propia caja, justo encima— o que el precio esté mandado
+ * y sin firmar, porque esa línea ya está en la lista con su importe y su
+ * botón. Repetirla obliga a elegir cuál de las dos vale.
  */
-function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta = 0, precio = null }) {
-  /*
-   * Con cosas por traer, lo único que se enseña es la elección.
-   *
-   * Las demás fases cuentan lo que pasa después de la peritación y todavía no
-   * ha pasado nada: enseñarlas sería contarle un futuro.
-   *
-   * **Salvo que la peritación ya vaya**, y esto no es un detalle: lo que
-   * cuenta `leFalta` son las puertas sin cerrar, y el precio de salida es una
-   * de ellas — pero va DESPUÉS de la peritación, no antes. Sin esta
-   * excepción, en cuanto se le mandaba el precio volvía a salirle «Falta la
-   * peritación. Elige cómo prefieres» con sus dos botones, sobre un coche que
-   * ya había visto el perito. Y esos botones no son decorativos: pulsarlos
-   * pide otra visita.
-   *
-   * Que la cita cuente igual que la revisión hecha es a propósito: con cita
-   * puesta tampoco hay nada que elegir.
-   */
-  const laPeritacionYaVa = Boolean(estado && (estado.taller_hecho || estado.tiene_cita));
-  if (leFalta > 0) {
+function PorDondeVa({ fase = null, puedeElegirPeritacion = false, isDark, peritacion = null, vehicleId = "", leFalta = 0 }) {
+  if (!fase) {
     /*
-     * Y si ya va, aquí no se dice nada en vez de ofrecerle elegir.
-     *
-     * Con cosas suyas por traer no se le cuenta el futuro —eso es lo de
-     * arriba—, pero ofrecerle elegir una peritación que ya tiene hecha es
-     * peor que callarse: esos botones piden otra visita. Lo que le falta ya
-     * se lo está diciendo la lista, línea a línea.
+     * Sin fase, lo único que puede salir es la elección — y solo si el
+     * servidor dice que se puede elegir. Con cita puesta o con la revisión
+     * hecha no se ofrece: esos botones piden otra visita.
      */
-    return laPeritacionYaVa
-      ? null
-      : <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />;
+    return puedeElegirPeritacion
+      ? <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />
+      : null;
   }
-  if (!estado) return null;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
   const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
-
-  /*
-   * Los cuatro momentos, en orden y excluyentes.
-   *
-   * Uno solo cada vez: dos líneas de estado obligan a decidir cuál es la buena,
-   * y la que sobra siempre es la que está desactualizada.
-   */
-  let titulo = "";
-  let detalle = "";
-  let enlace = "";
-
-  if (estado.publicado) {
-    titulo = "Tu coche ya está anunciado";
-    detalle = "A partir de aquí las llamadas entran por nosotros: filtramos y solo te pasamos las visitas que valen la pena.";
-    enlace = estado.anuncio_url || "";
-  } else if (estado.taller_hecho && estado.taller_ok) {
-    /*
-     * Pasada la revisión, lo siguiente es el precio y no el anuncio.
-     *
-     * Aquí ponía «Ya está todo comprobado, estamos preparando tu anuncio» y
-     * dejó de ser verdad: entre la revisión y el anuncio está el papel del
-     * precio de salida, que firma él. Decirle que estamos en ello cuando lo
-     * que falta es suyo es la forma de que no lo haga.
-     *
-     * Tres momentos, y solo el del medio le pide algo.
-     */
-    if (!precio) {
-      // Todavía no se lo hemos mandado. No tiene nada que hacer, pero hay que
-      // decirlo: un silencio justo después de la revisión se lee como que se
-      // nos ha olvidado, y es cuando más pendiente está.
-      titulo = "Revisión del taller hecha";
-      detalle = "Ya está todo comprobado. Ahora te mandamos el precio de salida para que lo aceptes, y publicamos tu anuncio.";
-    } else if (!precio.aceptada) {
-      /*
-       * Mandado y sin firmar: aquí no se dice nada, y es a propósito.
-       *
-       * Esa fila ya está en la lista de arriba, con el importe y el botón
-       * para subirlo. Repetirla aquí son dos mensajes para una cosa, y
-       * obliga a decidir cuál es el bueno — es lo mismo que ya se hace con
-       * el mandato.
-       */
-      return null;
-    } else {
-      titulo = "Ya está todo";
-      detalle = "Precio aceptado y coche comprobado. Estamos preparando tu anuncio y te avisamos en cuanto salga.";
-    }
-  } else if (estado.taller_hecho) {
-    // El taller cerró la puerta. Aquí no se dice más: se dice que llamamos.
-    titulo = "Revisión del taller hecha";
-    detalle = "Te llamamos para contarte el resultado.";
-  } else if (estado.tiene_cita) {
-    // La cita se enseña entera en su propia caja, justo encima de esta.
-    return null;
-  } else {
-    /*
-     * Antes de la cita, lo elige él.
-     *
-     * Esto decía «buscándole cita en el taller» y ahí se acababa: el que no
-     * puede mover el coche -sin seguro al día, en el pueblo, trabajando a las
-     * horas del taller- no tenía dónde decirlo, y se enteraba cuando le
-     * llamábamos para darle una cita a la que no podía ir.
-     */
-    return <EligeLaPeritacion peritacion={peritacion} vehicleId={vehicleId} isDark={isDark} leFalta={leFalta} />;
-  }
 
   return (
     <div style={{
@@ -488,11 +401,11 @@ function PorDondeVa({ estado, isDark, peritacion = null, vehicleId = "", leFalta
       padding: "12px 14px", marginBottom: 8,
     }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: textoFuerte, marginBottom: 4 }}>
-        {titulo}
+        {fase.titulo}
       </div>
-      <div style={{ fontSize: 12, color: textoFlojo, lineHeight: 1.45 }}>{detalle}</div>
-      {enlace && (
-        <a href={enlace} style={{
+      <div style={{ fontSize: 12, color: textoFlojo, lineHeight: 1.45 }}>{fase.detalle}</div>
+      {fase.a && (
+        <a href={fase.a} style={{
           display: "inline-block", marginTop: 8, fontSize: 12.5, fontWeight: 700,
           color: isDark ? "#34d399" : "#047857", textDecoration: "none",
         }}>
@@ -703,132 +616,41 @@ function paraElSelector(iso) {
   );
 }
 
+/**
+ * Lo que le falta para que podamos vender su coche.
+ *
+ * **Los pasos ya vienen montados del servidor.** Antes se armaban aquí —el
+ * mandato, la peritación, el precio, el orden y los textos— y la app los
+ * armaba otra vez por su cuenta, en otro repositorio y otro lenguaje. Dos
+ * copias no se mantienen iguales: el 14-oct-2026 el mismo texto se arregló en
+ * la app a las 18:55 y aquí a las 19:40, y la peritación entró en una lista y
+ * no en la otra.
+ *
+ * Lo que sigue siendo de aquí es **cómo se pinta**: la fila con su aspa, el
+ * botón de subir dentro de la fila, el recuadro de la cita. Cada paso trae una
+ * `accion` que dice qué se puede hacer —firmar, elegir peritación—, no qué
+ * botón dibujar; la app lo mismo, y cada una lo resuelve como le toca.
+ *
+ * Ver `lib/los-pasos-del-encargo.js`, que es donde se decide.
+ */
 export default function LoQueTeFaltaDelEncargo({
-  puertas = [], mandato = null, taller = null, estado = null, precio = null,
-  peritacion = null, vehicleId = "", isDark = false,
+  pasos = [], cuenta = null, fase = null,
+  taller = null, estado = null, peritacion = null, vehicleId = "", isDark = false,
 }) {
-  const suyas = Array.isArray(puertas) ? puertas : [];
-  if (suyas.length === 0 && !mandato && !taller && !estado && !precio) return null;
-
-  /*
-   * El mandato es una fila más, y la primera.
-   *
-   * Estaba en un recuadro aparte encima de la lista, y entonces el contador
-   * decía «te quedan 4 cosas» cuando le quedaban cinco — y la que no contaba
-   * era la más importante: sin el mandato firmado no podemos vender por él ni
-   * cobrarle nada.
-   *
-   * Va delante porque es lo primero del camino: se le manda nada más hablar
-   * con él, antes de que traiga papeles ni fotos.
-   */
-  const conMandato = mandato
-    ? [{
-      clave: 'mandato',
-      nombre: 'El mandato firmado',
-      abierta: Boolean(mandato.firmado),
-      falta: `Te lo mandamos por correo (${mandato.mandato_id}). Fírmalo y súbelo aquí.`,
-      donde: null,
-      mandato,
-    }, ...suyas]
-    : suyas;
-
-  /*
-   * La peritación, entre lo suyo y el precio.
-   *
-   * Vivía solo en su recuadro verde de abajo, así que la lista contaba «6 de
-   * 6» y debajo quedaba un paso entero sin contar. El que mira la lista para
-   * saber por dónde va no veía ni que existía, y cuando se hacía no quedaba
-   * rastro: el recuadro cuenta el momento, no el camino.
-   *
-   * Va aquí por orden de verdad: después de traer sus cosas —sin coche y sin
-   * papeles no hay nada que peritar— y antes del precio, que se fija con lo
-   * que diga.
-   *
-   * Y cuenta para publicar, igual que las demás: sin ella el anuncio no puede
-   * prometer que el coche está comprobado.
-   */
-  const conPeritacion = estado
-    ? [...conMandato, {
-      clave: 'peritacion',
-      nombre: 'La peritación',
-      abierta: Boolean(estado.taller_hecho && estado.taller_ok),
-      /*
-       * Lo que falta, según en qué punto esté. El que la tiene hecha no lee
-       * esta línea —la fila sale en verde—, así que aquí solo caben los tres
-       * momentos en los que de verdad falta algo.
-       *
-       * El rechazo no se cuenta aquí: eso se habla por teléfono, y enterarse
-       * por una línea del panel antes de esa llamada es la peor manera.
-       */
-      falta: estado.taller_hecho
-        ? 'Te llamamos para contarte el resultado.'
-        : estado.tiene_cita
-          ? 'Ya tienes día. Lo tienes justo debajo con la dirección y la hora.'
-          : 'Es la revisión que nos permite anunciarlo como comprobado. Elige abajo cómo prefieres hacerla.',
-      donde: null,
-    }]
-    : conMandato;
-
-  /*
-   * Y el precio de salida, la última.
-   *
-   * Va al final porque va de verdad al final: el precio se fija con lo que diga
-   * el taller —un coche «con reparos» no vale lo mismo que uno limpio—, así que
-   * hasta que el coche no ha pasado por allí no hay cifra que aceptar.
-   *
-   * Y por eso **solo aparece cuando toca**. Si estuviera desde el principio, la
-   * lista diría «8 de 9» durante semanas por una fila que él no puede tocar, y
-   * una lista con una casilla imposible deja de leerse como una lista de cosas
-   * que hacer.
-   *
-   * No es papeleo nuestro: firmarlo es lo único que le deja retirar el encargo
-   * sin pagar nada pasados los treinta días. Por eso el texto dice lo que gana,
-   * no lo que le pedimos.
-   */
-  const todas = precio
-    ? [...conPeritacion, {
-      clave: 'precio',
-      nombre: 'El precio de salida',
-      abierta: Boolean(precio.aceptada),
-      falta: precio.importe
-        ? `Te hemos mandado el documento (${precio.importe}). Fírmalo y súbelo aquí: el anuncio sale con este precio, y así puedes retirar el encargo sin pagar nada pasados 30 días desde que lo publiquemos.`
-        : 'Te hemos mandado el documento por correo. Fírmalo y súbelo aquí.',
-      donde: null,
-      // Se sube igual que el mandato, con su ruta y su texto.
-      mandato: { encargo_id: precio.encargo_id, firmado: Boolean(precio.aceptada) },
-      ruta: '/api/clausula-precio',
-      textoDelBoton: 'Subir el precio firmado',
-    }]
-    : conPeritacion;
-
+  const todas = Array.isArray(pasos) ? pasos : [];
+  if (todas.length === 0 && !taller && !estado) return null;
   const hayPuertas = todas.length > 0;
   /*
-   * El contador cuenta lo que de verdad para el anuncio.
+   * El contador también viene hecho, y por la misma razón.
    *
-   * Decía «te quedan 4 cosas para que podamos publicarlo» metiendo dentro el
-   * seguro y el historial de revisiones, que no paran nada: un coche se publica
-   * y se vende sin ellos. Le estábamos diciendo que su coche no salía por una
-   * factura de hace tres años.
+   * Cuenta solo lo que para el anuncio: el seguro y el historial de revisiones
+   * no lo paran -un coche se publica y se vende sin ellos- y contándolos le
+   * decíamos que su coche no salía por una factura de hace tres años. Esa
+   * regla vive junto a los pasos para que la app cuente igual.
    */
-  const obligatorias = todas.filter((p) => !p.opcional);
-  const faltan = obligatorias.filter((p) => !p.abierta).length;
-  const hechas = obligatorias.length - faltan;
-
-  /*
-   * Y lo que le falta **antes** de la peritación, que no es lo mismo.
-   *
-   * El contador de arriba cuenta todo lo que queda, el precio incluido, y eso
-   * está bien: es lo que le falta para que se publique. Pero la caja de
-   * «por dónde va» usaba ese mismo número para decidir si el coche ya está
-   * listo para el taller, y el precio de salida **va después** de la
-   * peritación, no antes.
-   *
-   * Con el precio dentro de la cuenta, en cuanto se le mandaba el papel el
-   * panel volvía a tratar el encargo como si no hubiera traído nada: le
-   * ofrecía elegir una peritación que ya estaba hecha. Antes de que existiera
-   * el precio esto no se podía dar, porque todo lo que contaba iba antes.
-   */
-  const faltanAntesDelPrecio = obligatorias.filter((p) => !p.abierta && p.clave !== 'precio').length;
+  const obligatorias = todas.filter((x) => !x.opcional);
+  const faltan = cuenta ? cuenta.faltan : obligatorias.filter((x) => !x.abierta).length;
+  const hechas = cuenta ? cuenta.hechas : obligatorias.length - faltan;
 
   const textoFuerte = isDark ? "var(--gris-100)" : "#1f2937";
   const textoFlojo = isDark ? "var(--gris-400)" : "#6b7280";
@@ -931,12 +753,12 @@ export default function LoQueTeFaltaDelEncargo({
                   * Es la única de las filas que se hace sin salir del panel —
                   * las demás mandan a subir papeles, a tasar o a poner horas.
                   */}
-                {!p.abierta && p.mandato && (
+                {!p.abierta && p.accion && p.accion.tipo === "firmar" && (
                   <SubirElMandato
-                    mandato={p.mandato}
+                    mandato={{ encargo_id: p.accion.encargo_id, firmado: p.abierta }}
                     isDark={isDark}
-                    ruta={p.ruta || "/api/mandato-firmado"}
-                    texto={p.textoDelBoton || "Subir el mandato firmado"}
+                    ruta={p.accion.cual === "precio" ? "/api/clausula-precio" : "/api/mandato-firmado"}
+                    texto={p.accion.cual === "precio" ? "Subir el precio firmado" : "Subir el mandato firmado"}
                   />
                 )}
               </span>
@@ -988,12 +810,14 @@ export default function LoQueTeFaltaDelEncargo({
         */}
       {(estado || peritacion) && (
         <PorDondeVa
-          estado={estado}
+          fase={fase}
+          puedeElegirPeritacion={todas.some(
+            (x) => x.clave === "peritacion" && x.accion && x.accion.tipo === "elegir_peritacion",
+          )}
           isDark={isDark}
           peritacion={peritacion}
           vehicleId={vehicleId}
-          leFalta={faltanAntesDelPrecio}
-          precio={precio}
+          leFalta={faltan}
         />
       )}
     </>

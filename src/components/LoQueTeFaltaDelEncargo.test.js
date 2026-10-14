@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import LoQueTeFaltaDelEncargo from "./LoQueTeFaltaDelEncargo";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { losPasos, laCuenta, laFase } = require("../../lib/los-pasos-del-encargo.js");
 
 /**
  * Lo que ve el cliente de su encargo.
@@ -22,6 +24,32 @@ const PUERTAS = [
   },
 ];
 
+/**
+ * Pinta el panel como le llega de verdad: con los pasos ya montados.
+ *
+ * Se usa **la misma función que corre en producción** —jest sí puede
+ * requerirla aunque webpack no—, así que el día que cambie la regla de qué
+ * pasos hay o en qué orden, estas pruebas lo ven. Antes el panel armaba la
+ * lista por su cuenta y la app la armaba otra vez: dos copias que se
+ * separaron solas en una tarde.
+ *
+ * Lo que se prueba aquí es **cómo se pinta**. Qué pasos hay y qué dicen se
+ * prueba en `lib/los-pasos-del-encargo.test.js`.
+ */
+function pintaPanel({ puertas = [], mandato = null, estado = null, precio = null, taller = null, ...resto } = {}) {
+  const pasos = losPasos({ puertas, mandato, estado, precio });
+  return render(
+    <LoQueTeFaltaDelEncargo
+      pasos={pasos}
+      cuenta={laCuenta(pasos)}
+      fase={laFase({ estado, precio, cita: taller, pasos })}
+      estado={estado}
+      taller={taller}
+      {...resto}
+    />,
+  );
+}
+
 const enlaceDe = (nombre) =>
   screen.getAllByRole("link").find((a) => a.getAttribute("aria-label")?.startsWith(nombre));
 
@@ -31,14 +59,14 @@ describe("lo que te falta del encargo", () => {
      * Enseñar solo lo que falta convierte cada avance en una lista que se
      * acorta sin decir hacia dónde.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} />);
+    pintaPanel({ puertas: PUERTAS });
     expect(screen.getByText("El coche")).toBeInTheDocument();
     expect(screen.getByText("Los papeles")).toBeInTheDocument();
     expect(screen.getByText("La tasación")).toBeInTheDocument();
   });
 
   test("cada una que falta lleva a donde se hace", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} />);
+    pintaPanel({ puertas: PUERTAS });
     expect(enlaceDe("Los papeles")).toHaveAttribute(
       "href", "/panel/vehiculos?matricula=8888LXR#documentos"
     );
@@ -49,33 +77,33 @@ describe("lo que te falta del encargo", () => {
 
   test("y la que ya está hecha no es un enlace", () => {
     // Un enlace para algo ya hecho invita a volver a hacerlo.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} />);
+    pintaPanel({ puertas: PUERTAS });
     expect(enlaceDe("El coche")).toBeUndefined();
     expect(screen.getAllByRole("link")).toHaveLength(2);
   });
 
   test("dice cuántas le quedan, no solo cuáles", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} />);
+    pintaPanel({ puertas: PUERTAS });
     expect(screen.getByText(/Te quedan 2 cosas/)).toBeInTheDocument();
     expect(screen.getByText("1 de 3 hechas")).toBeInTheDocument();
   });
 
   test("con una sola, se dice en singular", () => {
     const una = PUERTAS.map((p) => (p.clave === "tasacion" ? { ...p, abierta: true, donde: null } : p));
-    render(<LoQueTeFaltaDelEncargo puertas={una} />);
+    pintaPanel({ puertas: una });
     expect(screen.getByText(/Te queda una cosa/)).toBeInTheDocument();
   });
 
   test("con todo hecho lo dice, y no queda ningún enlace", () => {
     const todas = PUERTAS.map((p) => ({ ...p, abierta: true, donde: null }));
-    render(<LoQueTeFaltaDelEncargo puertas={todas} />);
+    pintaPanel({ puertas: todas });
     expect(screen.getByText(/Ya está todo/)).toBeInTheDocument();
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 
   test("sin puertas no se pinta nada", () => {
     // Una solicitud que no es un encargo no tiene por qué enseñar este bloque.
-    const { container } = render(<LoQueTeFaltaDelEncargo puertas={[]} />);
+    const { container } = pintaPanel({ puertas: [] });
     expect(container).toBeEmptyDOMElement();
   });
 
@@ -86,7 +114,7 @@ describe("lo que te falta del encargo", () => {
      * no tenerlo.
      */
     const sinSitio = [{ clave: "informe", nombre: "El informe", abierta: false, falta: "Sin hacer", donde: null }];
-    render(<LoQueTeFaltaDelEncargo puertas={sinSitio} />);
+    pintaPanel({ puertas: sinSitio });
     expect(screen.getByText("El informe")).toBeInTheDocument();
     expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
@@ -104,7 +132,7 @@ describe("el mandato es una fila más de la lista", () => {
   const FIRMADO = { ...SIN_FIRMAR, firmado: true };
 
   test("sale como una fila, con su botón de subirlo", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    pintaPanel({ puertas: PUERTAS, mandato: SIN_FIRMAR });
     expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
     expect(screen.getByText(/Subir el mandato firmado/)).toBeInTheDocument();
   });
@@ -114,7 +142,7 @@ describe("el mandato es una fila más de la lista", () => {
      * Se le manda nada más hablar con él, antes de que traiga papeles ni fotos.
      * Si fuera la última, la leería como el remate y no como el principio.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    pintaPanel({ puertas: PUERTAS, mandato: SIN_FIRMAR });
     const filas = screen.getAllByText(/El mandato firmado|El coche|Los papeles/);
     expect(filas[0]).toHaveTextContent("El mandato firmado");
   });
@@ -124,39 +152,39 @@ describe("el mandato es una fila más de la lista", () => {
      * En un recuadro aparte, el contador decía «te quedan 4 cosas» con cinco
      * pendientes — y la que no contaba era la que decide si podemos vender.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    pintaPanel({ puertas: PUERTAS, mandato: SIN_FIRMAR });
     expect(screen.getByText(/Te quedan 3 cosas/)).toBeInTheDocument();
     expect(screen.getByText("1 de 4 hechas")).toBeInTheDocument();
   });
 
   test("dice cuál es, por su número", () => {
     // Con dos coches en venta, «tu mandato» no dice cuál.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={SIN_FIRMAR} />);
+    pintaPanel({ puertas: PUERTAS, mandato: SIN_FIRMAR });
     expect(screen.getByText(/PC-MAND-2026-001/)).toBeInTheDocument();
   });
 
   test("firmado sale como hecho y sin botón", () => {
     // Un botón para algo ya hecho invita a volver a hacerlo.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={FIRMADO} />);
+    pintaPanel({ puertas: PUERTAS, mandato: FIRMADO });
     expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
     expect(screen.queryByText(/Subir el mandato firmado/)).not.toBeInTheDocument();
     expect(screen.getByText("2 de 4 hechas")).toBeInTheDocument();
   });
 
   test("sin mandato, la lista es la de siempre", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} mandato={null} />);
+    pintaPanel({ puertas: PUERTAS, mandato: null });
     expect(screen.queryByText("El mandato firmado")).not.toBeInTheDocument();
     expect(screen.getByText("1 de 3 hechas")).toBeInTheDocument();
   });
 
   test("con mandato y sin puertas, se pinta igual", () => {
     // Es quien acaba de recibirlo y todavía no ha dado de alta el coche.
-    render(<LoQueTeFaltaDelEncargo puertas={[]} mandato={SIN_FIRMAR} />);
+    pintaPanel({ puertas: [], mandato: SIN_FIRMAR });
     expect(screen.getByText("El mandato firmado")).toBeInTheDocument();
   });
 
   test("ni puertas ni mandato: no se pinta nada", () => {
-    const { container } = render(<LoQueTeFaltaDelEncargo puertas={[]} mandato={null} />);
+    const { container } = pintaPanel({ puertas: [], mandato: null });
     expect(container).toBeEmptyDOMElement();
   });
 });
@@ -190,7 +218,7 @@ describe("la cita del taller", () => {
   const CITA_FUTURA = { ...CITA, cita_at: new Date(Date.now() + 7 * 86400000).toISOString() };
 
   test("dice dónde, cuándo y a qué hora", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
+    pintaPanel({ puertas: PUERTAS, taller: CITA, vehicleId: "v1" });
     expect(screen.getByText(/Norauto Alcobendas/)).toBeInTheDocument();
     expect(screen.getByText(/Calle de los Calabozos 13/)).toBeInTheDocument();
     expect(screen.getByText(/16:30/)).toBeInTheDocument();
@@ -198,12 +226,12 @@ describe("la cita del taller", () => {
 
   test("sin dirección no se inventa ninguna", () => {
     // Hay talleres que todo el mundo ubica. Lo que no puede salir es un hueco.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={{ ...CITA, direccion: "" }} vehicleId="v1" />);
+    pintaPanel({ puertas: PUERTAS, taller: { ...CITA, direccion: "" }, vehicleId: "v1" });
     expect(screen.getByText(/Norauto Alcobendas/)).toBeInTheDocument();
   });
 
   test("sin cita no sale la caja", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={null} vehicleId="v1" />);
+    pintaPanel({ puertas: PUERTAS, taller: null, vehicleId: "v1" });
     expect(screen.queryByText(/cita en el taller/i)).not.toBeInTheDocument();
   });
 
@@ -213,14 +241,14 @@ describe("la cita del taller", () => {
      * contador diría «te quedan tres cosas» cuando le quedan dos, y una de ellas
      * no sería suya.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA} vehicleId="v1" />);
+    pintaPanel({ puertas: PUERTAS, taller: CITA, vehicleId: "v1" });
     expect(screen.getByText(/2 de 3 hechas|1 de 3 hechas/)).toBeInTheDocument();
   });
 
   test("y puede decir que no puede ir", () => {
     // Sin esto, el que no podía ir simplemente no iba: la cita seguía en pie en
     // nuestra pantalla y el día señalado el coche no aparecía.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={CITA_FUTURA} vehicleId="v1" />);
+    pintaPanel({ puertas: PUERTAS, taller: CITA_FUTURA, vehicleId: "v1" });
     expect(screen.getByRole("button", { name: /No puedo ese día/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Anular la cita/i })).toBeInTheDocument();
   });
@@ -230,7 +258,7 @@ describe("la cita del taller", () => {
      * Viene del servidor. Sin esto, el que pide el cambio y vuelve mañana ve los
      * botones como si no hubiera dicho nada y lo pide otra vez.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} taller={{ ...CITA_FUTURA, cliente_pidio: "cambio" }} vehicleId="v1" />);
+    pintaPanel({ puertas: PUERTAS, taller: { ...CITA_FUTURA, cliente_pidio: "cambio" }, vehicleId: "v1" });
     expect(screen.getByText(/Nos has pedido cambiarla/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /No puedo ese día/i })).not.toBeInTheDocument();
   });
@@ -244,7 +272,7 @@ describe("por dónde va el encargo", () => {
    */
   const HECHAS = PUERTAS.map((p) => ({ ...p, abierta: true }));
   const pinta = (estado, puertas = HECHAS) =>
-    render(<LoQueTeFaltaDelEncargo puertas={puertas} estado={estado} />);
+    pintaPanel({ puertas: puertas, estado: estado });
 
   test("sin cita todavía, se le deja elegir dónde", () => {
     /*
@@ -269,8 +297,14 @@ describe("por dónde va el encargo", () => {
      * la revisión y el anuncio está el papel del precio de salida, que firma
      * él. Los tres momentos están probados abajo, en su propio bloque.
      */
+    /*
+     * «Peritación» y no «Revisión del taller»: el panel decía una cosa y la
+     * app otra, y al juntarlos en el servidor gana el que no miente. Para una
+     * visita a casa del cliente no hay ningún taller, y ésa es ya la mitad de
+     * las que se piden.
+     */
     pinta({ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false });
-    expect(screen.getByText(/Revisión del taller hecha/i)).toBeInTheDocument();
+    expect(screen.getByText(/Peritación hecha/i)).toBeInTheDocument();
     expect(screen.getByText(/te mandamos el precio de salida/i)).toBeInTheDocument();
   });
 
@@ -325,7 +359,7 @@ describe("el precio de salida, como paso", () => {
   const PRECIO = { encargo_id: "enc-1", aceptada: false, importe: "13.500 €" };
 
   test("sale como una fila más, con su importe", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    pintaPanel({ puertas: PUERTAS, precio: PRECIO });
     expect(screen.getByText("El precio de salida")).toBeInTheDocument();
     expect(screen.getByText(/13\.500 €/)).toBeInTheDocument();
   });
@@ -333,24 +367,24 @@ describe("el precio de salida, como paso", () => {
   test("y cuenta en el total, que es el motivo de que sea una fila", () => {
     // En un recuadro aparte, el contador diría «te quedan 2 cosas» cuando le
     // quedan tres, y la que no contaría sería la última.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    pintaPanel({ puertas: PUERTAS, precio: PRECIO });
     expect(screen.getByText(/de 4 hechas/)).toBeInTheDocument();
   });
 
   test("con su botón para subirlo firmado", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    pintaPanel({ puertas: PUERTAS, precio: PRECIO });
     expect(screen.getByText("Subir el precio firmado")).toBeInTheDocument();
   });
 
   test("le dice qué gana firmándolo", () => {
     // Sin eso parece papeleo nuestro, y el papeleo del vendedor se queda sin
     // firmar.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={PRECIO} />);
+    pintaPanel({ puertas: PUERTAS, precio: PRECIO });
     expect(screen.getByText(/sin pagar nada pasados 30 días desde que lo publiquemos/i)).toBeInTheDocument();
   });
 
   test("firmado sale como hecho y sin botón", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={{ ...PRECIO, aceptada: true }} />);
+    pintaPanel({ puertas: PUERTAS, precio: { ...PRECIO, aceptada: true } });
     expect(screen.getByText("El precio de salida")).toBeInTheDocument();
     expect(screen.queryByText("Subir el precio firmado")).not.toBeInTheDocument();
   });
@@ -361,7 +395,7 @@ describe("el precio de salida, como paso", () => {
      * estuviera desde el principio, la lista diría «8 de 9» durante semanas por
      * una casilla que él no puede tocar.
      */
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} precio={null} />);
+    pintaPanel({ puertas: PUERTAS, precio: null });
     expect(screen.queryByText("El precio de salida")).not.toBeInTheDocument();
   });
 });
@@ -383,7 +417,7 @@ describe("después de la revisión, lo siguiente es el precio", () => {
   test("sin mandárselo todavía, se le dice que viene", () => {
     // No tiene nada que hacer, pero el silencio justo después de la revisión
     // se lee como que se nos ha olvidado, y es cuando más pendiente está.
-    render(<LoQueTeFaltaDelEncargo estado={HECHA} />);
+    pintaPanel({ estado: HECHA });
     expect(screen.getByText(/te mandamos el precio de salida/i)).toBeInTheDocument();
     expect(screen.queryByText(/preparando tu anuncio/i)).not.toBeInTheDocument();
   });
@@ -393,13 +427,13 @@ describe("después de la revisión, lo siguiente es el precio", () => {
      * La fila con el importe y el botón ya está en la lista de arriba.
      * Repetirlo aquí obliga a decidir cuál de los dos es el bueno.
      */
-    render(<LoQueTeFaltaDelEncargo estado={HECHA} precio={{ encargo_id: "enc-1", aceptada: false, importe: "13.500 €" }} />);
+    pintaPanel({ estado: HECHA, precio: { encargo_id: "enc-1", aceptada: false, importe: "13.500 €" } });
     expect(screen.queryByText(/Revisión del taller hecha/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/preparando tu anuncio/i)).not.toBeInTheDocument();
   });
 
   test("y firmado, entonces sí: ya está todo", () => {
-    render(<LoQueTeFaltaDelEncargo estado={HECHA} precio={{ encargo_id: "enc-1", aceptada: true, importe: "13.500 €" }} />);
+    pintaPanel({ estado: HECHA, precio: { encargo_id: "enc-1", aceptada: true, importe: "13.500 €" } });
     expect(screen.getByText(/Precio aceptado y coche comprobado/i)).toBeInTheDocument();
   });
 });
@@ -420,9 +454,7 @@ describe("con la peritación hecha no se vuelve a ofrecer elegirla", () => {
   const CON_PRECIO = { encargo_id: "enc-1", aceptada: false, importe: "4.000 €" };
 
   test("ni aunque falte el precio por firmar", () => {
-    render(<LoQueTeFaltaDelEncargo
-      estado={{ taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false }}
-      precio={CON_PRECIO} />);
+    pintaPanel({ estado: { taller_hecho: true, taller_ok: true, tiene_cita: false, publicado: false }, precio: CON_PRECIO });
     expect(screen.queryByRole("button", { name: /Que venga un perito/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Lo llevo a un taller/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/Falta la peritación/i)).not.toBeInTheDocument();
@@ -431,18 +463,14 @@ describe("con la peritación hecha no se vuelve a ofrecer elegirla", () => {
   test("ni con la cita puesta y cosas por traer", () => {
     // Con cita tampoco hay nada que elegir: elegir otra vez cambiaría la que
     // ya tiene sin querer.
-    render(<LoQueTeFaltaDelEncargo
-      puertas={PUERTAS}
-      estado={{ taller_hecho: false, taller_ok: false, tiene_cita: true, publicado: false }} />);
+    pintaPanel({ puertas: PUERTAS, estado: { taller_hecho: false, taller_ok: false, tiene_cita: true, publicado: false } });
     expect(screen.queryByRole("button", { name: /Que venga un perito/i })).not.toBeInTheDocument();
   });
 
   test("pero sin peritación y con cosas por traer, sí se le ofrece", () => {
     // Es el caso para el que se escribió: mientras reúne papeles, lo único
     // que se le enseña es la elección.
-    render(<LoQueTeFaltaDelEncargo
-      puertas={PUERTAS}
-      estado={{ taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false }} />);
+    pintaPanel({ puertas: PUERTAS, estado: { taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false } });
     expect(screen.getByRole("button", { name: /Que venga un perito/i })).toBeInTheDocument();
   });
 });
@@ -457,14 +485,12 @@ describe("la peritación es una fila más de la lista", () => {
   const ENCARGO = { taller_hecho: false, taller_ok: false, tiene_cita: false, publicado: false };
 
   test("sale aunque no esté hecha, y dice qué es", () => {
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} estado={ENCARGO} />);
+    pintaPanel({ puertas: PUERTAS, estado: ENCARGO });
     expect(screen.getByText("La peritación")).toBeInTheDocument();
   });
 
   test("hecha, cuenta como hecha", () => {
-    render(<LoQueTeFaltaDelEncargo
-      puertas={PUERTAS}
-      estado={{ ...ENCARGO, taller_hecho: true, taller_ok: true }} />);
+    pintaPanel({ puertas: PUERTAS, estado: { ...ENCARGO, taller_hecho: true, taller_ok: true } });
     expect(screen.getByText("La peritación")).toBeInTheDocument();
     // Su línea de «lo que falta» no se enseña cuando está abierta.
     expect(screen.queryByText(/Elige abajo cómo prefieres/i)).not.toBeInTheDocument();
@@ -476,10 +502,7 @@ describe("la peritación es una fila más de la lista", () => {
      * —un coche «con reparos» no vale lo mismo que uno limpio—. Al revés, la
      * lista contaría una historia que no es la que pasa.
      */
-    render(<LoQueTeFaltaDelEncargo
-      puertas={PUERTAS}
-      estado={{ ...ENCARGO, taller_hecho: true, taller_ok: true }}
-      precio={{ encargo_id: "enc-1", aceptada: false, importe: "4.000 €" }} />);
+    pintaPanel({ puertas: PUERTAS, estado: { ...ENCARGO, taller_hecho: true, taller_ok: true }, precio: { encargo_id: "enc-1", aceptada: false, importe: "4.000 €" } });
     const texto = document.body.textContent ?? "";
     expect(texto.indexOf("La peritación")).toBeGreaterThan(-1);
     expect(texto.indexOf("El precio de salida")).toBeGreaterThan(texto.indexOf("La peritación"));
@@ -491,9 +514,7 @@ describe("la peritación es una fila más de la lista", () => {
      * hablando, y enterarse por una línea del panel antes de esa llamada es
      * la peor manera de enterarse.
      */
-    render(<LoQueTeFaltaDelEncargo
-      puertas={PUERTAS}
-      estado={{ ...ENCARGO, taller_hecho: true, taller_ok: false }} />);
+    pintaPanel({ puertas: PUERTAS, estado: { ...ENCARGO, taller_hecho: true, taller_ok: false } });
     expect(screen.getByText(/Te llamamos para contarte el resultado/i)).toBeInTheDocument();
     expect(screen.queryByText(/no se puede vender/i)).not.toBeInTheDocument();
   });
@@ -501,7 +522,7 @@ describe("la peritación es una fila más de la lista", () => {
   test("sin encargo todavía, no sale", () => {
     // Antes de encargarnos la venta no hay peritación que esperar, y una fila
     // que no puede tocar convierte la lista en un cartel.
-    render(<LoQueTeFaltaDelEncargo puertas={PUERTAS} />);
+    pintaPanel({ puertas: PUERTAS });
     expect(screen.queryByText("La peritación")).not.toBeInTheDocument();
   });
 });

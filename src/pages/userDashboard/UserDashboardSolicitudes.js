@@ -791,10 +791,14 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                         llamábamos, y la llamada se gastaba en leerle una lista
                         que podía haber leído él. Cada fila que falta lleva a
                         donde se hace. */}
-                    {((Array.isArray(meta.puertas) && meta.puertas.length > 0) || meta.mandato || meta.taller || meta.estado_encargo || meta.precio_de_salida) && (
+                    {((Array.isArray(meta.pasos) && meta.pasos.length > 0) || meta.taller || meta.estado_encargo) && (
                       <LoQueTeFaltaDelEncargo
-                        puertas={meta.puertas || []}
-                        mandato={meta.mandato || null}
+                        /* Los pasos vienen montados del servidor, que es donde
+                           se decide qué hay, en qué estado está y qué dice.
+                           La app lee exactamente esto mismo. */
+                        pasos={meta.pasos || []}
+                        cuenta={meta.cuenta || null}
+                        fase={meta.fase || null}
                         /* La cita del taller, que es lo único de las seis que
                            ponemos nosotros y que él no veía en ninguna parte. */
                         taller={meta.taller || null}
@@ -804,9 +808,6 @@ const CON_CITA = ['visit', 'viewing_seller', 'visita_marketplace'];
                            taller o en su dirección— y cuándo puede. Antes esto
                            no se le preguntaba: se le daba cita y ya. */
                         peritacion={meta.peritacion || null}
-                        /* El precio de salida, que es la última fila y solo
-                           aparece cuando el coche ya ha pasado por el taller. */
-                        precio={meta.precio_de_salida || null}
                         vehicleId={item.vehicle_id || ""}
                         isDark={isDark}
                       />
